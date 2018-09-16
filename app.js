@@ -29,7 +29,7 @@ app.use(bodyParser.urlencoded({extended: false}));
  * Express Routes
  */
 app.get('/', function (req, res) {
-  res.render('index', { title: 'Hey', message: 'Hello there!' })
+  res.render('index', { title: 'Hey', message: 'Welcome to Paul and Barnabas' });
 })
 
 
