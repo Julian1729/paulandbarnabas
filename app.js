@@ -23,14 +23,15 @@ app.set('views', __dirname + '/views');
 /**
  * Middleware
  */
-app.use(bodyParser.urlencoded({extended: false}));
+ // Body Parser
+ app.use(bodyParser.urlencoded({extended: false}));
 
 /**
- * Express Routes
+ * Express Routing
  */
-app.get('/', function (req, res) {
-  res.render('index', { title: 'Hey', message: 'Welcome to Paul and Barnabas' });
-})
+
+ // Index (Login)
+ app.get('/', require('./routes/index') );
 
 
 // Start express server
