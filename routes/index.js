@@ -7,5 +7,4 @@ router.get('/', (req, res, next) => {
   controller.run(req, res, next);
 });
 
-
 module.exports = router;

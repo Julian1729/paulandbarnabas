@@ -1,6 +1,7 @@
 const path = require('path');
 const http = require('http');
 const express = require('express');
+const session = require('express-session');
 const bodyParser = require('body-parser');
 
 
@@ -25,6 +26,8 @@ app.set('views', __dirname + '/views');
  */
  // Body Parser
  app.use(bodyParser.urlencoded({extended: false}));
+ // Session
+ app.use(session({secret: 'julianiscool', saveUninitialized: false, resave: false}));
 
 /**
  * Express Routing
@@ -32,7 +35,6 @@ app.set('views', __dirname + '/views');
 
  // Index (Login)
  app.get('/', require('./routes/index') );
-
 
 // Start express server
 server.listen(config.port, ()=>{

@@ -1,7 +1,9 @@
 _ = require('lodash');
+const constants = require('../config/constants');
 
 module.exports = {
   name: "base",
+  constants,
   extend: function(child){
     return _.extend({}, this, child);
   },
