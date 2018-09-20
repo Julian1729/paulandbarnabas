@@ -35,6 +35,8 @@ app.set('views', __dirname + '/views');
 
  // Index (Login)
  app.get('/', require('./routes/index') );
+ // AJAX Requests
+ app.get('/ajax/:controller', require('./routes/ajax'));
 
 // Start express server
 server.listen(config.port, ()=>{
