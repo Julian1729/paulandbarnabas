@@ -35,6 +35,8 @@ app.set('views', __dirname + '/views');
  // Landing page (Login Page)
  app.use('/', require('./routes/Login') );
 
+ app.use('/', require('./routes/Login') );
+
  // Sign Up
  app.use('/createaccount', require('./routes/CreateAccount'));
 
