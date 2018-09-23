@@ -1,6 +1,6 @@
 const expect = require('expect.js');
 
-const mongoose = require('../models/mongoose');
+const db = require('../models/db');
 const User = require('../models/User');
 const config = require('../config/config')();
 
@@ -15,7 +15,7 @@ describe('Mongo', () => {
     });
 
     it('should connect to database', (done) => {
-      expect(mongoose).to.be.a('object');
+      expect(db).to.be.a('object');
       done();
     });
 
