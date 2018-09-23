@@ -32,11 +32,17 @@ app.set('views', __dirname + '/views');
 /**
  * Express Routing
  */
+ // Landing page
+ app.use('/', require('./routes/index') );
 
- // Index (Login)
- app.get('/', require('./routes/index') );
+ // Login
+ app.use('/login', require('./routes/index'))
+
+ // Sign Up  
+ app.use('/createaccount', require('./routes/CreateAccount'));
+
  // AJAX Requests
- app.get('/ajax/:controller', require('./routes/ajax'));
+ app.use('/ajax/:controller', require('./routes/ajax'));
 
 // Start express server
 server.listen(config.port, ()=>{
