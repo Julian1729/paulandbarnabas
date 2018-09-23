@@ -1,0 +1,12 @@
+extends Base.pug
+
+block content
+  p Landing Page
+  
+  form(action="/", method="POST")
+    input(type="text", name="email")
+    br
+    input(type="password", name="password")
+    br
+    input(type="hidden", name="login")
+    input(type="submit", name="submit")

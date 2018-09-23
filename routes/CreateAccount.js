@@ -1,10 +1,12 @@
 const express = require('express');
-var router = express.Router();
-var controller = require('../controllers/index');
+const router = express.Router();
+const controller = require('../controllers/CreateAccount');
 
+// Signup
 router.get('/', (req, res, next) => {
-  //res.render('index', {message: 'yeet '})
+
   controller.run(req, res, next);
+
 });
 
 module.exports = router;

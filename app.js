@@ -32,13 +32,10 @@ app.set('views', __dirname + '/views');
 /**
  * Express Routing
  */
- // Landing page
- app.use('/', require('./routes/index') );
+ // Landing page (Login Page)
+ app.use('/', require('./routes/Login') );
 
- // Login
- app.use('/login', require('./routes/index'))
-
- // Sign Up  
+ // Sign Up
  app.use('/createaccount', require('./routes/CreateAccount'));
 
  // AJAX Requests
