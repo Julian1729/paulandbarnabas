@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
-    "test": "mocha tests/**/*"
+    "test": "export NODE_ENV=testing && mocha tests/**/*"
   },
   "engines": {
     "node": "9.9.0"

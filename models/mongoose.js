@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
 
+const config = require('../config/config')();
+
 // Add Promise functionality
 mongoose.Promise = global.Promise;
 
-mongoose.connect('mongodb://localhost:27017/PaulAndBarnabas');
+mongoose.connect(`mongodb://${config.mongo.url}:${config.mongo.port}/${config.mongo.db_name}`);
 
 module.exports = mongoose;

@@ -1,13 +1,29 @@
 var config = {
   'development' : {
+    mode: 'development',
     port: 3000,
-    base_url: "http://localhost:3000"
+    base_url: "http://localhost:3000",
+    mongo: {
+      url: 'localhost',
+      port: 27017,
+      db_name: 'PaulAndBarnabas'
+    }
+  },
+  'testing' : {
+    mode: 'testing',
+    port: 3000,
+    base_url: "http://localhost:3000",
+    mongo: {
+      url: 'localhost',
+      port: 27017,
+      db_name: 'PaulAndBarnabasTesting'
+    }
   },
   'production' : {
-    port: null
+    mode: 'production'
   }
 };
 
 module.exports = function(mode){
-  return config[mode || 'development'] || config.development;
+  return config[mode || process.env.NODE_ENV || 'development'];
 }

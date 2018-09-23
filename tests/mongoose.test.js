@@ -1,14 +1,35 @@
 const expect = require('expect.js');
 
 const mongoose = require('../models/mongoose');
+const User = require('../models/User');
+const config = require('../config/config')();
 
 
 describe('Mongo', () => {
 
   describe('Mongoose', () => {
 
-    it('should connect to databas', () => {
+    beforeEach((done) => {
+      // remove all users from db before running test
+      User.deleteMany({}).then(() => done());
+    });
+
+    it('should connect to database', (done) => {
       expect(mongoose).to.be.a('object');
+      done();
+    });
+
+    it('should save a user to test database', (done) => {
+      var me = new User({name: 'Julian Hernandez'});
+      me.save().then((doc) => {
+        expect(doc).to.not.be.empty();
+        expect(doc.db.name).to.be(config.mongo.db_name);
+        done();
+      })
+      .catch((e) => {
+        console.log(e);
+        done();
+      });
     });
 
   });
