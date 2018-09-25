@@ -2,8 +2,14 @@ const expect = require('expect.js');
 
 const db = require('../models/db');
 const User = require('../models/User');
+const Utils = require('../utils/utils');
 
 describe('User Model', () => {
+
+  beforeEach((done) => {
+    // remove all users from db before running test
+    Utils.clearCollection(User).then(() => done()).catch((e) => done(e));
+  });
 
   var userData = {
     first_name: 'Julian',
