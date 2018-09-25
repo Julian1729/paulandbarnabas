@@ -1,3 +1,5 @@
+// OPTIMIZE: Just make these enviornmental variables as oppose to accessing the config file
+// to access a var
 var config = {
   'development' : {
     mode: 'development',

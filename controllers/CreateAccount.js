@@ -1,13 +1,24 @@
 const controllerBase = require('./base');
 
-var run = (req, res, next) => {
 
-  res.send('here');
+/**
+ * GET
+ */
+var land = (req, res, next) => {
+  // show signup landing page
+  res.render('CreateAccount');
+};
+
+/**
+ * POST
+ */
+var register = (req, res, next) => {
 
 };
 
-var controller = controllerBase.extend({
-  run
-});
 
-module.exports = controller;
+
+module.exports = controllerBase.extend({
+  land,
+  register
+});

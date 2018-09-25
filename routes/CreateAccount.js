@@ -5,7 +5,7 @@ const controller = require('../controllers/CreateAccount');
 // Signup
 router.get('/', (req, res, next) => {
 
-  controller.run(req, res, next);
+  controller.land(req, res, next);
 
 });
 

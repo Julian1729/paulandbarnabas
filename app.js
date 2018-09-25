@@ -26,6 +26,7 @@ app.set('views', __dirname + '/views');
  */
  // Body Parser
  app.use(bodyParser.urlencoded({extended: false}));
+ // FIXME: Make session secret an env var
  // Session
  app.use(session({secret: 'julianiscool', saveUninitialized: false, resave: false}));
 
@@ -33,8 +34,6 @@ app.set('views', __dirname + '/views');
  * Express Routing
  */
  // Landing page (Login Page)
- app.use('/', require('./routes/Login') );
-
  app.use('/', require('./routes/Login') );
 
  // Sign Up
