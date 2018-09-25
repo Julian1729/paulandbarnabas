@@ -16,21 +16,21 @@ describe('Mongo', () => {
 
     it('should connect to database', (done) => {
       expect(db).to.be.a('object');
-      done();
+      return done();
     });
 
-    it('should save a user to test database', (done) => {
-      var me = new User({name: 'Julian Hernandez'});
-      me.save().then((doc) => {
-        expect(doc).to.not.be.empty();
-        expect(doc.db.name).to.be(config.mongo.db_name);
-        done();
-      })
-      .catch((e) => {
-        console.log(e);
-        done();
-      });
-    });
+    // it('should save a user to test database', (done) => {
+    //   var me = new User({name: 'Julian Hernandez'});
+    //   me.save().then((doc) => {
+    //     expect(doc).to.not.be.empty();
+    //     expect(doc.db.name).to.be(config.mongo.db_name);
+    //     done();
+    //   })
+    //   .catch((e) => {
+    //     console.log(e);
+    //     done();
+    //   });
+    // });
 
   });
 
