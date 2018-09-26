@@ -1,7 +1,9 @@
 var
   mongoose = require('./db'),
   Schema = mongoose.Schema,
-  uniqueValidator = require('mongoose-unique-validator');
+  uniqueValidator = require('mongoose-unique-validator'),
+  config = require('../config/config')(),
+  bcrypt = require('bcrypt');
 
 /**
  * Schema for holding a user's assignments such as Territory fragments
@@ -47,6 +49,28 @@ var userSchema = new Schema({
 
 // add unique validation plugin
 userSchema.plugin(uniqueValidator);
+
+userSchema.pre('save', function(next){
+
+  var user = this;
+
+  //do not hash password if it hasnt been changed
+  if(!user.isModified('password')) {
+    return next();
+  }
+
+  bcrypt.hash(user.password, config.bcrypt.salt_rounds)
+  .then(function(hashedPassword) {
+      user.password = hashedPassword;
+      next();
+  })
+  .catch(function(err){
+    // set password to null if it could not be hashed
+    user.password = null;
+    return next(err);
+  });
+
+});
 
 var User = mongoose.model('User', userSchema);
 

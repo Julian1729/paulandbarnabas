@@ -9,6 +9,9 @@ var config = {
       url: 'localhost',
       port: 27017,
       db_name: 'PaulAndBarnabas'
+    },
+    bcrypt: {
+      salt_rounds: 10
     }
   },
   'testing' : {
@@ -19,6 +22,9 @@ var config = {
       url: 'localhost',
       port: 27017,
       db_name: 'PaulAndBarnabasTesting'
+    },
+    bcrypt: {
+      salt_rounds: 10
     }
   },
   'production' : {

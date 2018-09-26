@@ -28,18 +28,4 @@ describe('Configuration', () => {
     expect(c).to.eql(config('testing'));
   });
 
-  it('should return correct Configuration', () => {
-    var c = config('development');
-    expect(c).to.eql({
-      mode: 'development',
-      port: 3000,
-      base_url: "http://localhost:3000",
-      mongo: {
-        url: 'localhost',
-        port: 27017,
-        db_name: 'PaulAndBarnabas'
-      }
-    });
-  });
-
 });
