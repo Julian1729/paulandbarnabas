@@ -1,8 +1,8 @@
 const expect = require('expect.js');
 
-const db = require('../models/db');
 const User = require('../models/User');
 const Utils = require('../utils/utils');
+const seed = require('./seed/User');
 
 describe('User Model', () => {
 
@@ -14,24 +14,17 @@ describe('User Model', () => {
     Utils.clearCollection(User).then(() => done()).catch((e) => done(e));
   });
 
-  var userData = {
-    first_name: 'Julian',
-    last_name: 'Hernandez',
-    email: 'hernandez.julian17@gmail.com',
-    title: 'Ministerial Servant',
-    password: 'newpasssword'
-  };
 
   /**
    * Ensure that a User can be saved to the db
    */
   it('should save user to the database', (done) => {
 
-      var user = new User(userData);
+      var user = new User(seed.completeUser);
       user.save().then((doc)=>{
         User.find({}).then((users) => {
           expect(users.length).to.be(1);
-          expect(users[0].first_name).to.eql(userData.first_name);
+          expect(users[0].first_name).to.eql(seed.completeUser.first_name);
           return done();
         });
       }, (e) => {
@@ -45,12 +38,12 @@ describe('User Model', () => {
    */
   it('should hash the users password', (done) => {
 
-    var user = new User(userData);
+    var user = new User(seed.completeUser);
     user.save().then((doc)=>{
       User.find({}).then((users) => {
         expect(users.length).to.be(1);
-        expect(users[0].first_name).to.be(userData.first_name);
-        expect(users[0].password).to.not.eql(userData.password);
+        expect(users[0].first_name).to.be(seed.completeUser.first_name);
+        expect(users[0].password).to.not.eql(seed.completeUser.password);
         return done();
       });
     }, (e) => {
@@ -64,7 +57,7 @@ describe('User Model', () => {
    */
   it('should not re-hash the users password', (done) => {
 
-    var user = new User(userData);
+    var user = new User(seed.completeUser);
     // Inject user into database
     user.save().then((doc)=>{
       expect(doc).to.be.ok();
@@ -95,7 +88,7 @@ describe('User Model', () => {
    */
   it('should re-hash the users password', (done) => {
 
-    var user = new User(userData);
+    var user = new User(seed.completeUser);
     // Inject user into database
     user.save().then((doc)=>{
       expect(doc).to.be.ok();
