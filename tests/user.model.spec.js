@@ -22,6 +22,9 @@ describe('User Model', () => {
     password: 'newpasssword'
   };
 
+  /**
+   * Ensure that a User can be saved to the db
+   */
   it('should save user to the database', (done) => {
 
       var user = new User(userData);
@@ -37,6 +40,9 @@ describe('User Model', () => {
 
   });
 
+  /**
+   * Passwords should be hashed before entering into the database
+   */
   it('should hash the users password', (done) => {
 
     var user = new User(userData);
@@ -53,6 +59,9 @@ describe('User Model', () => {
 
   });
 
+  /**
+   * Ensure that passwords are not rehashed on update if they haven't been changed
+   */
   it('should not re-hash the users password', (done) => {
 
     var user = new User(userData);
@@ -81,6 +90,9 @@ describe('User Model', () => {
 
   });
 
+  /**
+   * Hashing middleware should activate on update after update
+   */
   it('should re-hash the users password', (done) => {
 
     var user = new User(userData);

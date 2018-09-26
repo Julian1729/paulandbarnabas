@@ -47,9 +47,16 @@ var userSchema = new Schema({
   // OPTIMIZE: Implement assignmentsSchema
 });
 
+/**
+ * Plugins
+ */
 // add unique validation plugin
 userSchema.plugin(uniqueValidator);
 
+
+/**
+ * Pre Middleware
+ */
 userSchema.pre('save', function(next){
 
   var user = this;
@@ -72,6 +79,8 @@ userSchema.pre('save', function(next){
 
 });
 
+/**
+ * Export
+ */
 var User = mongoose.model('User', userSchema);
-
 module.exports = User;
