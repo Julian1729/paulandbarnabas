@@ -2,14 +2,35 @@
  * Seed data to save to batabase
  * @type {Object}
  */
-var completeUser = {
+ var completeUser, validUser;
+  completeUser = validUser = {
   first_name: 'Julian',
   last_name: 'Hernandez',
   email: 'hernandez.julian17@gmail.com',
   title: 'Ministerial Servant',
-  password: 'newpasssword'
+  password: 'newpasssword',
+  password_confirm: 'newpasssword'
+};
+
+var incompleteUser = {
+  email: 'hernandez.julian17@gmail.com',
+  title: 'Ministerial Servant',
+  password: 'newpasssword',
+  password_confirm: 'newpasssword'
+};
+
+var passwordUnmatched = {
+  first_name: 'Julian',
+  last_name: 'Hernandez',
+  email: 'hernandez.julian17@gmail.com',
+  title: 'Ministerial Servant',
+  password: 'newpasssword',
+  password_confirm: 'different'
 };
 
 module.exports = {
-  completeUser
+  completeUser,
+  validUser,
+  incompleteUser,
+  passwordUnmatched
 }

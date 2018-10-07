@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
+    "start-watch": "nodemon --exec npm start",
     "test": "export NODE_ENV=testing && mocha tests/*.spec.js"
   },
   "engines": {
@@ -20,7 +21,9 @@
     "lodash": "^4.17.11",
     "mongoose": "^5.2.17",
     "mongoose-unique-validator": "^2.0.2",
-    "pug": "^2.0.3"
+    "pug": "^2.0.3",
+    "validate.js": "^0.12.0",
+    "validator": "^10.8.0"
   },
   "devDependencies": {
     "expect.js": "^0.3.1",

@@ -1,6 +1,6 @@
 const expect = require('expect.js');
 
-//const db = require('../models/db');
+const Users = require('./seed/User');
 const User = require('../models/User');
 const Utils = require('../utils/utils');
 
@@ -16,6 +16,42 @@ describe('Utils', () => {
         done(e);
       });
     });
+
+  });
+
+  it('should collect entire form data', () => {
+
+    var mockRequest = {
+      body: Users.validUser
+    };
+
+    var data = Utils.collectFormData([
+      'first_name',
+      'last_name',
+      'email',
+      'password'
+    ], mockRequest);
+
+    expect(data).to.have.property('first_name');
+    expect(data.first_name).to.be.ok();
+
+  });
+
+  it('should return null for first_name', () => {
+
+    var mockRequest = {
+      body: Users.incompleteUser
+    };
+
+    var data = Utils.collectFormData([
+      'first_name',
+      'last_name',
+      'email',
+      'password'
+    ], mockRequest);
+
+    expect(data).to.have.property('first_name');
+    expect(data.first_name).to.be(null);
 
   });
 

@@ -6,7 +6,7 @@ const bodyParser = require('body-parser');
 
 
 const publicPath = path.join(__dirname, '/public');
-const config = require('./config/config.js')('development');
+const config = require('./config/config.js')();
 const constants = require('./config/constants.js');
 
 /**
@@ -24,11 +24,22 @@ app.set('views', __dirname + '/views');
 /**
  * Middleware
  */
+// Static Server
+ app.use(express.static(__dirname + '/public'))
  // Body Parser
  app.use(bodyParser.urlencoded({extended: false}));
+ app.use(bodyParser.json());
  // FIXME: Make session secret an env var
  // Session
  app.use(session({secret: 'julianiscool', saveUninitialized: false, resave: false}));
+ // Add constants and config vars to all render params
+ app.use((req, res, next) => {
+   res.locals.config = config;
+   res.locals.constants = constants;
+   next();
+ });
+ // // Express json
+ // app.use(express.json());
 
 /**
  * Express Routing
@@ -40,7 +51,7 @@ app.set('views', __dirname + '/views');
  app.use('/createaccount', require('./routes/CreateAccount'));
 
  // AJAX Requests
- app.use('/ajax/:controller', require('./routes/ajax'));
+ app.use('/ajax', require('./routes/ajax'));
 
 // Start express server
 server.listen(config.port, ()=>{

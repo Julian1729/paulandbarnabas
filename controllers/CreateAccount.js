@@ -9,16 +9,6 @@ var land = (req, res, next) => {
   res.render('CreateAccount');
 };
 
-/**
- * POST
- */
-var register = (req, res, next) => {
-
-};
-
-
-
 module.exports = controllerBase.extend({
-  land,
-  register
+  land
 });

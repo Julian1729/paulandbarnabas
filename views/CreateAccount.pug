@@ -1,10 +1,18 @@
 extends Base.pug
 
 block content
-  form(action="#", method="POST")
+  form(action="/createaccount", method="POST")#signup-form
+    label first name
     input(type="text", name="first_name")
+    label last name
     input(type="text", name="last_name")
+    label email
     input(type="text", name="email")
+    label password
     input(type="password", name="password")
+    label confirm password
+    input(type="password", name="password_confirm")
     input(type="submit", name="submit")
+    
+    
     
