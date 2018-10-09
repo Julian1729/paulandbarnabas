@@ -11,7 +11,8 @@ var ajaxResponse = (res, options, httpStatus) => {
   var responseBase = {
     status: 1,
     message: null,
-    data: null
+    data: null,
+    validation: null
   };
 
   var response = _.extend({}, responseBase, options);
@@ -43,7 +44,7 @@ var signUp = controllerBase.extend({
       // validation failed
       ajaxResponse(res, {
         status: 0,
-        data: validation
+        validation: validation
       });
       return;
     }
@@ -55,10 +56,10 @@ var signUp = controllerBase.extend({
     var User = new UserModel(signUpData);
     User.save()
       .then((doc) => {
-        console.log(doc);
+        // FIXME: redirect to log in
       })
       .catch((e) => {
-        console.log(error);
+        // FIXME: send back ajax response, log error
       });
 
   }
