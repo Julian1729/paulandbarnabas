@@ -47,14 +47,14 @@ var signUp = controllerBase.extend({
       'password_confirm'
     ], req);
 
-    var validation = UserValidator(signUpData);
-    if(validation !== undefined){
-      // validation failed
-      ajaxResponse(res, {
-        status: 1,
-        validation: validation
+    UserValidator(signUpData)
+      .then(() => null)
+      .catch((validationErrors) => {
+        ajaxResponse(res, {
+          status: 1,
+          validation: validationErrors
+        });
       });
-    }
 
     // enter user into database
     // FIXME: ADD VALIDATOR TO VALIDATE.JS TO MAKE SURE
