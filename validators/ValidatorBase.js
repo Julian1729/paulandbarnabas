@@ -1,4 +1,10 @@
 var validate = require("validate.js");
+const RSVP = require('rsvp');
+
+const UserModel = require('../models/User');
+
+// Set promise object
+validate.Promise = RSVP.Promise;
 
 // Set custom message format
 // validate.formatters.pb = (errors) => {
@@ -49,6 +55,24 @@ validate.validators.presence.message = 'is required';
 
  };
 
+ validate.validators.emailAlreadyExists = function(value, options, key, attributes, globalOptions){
+
+   return new validate.Promise(function(res, rej){
+
+     UserModel.find({email: value}).then((users) => {
+       if(users.length){
+         res('is already in use');
+       }
+       res();
+     }).catch((e) => {
+       rej(e);
+     });
+
+   });
+
+
+ };
+
   /**
    * Trim value by accessing object reference and modifying the value
    */
@@ -60,4 +84,4 @@ validate.validators.presence.message = 'is required';
   };
 
 
-module.exports = (validatee, contraints, options) => validate(validatee, contraints, options);
+module.exports = validate;

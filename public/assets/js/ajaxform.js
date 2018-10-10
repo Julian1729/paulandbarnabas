@@ -111,11 +111,11 @@ var signupForm = $('#signup-form').ajaxform({
 
     // FIXME: Not production ready
     if(response.status === 0){
-      return console.log('Error', data.message);
+      return console.log('Error', response.message);
     }
 
     if(response.validation !== null){
-      return validation_handler(data.validation, form);
+      return validation_handler(response.validation, form);
     }
 
     if(response.status === 1 && response.data.redirect){

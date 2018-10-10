@@ -27,6 +27,9 @@ const UserConstraints = {
     },
     email: {
       message: 'Please provide a valid email'
+    },
+    emailAlreadyExists: {
+      message: 'Email is already in use'
     }
   },
   'password': {
@@ -50,5 +53,5 @@ const UserConstraints = {
 };
 
 module.exports = (user) => {
-  return validate(user, UserConstraints, {fullMessages: false});
+  return validate.async(user, UserConstraints, {fullMessages: false});
 };

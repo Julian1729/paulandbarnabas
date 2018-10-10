@@ -22,6 +22,7 @@
     "mongoose": "^5.2.17",
     "mongoose-unique-validator": "^2.0.2",
     "pug": "^2.0.3",
+    "rsvp": "^4.8.4",
     "validate.js": "^0.12.0",
     "validator": "^10.8.0"
   },

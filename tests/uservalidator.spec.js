@@ -1,33 +1,90 @@
 const expect = require('expect.js');
 
 const UserValidator = require('../validators/UserValidator');
+const UserModel = require('../models/User');
+const Utils = require('../utils/utils');
 const Users = require('./seed/User');
 
 describe('User Validator', () => {
 
-  it('should pass validation', () => {
+  /**
+   * Clear User collection before every test
+   */
+  beforeEach((done) => {
+    // remove all users from db before running test
+    Utils.clearCollection(UserModel).then(() => done()).catch((e) => done(e));
+  });
 
-    var validation = UserValidator(Users.validUser);
-    // should not return anything
-    expect(validation).not.to.be.ok();
+  it('should pass validation', (done) => {
+
+    UserValidator(Users.validUser)
+      .then(() => {
+        return done();
+      })
+      .catch((errors) => {
+        expect(errors).to.have.length(0);
+        return done();
+      });
 
   });
 
-  it('should not pass validation', () => {
+  it('should not pass validation', (done) => {
 
-    var validation = UserValidator(Users.incompleteUser);
-    expect(validation).to.be.an('object');
-    expect(validation).to.have.property('first_name');
-    expect(validation).to.have.property('last_name');
+    UserValidator(Users.incompleteUser)
+      .then(() => {
+        return done('should not have passed validation');
+      })
+      .catch((errors) => {
+        expect(errors).to.be.an('object');
+        expect(errors).to.have.property('first_name');
+        expect(errors).to.have.property('last_name');
+        return done();
+      });
+
 
   });
 
-  it('should fail password match', () => {
+  it('should fail password match', (done) => {
 
-    var validation = UserValidator(Users.passwordUnmatched);
-    expect(validation).to.be.an('object');
-    expect(validation).to.have.property('password_confirm');
-    
+    UserValidator(Users.passwordUnmatched)
+      .then(() => {
+        throw new Error('should not have passed validation');
+        return done();
+      })
+      .catch((validation) => {
+        expect(validation).to.have.property('password_confirm');
+        return done();
+      });
+
+
+  });
+
+  it('should fail email', (done) => {
+
+    var seedUser = new UserModel(Users.validUser);
+
+    // save seed user
+    seedUser.save()
+    .then((doc) => {
+
+      UserValidator(Users.validUser).then((data) => {
+        throw new Error('should not have passed validation');
+        return done();
+      })
+      .catch((e) => {
+        //expect(e).to.be.ok();
+        expect(e).to.have.property('email');
+        return done();
+      });
+
+    })
+    .catch((e) => {
+      return done(e);
+    });
+
+
+
+
   });
 
 });
