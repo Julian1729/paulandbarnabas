@@ -6,6 +6,13 @@ const _ = require('lodash');
 const UserValidator = require('../validators/UserValidator');
 const UserModel = require('../models/User');
 
+/**
+ * Send back a standard JSON response to an ajax request
+ * @param  {[Object]} res Express response object to be able to execute response
+ * @param  {[Object]} options Object used to pass in options {status: (default 1), message: {String}, data: null | object, validation: validation errors obj}
+ * @param  {[Number]} httpStatus HTTP status code
+ * @return {[void]}
+ */
 var ajaxResponse = (res, options, httpStatus) => {
 
   var responseBase = {
@@ -43,10 +50,9 @@ var signUp = controllerBase.extend({
     if(validation !== undefined){
       // validation failed
       ajaxResponse(res, {
-        status: 0,
+        status: 1,
         validation: validation
       });
-      return;
     }
 
     // enter user into database
@@ -56,10 +62,15 @@ var signUp = controllerBase.extend({
     var User = new UserModel(signUpData);
     User.save()
       .then((doc) => {
-        // FIXME: redirect to log in
+        ajaxResponse(res, {
+          status: 1
+        });
       })
       .catch((e) => {
-        // FIXME: send back ajax response, log error
+        ajaxResponse(res, {
+          status: 0,
+          message: `Unable to save user to database, ${e}`
+        });
       });
 
   }

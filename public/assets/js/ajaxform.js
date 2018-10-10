@@ -76,7 +76,7 @@
    * @return {void}
    */
   function default_validation_handler(errors, form){
-    console.log('default validation handler called');
+    console.log('default validation handler called', errors);
   }
 
   /**
@@ -108,6 +108,19 @@ var signupForm = $('#signup-form').ajaxform({
   url: '/ajax/sign-up',
   method: 'POST',
   success: function(data, validation_handler, form){
-    console.log(data);
+
+    // FIXME: Not production ready
+    if(data.status === 0){
+      return console.log('Error', data.message);
+    }
+
+    if(data.validation !== null){
+      return validation_handler(data.validation, form);
+    }
+
+    if(data.status === 1){
+      console.log('user saved');
+    }
+
   }
 });

@@ -47,11 +47,14 @@ app.set('views', __dirname + '/views');
  // Landing page (Login Page)
  app.use('/', require('./routes/Login') );
 
+ // AJAX Requests
+ app.use('/ajax', require('./routes/ajax'));
+
  // Sign Up
  app.use('/createaccount', require('./routes/CreateAccount'));
 
- // AJAX Requests
- app.use('/ajax', require('./routes/ajax'));
+ // Dasboard
+ app.use('/dashboard', require('./routes/Dashboard'));
 
 // Start express server
 server.listen(config.port, ()=>{
