@@ -107,19 +107,19 @@
 var signupForm = $('#signup-form').ajaxform({
   url: '/ajax/sign-up',
   method: 'POST',
-  success: function(data, validation_handler, form){
+  success: function(response, validation_handler, form){
 
     // FIXME: Not production ready
-    if(data.status === 0){
+    if(response.status === 0){
       return console.log('Error', data.message);
     }
 
-    if(data.validation !== null){
+    if(response.validation !== null){
       return validation_handler(data.validation, form);
     }
 
-    if(data.status === 1){
-      console.log('user saved');
+    if(response.status === 1 && response.data.redirect){
+      pb.redirect(response.data.redirect);
     }
 
   }

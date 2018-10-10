@@ -5,6 +5,7 @@ const Utils = require('../utils/utils');
 const _ = require('lodash');
 const UserValidator = require('../validators/UserValidator');
 const UserModel = require('../models/User');
+const config = require('../config/config')();
 
 /**
  * Send back a standard JSON response to an ajax request
@@ -63,7 +64,10 @@ var signUp = controllerBase.extend({
     User.save()
       .then((doc) => {
         ajaxResponse(res, {
-          status: 1
+          status: 1,
+          data: {
+            redirect: `${config.base_url}/dashboard`
+          }
         });
       })
       .catch((e) => {
