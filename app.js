@@ -1,9 +1,8 @@
 const path = require('path');
 const http = require('http');
 const express = require('express');
-const session = require('express-session');
 const bodyParser = require('body-parser');
-
+const session = require('express-session');
 
 const publicPath = path.join(__dirname, '/public');
 const config = require('./config/config.js')();
