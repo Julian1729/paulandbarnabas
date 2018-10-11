@@ -48,7 +48,6 @@ var signUp = controllerBase.extend({
     ], req);
 
     UserValidator(signUpData)
-      .then(() => null)
       .catch((validationErrors) => {
         ajaxResponse(res, {
           status: 1,
