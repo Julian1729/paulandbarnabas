@@ -109,7 +109,7 @@ var signupForm = $('#signup-form').ajaxform({
   method: 'POST',
   success: function(response, validation_handler, form){
 
-    // FIXME: Not production ready
+    // FIXME: Not production ready (setup validation handler, and error)
     if(response.status === 0){
       return console.log('Error', response.message);
     }

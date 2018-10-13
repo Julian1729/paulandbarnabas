@@ -1,6 +1,10 @@
 /**
- * Testing Utilities
+ * Utility Functions
  */
+
+const bcrypt = require('bcrypt'),
+      config = require('../config/config')();
+
 
 const clearCollection = (model) => {
 
@@ -28,7 +32,14 @@ const collectFormData = (fields, req) => {
 
 };
 
+const bcryptPassword = passwordString => {
+
+  return bcrypt.hash(passwordString, config.bcrypt.salt_rounds);
+
+};
+
 module.exports = {
   clearCollection,
-  collectFormData
+  collectFormData,
+  bcryptPassword
 };

@@ -82,9 +82,43 @@ describe('User Validator', () => {
       return done(e);
     });
 
+  });
 
+  it('should authenticate user', (done) => {
 
+    var seedUser = new UserModel(Users.validUser);
+
+    seedUser.save()
+      .then(user => {
+        var auth = user.authenticate(Users.validUser.password)
+          .then(result => {
+            expect(result).to.be.ok();
+            done();
+          })
+          .catch(e => done(e));
+
+      })
+      .catch(e => done(e));
 
   });
+
+  it('should not authenticate user', (done) => {
+
+    var seedUser = new UserModel(Users.validUser);
+
+    seedUser.save()
+      .then(user => {
+        var auth = user.authenticate(Users.validUser.password + 'random-String')
+          .then(result => {
+            expect(result).to.not.be.ok();
+            done();
+          })
+          .catch(e => done(e));
+
+      })
+      .catch(e => done(e));
+
+  });
+
 
 });

@@ -55,13 +55,16 @@ var signUp = controllerBase.extend({
         });
       });
 
-    // enter user into database
-    // FIXME: ADD VALIDATOR TO VALIDATE.JS TO MAKE SURE
-    // EMAIL IS NOT ALREADY IN USE
-
     var User = new UserModel(signUpData);
     User.save()
-      .then((doc) => {
+      .then((newUser) => {
+        // set authenticated session, and store user id
+        req.session.authenticated = true;
+        req.session.user = {
+          id: newUser._id
+        };
+
+        // send ajax response
         ajaxResponse(res, {
           status: 1,
           data: {
