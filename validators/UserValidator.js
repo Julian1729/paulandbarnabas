@@ -32,6 +32,24 @@ const UserConstraints = {
       message: 'Email is already in use'
     }
   },
+  'email_confirm': {
+    presence: {
+      message: 'Please confirm your email'
+    },
+    equality: {
+      attribute: 'email',
+      message: 'Emails do not match'
+    }
+  },
+  'phone_number': {
+    presence: {
+      message: 'Please provide your phone number'
+    },
+    format: {
+      pattern: /^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/,
+      message: 'Please provide a valid phone number'
+    }
+  },
   'password': {
     presence: {
       message: 'Please provide a password'

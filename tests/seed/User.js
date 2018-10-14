@@ -7,6 +7,8 @@
   first_name: 'Julian',
   last_name: 'Hernandez',
   email: 'hernandez.julian17@gmail.com',
+  email_confirm: 'hernandez.julian17@gmail.com',
+  phone_number: '(215)400-0468',
   title: 'Ministerial Servant',
   password: 'newpasssword',
   password_confirm: 'newpasssword'

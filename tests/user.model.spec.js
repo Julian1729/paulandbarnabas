@@ -111,6 +111,19 @@ describe('User Model', () => {
 
   });
 
+  it('should not enter extra information', (done) => {
+
+    var user = new User(seed.completeUser);
+    user.save()
+      .then(doc => {
+        expect(doc).to.have.property('first_name');
+        expect(doc).to.not.have.property('password_confirm');
+        done();
+      })
+      .catch(e => done(e));
+
+  });
+
   // OPTIMIZE: Test that user input can be re bcrpted and then compared
 
 });

@@ -124,3 +124,24 @@ var signupForm = $('#signup-form').ajaxform({
 
   }
 });
+
+var loginForm = $('#login-form').ajaxform({
+  url: '/ajax/log-in',
+  method: 'POST',
+  success: function(response, validation_handler, form){
+
+    // FIXME: Not production ready (setup validation handler, and error)
+    if(response.status === 0){
+      return console.log('Error', response.message);
+    }
+
+    if(response.validation !== null){
+      return validation_handler(response.validation, form);
+    }
+
+    if(response.status === 1 && response.data.redirect){
+      pb.redirect(response.data.redirect);
+    }
+
+  }
+});

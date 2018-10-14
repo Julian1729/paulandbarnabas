@@ -36,6 +36,16 @@ var UserSchema = new Schema({
     trim: true,
     unique: true
   },
+  email_confirm: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  phone_number: {
+    type: String,
+    required: true,
+    trim: true
+  },
   password: {
     type: String,
     required: true
