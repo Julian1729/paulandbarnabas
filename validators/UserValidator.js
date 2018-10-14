@@ -63,8 +63,8 @@ const UserConstraints = {
     presence: {
       message: 'Please confirm your password'
     },
-    compare: {
-      equal: 'password',
+    equality: {
+      attribute: 'password',
       message: 'Passwords do not match'
     }
   }
