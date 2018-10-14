@@ -3,7 +3,7 @@
 const controllerBase = require('./base');
 const Utils = require('../utils/utils');
 const _ = require('lodash');
-const UserValidator = require('../validators/UserValidator');
+const SignUpValidator = require('../validators/SignUpValidator');
 const UserModel = require('../models/User');
 const config = require('../config/config')();
 
@@ -34,6 +34,15 @@ var ajaxResponse = (res, options, httpStatus) => {
   return;
 
 };
+
+var login = controllerBase.extend({
+  name: 'login',
+  run: function(req, res, next){
+
+
+
+  }
+})
 
 var signUp = controllerBase.extend({
   name: 'sign-up',
