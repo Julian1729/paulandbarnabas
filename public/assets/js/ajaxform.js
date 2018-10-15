@@ -126,16 +126,18 @@ var signupForm = $('#signup-form').ajaxform({
 });
 
 var loginForm = $('#login-form').ajaxform({
-  url: '/ajax/log-in',
+  url: '/ajax/login',
   method: 'POST',
-  success: function(response, validation_handler, form){
+  success: function(response, validation_handler, form, textStatus){
+    console.log(response);
+    console.log('text status' + textStatus);
 
     // FIXME: Not production ready (setup validation handler, and error)
     if(response.status === 0){
       return console.log('Error', response.message);
     }
 
-    if(response.validation !== null){
+    if(response.validation){
       return validation_handler(response.validation, form);
     }
 
