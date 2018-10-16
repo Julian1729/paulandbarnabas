@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
-    "start-watch": "nodemon --exec npm start",
+    "start-watch": "browserify ./public/assets/js/src/app.js > ./public/assets/js/dist/bundle.js && nodemon --exec npm start",
     "test": "export NODE_ENV=testing && mocha tests/*.spec.js"
   },
   "engines": {
@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "expect.js": "^0.3.1",
+    "gulp": "^3.9.1",
     "mocha": "^5.2.0"
   }
 }
