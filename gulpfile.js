@@ -49,7 +49,17 @@ gulp.task('bundleAll', function(){
 
 });
 
-
+// gulp.task('start', ['bundleAll'], function(){
+//   nodemon({
+//     script: 'app.js',
+//     // OPTIMIZE: pull out changed files anf only re-bundle those
+//     tasks: function(){
+//
+//     },
+//     ext: 'js pug',
+//     ignore: ['public/assets/js/dist/*']
+//   });
+// });
 
 gulp.task('start', ['bundleAll'], function(){
   nodemon({
