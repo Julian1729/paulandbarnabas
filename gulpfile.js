@@ -12,7 +12,6 @@ const CONFIG = {
   js: {
     files: [
       'app.js',
-      'another.js'
     ],
     src: './public/assets/js/src/app.js',
     inputDir: './public/assets/js/src/',
@@ -57,6 +56,7 @@ gulp.task('start', ['bundleAll'], function(){
     script: 'app.js',
     // OPTIMIZE: pull out changed files anf only re-bundle those
     tasks: ['bundleAll'],
+    ext: 'js pug',
     ignore: ['public/assets/js/dist/*']
   });
 });
