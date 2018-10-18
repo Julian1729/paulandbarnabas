@@ -25,8 +25,6 @@ var loginForm = $('#login-form').ajaxform({
 url: '/ajax/login',
 method: 'POST',
 success: function(response, validation_handler, form, textStatus){
-  console.log(response);
-  console.log('text status' + textStatus);
 
   // FIXME: Not production ready (setup validation handler, and error)
   if(response.status === 0){

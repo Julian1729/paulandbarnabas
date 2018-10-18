@@ -60,9 +60,10 @@ var login = controllerBase.extend({
       .then(user => {
         if(!user){
           logger.debug(`No user found with login credentials. User: ${user}`)
-          return ajaxResponse(res, {
+          ajaxResponse(res, {
             message: 'Invalid credentials'
-          }, HttpStatus.NOT_FOUND);
+          });
+          return Promise.reject('custom error message');
         }
         logger.debug(`User found by email. User: ${user}`);
         return user.authenticate(loginData.password);
