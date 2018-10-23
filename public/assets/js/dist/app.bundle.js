@@ -10480,24 +10480,14 @@ return jQuery;
 
 },{}],4:[function(require,module,exports){
 var $ = require('../jquery/jquery.js');
+var Utils = require('../utils.js');
 
 var signupForm = $('#signup-form').ajaxform({
 url: '/ajax/sign-up',
 method: 'POST',
 success: function(response, validation_handler, form){
 
-  // FIXME: Not production ready (setup validation handler, and error)
-  if(response.status === 0){
-    return console.log('Error', response.message);
-  }
-
-  if(response.validation !== null){
-    return validation_handler(response.validation, form);
-  }
-
-  if(response.status === 1 && response.data.redirect){
-    pb.redirect(response.data.redirect);
-  }
+  console.log(response);
 
 }
 });
@@ -10507,20 +10497,28 @@ url: '/ajax/login',
 method: 'POST',
 success: function(response, validation_handler, form, textStatus){
 
-  // FIXME: Not production ready (setup validation handler, and error)
-  if(response.status === 0){
-    return console.log('Error', response.message);
-  }
+  console.log(response);
 
-  if(response.validation){
-    return validation_handler(response.validation, form);
-  }
-
-  if(response.status === 1 && response.data.redirect){
-    pb.redirect(response.data.redirect);
+  if(response.error){
+    console.log('error', response.error);
+  }else if(response.data.redirect){
+    Utils.redirect(response.data.redirect);
   }
 
 }
 });
 
-},{"../jquery/jquery.js":1}]},{},[4]);
+},{"../jquery/jquery.js":1,"../utils.js":5}],5:[function(require,module,exports){
+/**
+ * Utility Functions
+ */
+
+var redirect = function(to){
+  window.location.replace(to);
+}
+
+module.exports = {
+  redirect: redirect
+};
+
+},{}]},{},[4]);

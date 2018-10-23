@@ -10,6 +10,7 @@ const UserModel = require('../models/User');
 const logger = require('../utils/logger');
 const controllerBase = require('./base');
 const Utils = require('../utils/utils');
+const {UserNotFound, FormValidationError, InvalidCredentials} = require('../errors.js');
 
 /**
  * Send back a standard JSON response to an ajax request
@@ -22,9 +23,8 @@ var ajaxResponse = (res, options, httpStatus) => {
 
   var responseBase = {
     status: HttpStatus.OK,
-    message: null,
     data: null,
-    validation: null
+    error: null
   };
 
   var response = _.extend({}, responseBase, options);
@@ -43,39 +43,46 @@ var login = controllerBase.extend({
   name: 'login',
   run: function(req, res, next){
 
-    // validate input
+    // collect data
     var loginData = Utils.collectFormData([
       'email',
       'password'
     ], req);
+
+    // validate input
     var validation = LoginValidator(loginData);
     if(validation){
+      // validation failed, respond with error
       return ajaxResponse(res, {
-        validation: validation
+        error: new FormValidationError(validation)
       });
     }
+
     // find user in database
-    //var user = null;
     UserModel.findOne({email: loginData.email})
       .then(user => {
         if(!user){
-          logger.debug(`No user found with login credentials. User: ${user}`)
-          ajaxResponse(res, {
-            message: 'Invalid credentials'
-          });
-          return Promise.reject('custom error message');
+          throw new UserNotFound(`Unable to find user with info: ${JSON.stringify(loginData)}`);
         }
         logger.debug(`User found by email. User: ${user}`);
-        return user.authenticate(loginData.password);
+        return user;
       })
-      .then(result => {
+      .then(user => {
         // authenticate user
-        if(!result){
-          return ajaxResponse(res, {
-            message: 'Invalid credentials'
-          });
-        }
+        return user.authenticate(loginData.password)
+          .then( result => {
+            // user unable to be authenticated
+            if(!result){
+              throw new InvalidCredentials();
+            }
+            return user;
+          })
+          .catch(e => Promise.reject(e));
+      })
+      .then( user => {
+        logger.info(user);
 
+        // USER AUTHENTICATED
         // set session params
         req.session.authenticated = true;
         req.session.user = {
@@ -86,13 +93,23 @@ var login = controllerBase.extend({
             redirect: '/dashboard'
           }
         });
-
       })
       .catch(e => {
-        logger.error(`Login controller failed: ${e}`);
-        return ajaxResponse(res, {
-          status: 0
-        })
+
+
+        if(e instanceof UserNotFound || e instanceof InvalidCredentials){
+          logger.debug(e.name + '\n' + JSON.stringify(e));
+          return ajaxResponse(res, {
+            error: e
+          });
+        }else{
+          // if cannot discern specific error type, log error and return HTTP 500
+          logger.debug(`Login controller failed. Error: ${e.message} \n ${e.stack}`);
+          return ajaxResponse(res, {
+            status: HttpStatus.INTERNAL_SERVER_ERROR
+          });
+        }
+
       });
 
   }
@@ -106,37 +123,42 @@ var signUp = controllerBase.extend({
       'first_name',
       'last_name',
       'email',
+      'email_confirm',
+      'phone_number',
       'password',
       'password_confirm'
     ], req);
 
-    UserValidator(signUpData)
-      .catch((validationErrors) => {
-        ajaxResponse(res, {
-          validation: validationErrors
-        });
-      });
+    SignUpValidator(signUpData)
+      .then( () => {
+        var User = new UserModel(signUpData);
+        User.save()
+          .then((newUser) => {
+            // set authenticated session, and store user id
+            req.session.authenticated = true;
+            req.session.user = {
+              id: newUser._ids
+            };
 
-    var User = new UserModel(signUpData);
-    User.save()
-      .then((newUser) => {
-        // set authenticated session, and store user id
-        req.session.authenticated = true;
-        req.session.user = {
-          id: newUser._id
-        };
-
-        // send ajax response
-        ajaxResponse(res, {
-          data: {
-            redirect: `${config.base_url}/dashboard`
-          }
-        });
+            // send ajax response
+            return ajaxResponse(res, {
+              data: {
+                redirect: `${config.base_url}/dashboard`
+              }
+            });
+          })
+          .catch(e => {
+            logger.log(`Error in saving user \n${e}`);
+            return ajaxResponse(res, {
+              status: HttpStatus.INTERNAL_SERVER_ERROR
+            });
+          });
       })
-      .catch((e) => {
-        ajaxResponse(res, {
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: `Unable to save user to database, ${e}`
+      .catch((validationErrors) => {
+        // FIXME: use validation error
+        logger.debug('catch ran');
+        return ajaxResponse(res, {
+          error: new FormValidationError(validationErrors)
         });
       });
 

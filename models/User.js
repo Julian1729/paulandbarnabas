@@ -36,12 +36,8 @@ var UserSchema = new Schema({
     trim: true,
     unique: true
   },
-  email_confirm: {
-    type: String,
-    required: true,
-    trim: true,
-  },
   phone_number: {
+    // OPTIMIZE: Regex validate phone number
     type: String,
     required: true,
     trim: true

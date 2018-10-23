@@ -1,13 +1,11 @@
-(function(g){
+/**
+ * Utility Functions
+ */
 
-  var redirect = function(to){
-    g.location.replace(to);
-  }
+var redirect = function(to){
+  window.location.replace(to);
+}
 
-  var Utils = {
-    redirect: redirect
-  };
-
-  g.Utils = g.pb = Utils;
-
-}(window));
+module.exports = {
+  redirect: redirect
+};
