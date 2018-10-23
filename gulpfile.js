@@ -1,13 +1,15 @@
 const gulp = require('gulp');
-const source = require('vinyl-source-stream');
-const browserify = require('browserify');
-const nodemon = require('gulp-nodemon');
-const Cache = require('gulp-file-cache');
-const rename = require('gulp-rename');
+const sass = require('gulp-sass');
 const es = require('event-stream');
+const rename = require('gulp-rename');
+const nodemon = require('gulp-nodemon');
+const browserify = require('browserify');
+const source = require('vinyl-source-stream');
 
-var cache = new Cache();
-
+/**
+ * Constant configuarations and file paths
+ * @type {Object}
+ */
 const CONFIG = {
   js: {
     files: [
@@ -17,9 +19,16 @@ const CONFIG = {
     inputDir: './public/assets/js/src/',
     outputDir: './public/assets/js/dist/',
     outputFile: 'bundle.js'
+  },
+  css: {
+    src: './public/assets/css/src/**/*.sass',
+    outputDir: './public/assets/css/dist'
   }
 };
 
+/**
+ * Use browserify to bundle javascript files
+ */
 gulp.task('bundle', function(){
   return browserify(CONFIG.js.src)
     .bundle()
@@ -27,9 +36,14 @@ gulp.task('bundle', function(){
     .pipe(gulp.dest(CONFIG.js.outputDir));
 });
 
+gulp.task('styles', function(){
+  gulp.src(CONFIG.css.src)
+    .pipe(sass().on('error', sass.logError))
+    .pipe(gulp.dest(CONFIG.css.outputDir));
+});
+
 /**
  * Bundle all javascript files
- * @return {[type]} [description]
  */
 gulp.task('bundleAll', function(){
 
@@ -49,24 +63,15 @@ gulp.task('bundleAll', function(){
 
 });
 
-// gulp.task('start', ['bundleAll'], function(){
-//   nodemon({
-//     script: 'app.js',
-//     // OPTIMIZE: pull out changed files anf only re-bundle those
-//     tasks: function(){
-//
-//     },
-//     ext: 'js pug',
-//     ignore: ['public/assets/js/dist/*']
-//   });
-// });
-
+/**
+ * Run necessary build tasks, then watch for changes with nodemon
+ */
 gulp.task('start', ['bundleAll'], function(){
   nodemon({
     script: 'app.js',
     // OPTIMIZE: pull out changed files anf only re-bundle those
-    tasks: ['bundleAll'],
-    ext: 'js pug',
+    tasks: ['bundleAll', 'styles'],
+    ext: 'js pug sass',
     ignore: ['public/assets/js/dist/*']
   });
 });

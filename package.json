@@ -37,6 +37,7 @@
     "gulp-file-cache": "0.0.1",
     "gulp-nodemon": "^2.2.1",
     "gulp-rename": "^1.4.0",
+    "gulp-sass": "^4.0.2",
     "mocha": "^5.2.0",
     "vinyl-source-stream": "^2.0.0"
   }
