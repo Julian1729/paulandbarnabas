@@ -34,11 +34,14 @@
     "event-stream": "^4.0.1",
     "expect.js": "^0.3.1",
     "gulp": "^3.9.1",
-    "gulp-file-cache": "0.0.1",
+    "gulp-autoprefixer": "^6.0.0",
+    "gulp-csso": "^3.0.1",
     "gulp-nodemon": "^2.2.1",
     "gulp-rename": "^1.4.0",
     "gulp-sass": "^4.0.2",
+    "gulp-uglify": "^3.0.1",
     "mocha": "^5.2.0",
+    "pump": "^3.0.0",
     "vinyl-source-stream": "^2.0.0"
   }
 }
