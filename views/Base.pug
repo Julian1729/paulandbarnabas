@@ -4,9 +4,11 @@ html
     title= page_title
     // STYLESHEETS
     block stylesheets
+      link(href=config.base_url + "/assets/css/dist/paulandbarnabas.css", rel="stylesheet", type="text/css")
   body
     .wrapper
-      block content
+      .content
+        block content
     
     // SCRIPTS 
     block scripts

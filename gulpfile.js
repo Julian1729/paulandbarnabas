@@ -9,7 +9,6 @@ const browserify = require('browserify');
 const source = require('vinyl-source-stream');
 const autoprefixer = require('gulp-autoprefixer');
 
-
 /**
  * Constant configuarations and file paths
  * @type {Object}
@@ -99,7 +98,7 @@ gulp.task('build-css-development', function(){
   return gulp.src(CONFIG.css.sass)
   .pipe(sass().on('error', sass.logError))
   .pipe(autoprefixer())
-  .pipe(gulp.dest(CONFIG.css.outputDir));
+  .pipe(gulp.dest(CONFIG.css.outputDir))//;
 });
 
 /**
