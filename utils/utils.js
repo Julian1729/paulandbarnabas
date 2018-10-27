@@ -2,9 +2,7 @@
  * Utility Functions
  */
 
-const bcrypt = require('bcrypt'),
-      config = require('../config/config')();
-
+const bcrypt = require('bcrypt');
 
 const clearCollection = (model) => {
 
@@ -34,7 +32,7 @@ const collectFormData = (fields, req) => {
 
 const bcryptPassword = passwordString => {
 
-  return bcrypt.hash(passwordString, config.bcrypt.salt_rounds);
+  return bcrypt.hash(passwordString, 10);
 
 };
 

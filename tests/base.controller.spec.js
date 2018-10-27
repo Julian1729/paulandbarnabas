@@ -1,5 +1,6 @@
 const Controller = require('../controllers/Base');
 const expect = require('expect.js');
+const config = require('../config/config');
 
 describe("Base Controller", () => {
 

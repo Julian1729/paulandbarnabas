@@ -5,8 +5,8 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 
 const publicPath = path.join(__dirname, '/public');
-const config = require('./config/config.js')();
-const constants = require('./config/constants.js');
+const config = require('./config/config');
+const constants = require('./config/constants');
 
 /**
  * Create HTTP Server and Express
@@ -33,7 +33,6 @@ app.set('views', __dirname + '/views');
  app.use(session({secret: 'julianiscool', saveUninitialized: false, resave: false}));
  // Add constants and config vars to all render params
  app.use((req, res, next) => {
-   res.locals.config = config;
    res.locals.constants = constants;
    next();
  });

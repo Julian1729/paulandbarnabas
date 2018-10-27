@@ -1,31 +1,38 @@
 const expect = require('expect.js');
 
-const config = require('../config/config');
 
 describe('Configuration', () => {
 
-  it('set testing environmental variable', () => {
-    expect(process.env.NODE_ENV).to.be('testing');
+  /**
+   * Reset NODE_ENV to emulate the start of execution,
+   * and delete config from cache to cause reload
+   */
+  beforeEach(() => {
+    // FIXME: this does not delete all added
+    // env vars before each test
+    process.env.NODE_ENV = '';
+    delete require.cache[require.resolve('../config/config')];
   });
 
-  it('should be in development mode', () => {
-    var c = config('development');
-    expect(c.mode).to.be('development');
+  it('should set development variables', () => {
+    process.env.NODE_ENV = 'development';
+    const config = require('../config/config');
+    expect(process.env).to.have.property('MONGODB_URI');
+    expect(process.env.MONGODB_URI).to.eql('mongodb://localhost:27017/PaulAndBarnabas');
   });
 
-  it('should be in production mode', () => {
-    var c = config('production');
-    expect(c.mode).to.be('production');
+  it('should default to development', () => {
+    // leave process.env.NODE_ENV at null
+    const config = require('../config/config');
+    expect(process.env.MODE).to.eql('development');
   });
 
-  it('should be in testing mode', () => {
-    var c = config();
-    expect(c.mode).to.be('testing');
-  });
-
-  it('should return testing config', () => {
-    var c = config('testing');
-    expect(c).to.eql(config('testing'));
+  it('should set testing variables', () => {
+    process.env.NODE_ENV = 'testing';
+    expect(process.env.NODE_ENV).to.eql('testing');
+    const config = require('../config/config');
+    expect(process.env.MODE).to.eql('testing');
+    expect(process.env.MONGODB_URI).to.eql('mongodb://localhost:27017/PaulAndBarnabasTesting');
   });
 
 });

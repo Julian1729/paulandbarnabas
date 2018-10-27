@@ -1,0 +1,12 @@
+{
+  "development" : {
+    "MODE": "development",
+    "PORT": 3000,
+    "MONGODB_URI": "mongodb://localhost:27017/PaulAndBarnabas"
+  },
+  "testing": {
+    "MODE": "testing",
+    "PORT": 3000,
+    "MONGODB_URI": "mongodb://localhost:27017/PaulAndBarnabasTesting"
+  }
+}

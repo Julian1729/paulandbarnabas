@@ -1,4 +1,6 @@
-var constants = {
+const _ = require('lodash');
+
+var universal = {
 
   site_name: "Paul and Barnabas",
 
@@ -8,4 +10,26 @@ var constants = {
 
 };
 
-module.exports = constants;
+var local = {
+  mode: "local",
+  base_url: "http://localhost:3000",
+  bcrypt: {
+    salt_rounds: 10
+  }
+};
+local.assets_url = local.base_url + "/assets";
+
+var production = {
+
+};
+
+var loadConstants = () => {
+  var env = process.env.NODE_ENV || 'development';
+  if(env === 'development' || env === 'testing'){
+    return _.extend({}, local, universal);
+  }else if (env === 'production') {
+    return _.extend({}, production, universal);
+  }
+};
+
+module.exports = loadConstants();

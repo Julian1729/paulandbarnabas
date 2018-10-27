@@ -5,7 +5,6 @@ const HttpStatus = require('http-status-codes');
 
 const SignUpValidator = require('../validators/SignUpValidator');
 const LoginValidator = require('../validators/LoginValidator');
-const config = require('../config/config')();
 const UserModel = require('../models/User');
 const logger = require('../utils/logger');
 const controllerBase = require('./base');

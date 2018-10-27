@@ -1,37 +1,19 @@
-// OPTIMIZE: Just make these enviornmental variables as oppose to accessing the config file
-// to access a var
-var config = {
-  'development' : {
-    mode: 'development',
-    port: 3000,
-    base_url: "http://localhost:3000",
-    mongo: {
-      url: 'localhost',
-      port: 27017,
-      db_name: 'PaulAndBarnabas'
-    },
-    bcrypt: {
-      salt_rounds: 10
-    }
-  },
-  'testing' : {
-    mode: 'testing',
-    port: 3000,
-    base_url: "http://localhost:3000",
-    mongo: {
-      url: 'localhost',
-      port: 27017,
-      db_name: 'PaulAndBarnabasTesting'
-    },
-    bcrypt: {
-      salt_rounds: 10
-    }
-  },
-  'production' : {
-    mode: 'production'
-  }
-};
+/**
+ * Handle configuration settings
+ * based on environment. This is designed
+ * to only be called once, in the entry file.
+ */
 
-module.exports = function(mode){
-  return config[mode || process.env.NODE_ENV || 'development'];
+/**
+ * Grab environment, if not set
+ * @type {[String]}
+ */
+var env = process.env.NODE_ENV || 'development';
+const envVars = require('./env_vars');
+
+if(env === 'development' || env === 'testing'){
+  var config = envVars[env];
+  Object.keys(config).forEach((key) => {
+    process.env[key] = config[key];
+  });
 }

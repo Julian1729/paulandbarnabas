@@ -2,7 +2,6 @@ var
   mongoose = require('./db'),
   Schema = mongoose.Schema,
   uniqueValidator = require('mongoose-unique-validator'),
-  config = require('../config/config')(),
   bcrypt = require('bcrypt'),
   Utils = require('../Utils/Utils'),
   logger = require('../utils/logger'),
@@ -85,17 +84,6 @@ UserSchema.pre('save', function(next){
     user.password = null;
     return next(err);
   });
-
-  // bcrypt.hash(user.password, config.bcrypt.salt_rounds)
-  // .then(function(hashedPassword) {
-  //     user.password = hashedPassword;
-  //     next();
-  // })
-  // .catch(function(err){
-  //   // set password to null if it could not be hashed
-  //   user.password = null;
-  //   return next(err);
-  // });
 
 });
 

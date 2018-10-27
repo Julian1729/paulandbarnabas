@@ -1,6 +1,5 @@
 _ = require('lodash');
 const constants = require('../config/constants');
-const config = require('../config/config')();
 const path = require('path');
 
 // Doesn't work to get controllers name
@@ -11,7 +10,6 @@ var getName = () => {
 module.exports = {
   name: 'base',
   constants,
-  config,
   extend: function(child){
     return _.extend({}, this, child);
   },

@@ -3,7 +3,6 @@ const expect = require('expect.js');
 const db = require('../models/db');
 const User = require('../models/User');
 const Utils = require('../utils/utils');
-const config = require('../config/config')();
 
 
 describe('Mongo', () => {
@@ -25,7 +24,6 @@ describe('Mongo', () => {
       var me = new User({name: 'Julian Hernandez'});
       me.save().then((doc) => {
         expect(doc).to.not.be.empty();
-        expect(doc.db.name).to.be(config.mongo.db_name);
         done();
       })
       .catch((e) => {
