@@ -4,7 +4,7 @@ html
     title= page_title
     // STYLESHEETS
     block stylesheets
-      link(href=config.base_url + "/assets/css/dist/paulandbarnabas.css", rel="stylesheet", type="text/css")
+      link(href=constants.base_url + "/assets/css/dist/paulandbarnabas.css", rel="stylesheet", type="text/css")
   body
     .wrapper
       .content
@@ -13,8 +13,8 @@ html
     // SCRIPTS 
     block scripts
       //- form2js.js
-      script(src=config.base_url + "/assets/js/vendor/form2js.js", type="text/javascript")
+      script(src=constants.base_url + "/assets/js/vendor/form2js.js", type="text/javascript")
       //- Browserfied Js bundle
-      script(src=config.base_url + "/assets/js/dist/app.bundle.js", type="text/javascript")
+      script(src=constants.base_url + "/assets/js/dist/app.bundle.js", type="text/javascript")
       
         

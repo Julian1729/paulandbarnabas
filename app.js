@@ -55,6 +55,6 @@ app.set('views', __dirname + '/views');
  app.use('/dashboard', require('./routes/Dashboard'));
 
 // Start express server
-server.listen(config.port, ()=>{
-  console.log(`"${constants.site_name}" live on port ${config.port}`);
+server.listen(process.env.PORT, ()=>{
+  console.log(`"${constants.site_name}" live on port ${process.env.PORT}`);
 });
