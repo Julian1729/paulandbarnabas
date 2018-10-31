@@ -1,0 +1,36 @@
+.button-row
+  display: flex
+  justify-content: space-between
+  margin-bottom: 15px
+
+  button
+    @include button-reset
+    @include font-smooth
+    padding: 15px
+    color: $white
+    border-radius: 50px
+    font-size: 0.5em
+    // background will be changed depending
+    // on class, default to grey
+    background: $primary_grey
+    margin: 0 3px
+    transition: background 0.3s
+
+    &:first-child
+      margin-left: 0
+    &:last-child
+      margin-right: 0
+
+    // Size
+    &.prominent
+      flex-grow: 1
+
+    // Color
+    &.primary
+      background: $light_cyan
+      &:hover
+        background: $dark_cyan
+    &.secondary
+      background: $light_purple
+      &:hover
+        background: $dark_purple

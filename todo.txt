@@ -1,3 +1,6 @@
 --------------------
 Paul and Barnabas | To Do
 --------------------
+
+- Add language option to admin account signup
+- Design database schema for users and admin account

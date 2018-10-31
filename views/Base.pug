@@ -2,13 +2,13 @@ doctype html
 html
   head
     title= page_title
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
     // STYLESHEETS
     block stylesheets
       link(href=constants.base_url + "/assets/css/dist/paulandbarnabas.css", rel="stylesheet", type="text/css")
   body
     .wrapper
-      .content
-        block content
+      block content
     
     // SCRIPTS 
     block scripts

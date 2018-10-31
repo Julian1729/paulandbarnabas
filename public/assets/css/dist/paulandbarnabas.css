@@ -1,11 +1,10 @@
 /**
  * Modules and Variables
  * */
-/**
- * Colors */
 /* http://meyerweb.com/eric/tools/css/reset/
  * v2.0 | 20110126
  * License: none (public domain) */
+@import url("https://fonts.googleapis.com/css?family=Lato:300,400,700|Raleway:300,400,500");
 html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
   margin: 0;
   padding: 0;
@@ -16,7 +15,8 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockq
 
 html, body {
   min-height: 100%;
-  height: 100%; }
+  height: 100%;
+  font-size: 25px; }
 
 /* HTML5 display-role reset for older browsers */
 article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
@@ -42,6 +42,26 @@ q:before, q:after {
 table {
   border-collapse: collapse;
   border-spacing: 0; }
+
+/**
+ * All Modules
+ * */
+/**
+ * Colors */
+/**
+ * Universal Mixins
+ * */
+h1 {
+  font-size: 1.6em; }
+
+h2 {
+  font-size: 1.5em; }
+
+h3 {
+  font-size: 1.2em; }
+
+p {
+  font-size: 1em; }
 
 .wrapper {
   height: 100%;
@@ -78,12 +98,111 @@ table {
 .footer {
   align-self: flex-end; }
 
+.text-input-container {
+  height: 1.7rem;
+  width: 100%;
+  position: relative;
+  margin: 25px 0;
+  font-family: 'Raleway', sans-serif; }
+  .text-input-container .border {
+    height: 1px;
+    background: #000000;
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0; }
+  .text-input-container input[type=text], .text-input-container input[type=password] {
+    font-size: 1em;
+    outline: none;
+    -webkit-appearance: none;
+       -moz-appearance: none;
+            appearance: none;
+    color: inherit;
+    border-radius: 0;
+    border: none;
+    background-color: transparent;
+    position: absolute;
+    width: 100%;
+    left: 0;
+    bottom: 0;
+    display: block;
+    font-size: 0.7em;
+    padding: 5px 0 5px 0; }
+    .text-input-container input[type=text]:focus + .border, .text-input-container input[type=password]:focus + .border {
+      background: #7CC8C2;
+      box-shadow: 0 2px 6px #7CC8C2; }
+  .text-input-container label {
+    position: absolute;
+    left: 0;
+    bottom: 0.6em;
+    display: block;
+    color: #FFF;
+    font-size: 0.5em;
+    font-weight: 300;
+    pointer-events: none; }
+
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px; }
+  .button-row button {
+    -webkit-appearance: none;
+       -moz-appearance: none;
+            appearance: none;
+    color: inherit;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
+    -moz-osx-font-smoothing: grayscale;
+    padding: 15px;
+    color: #FFF;
+    border-radius: 50px;
+    font-size: 0.5em;
+    background: #979797;
+    margin: 0 3px;
+    transition: background 0.3s; }
+    .button-row button:first-child {
+      margin-left: 0; }
+    .button-row button:last-child {
+      margin-right: 0; }
+    .button-row button.prominent {
+      flex-grow: 1; }
+    .button-row button.primary {
+      background: #7CC8C2; }
+      .button-row button.primary:hover {
+        background: #68AFA9; }
+    .button-row button.secondary {
+      background: #A2BAF3; }
+      .button-row button.secondary:hover {
+        background: #FF55F7; }
+
 /**
  * Pages
  * */
 /**
  * Login Page (Landing Page)
  * */
+.content.login-page {
+  background: #FF7029; }
+  .content.login-page .inner {
+    position: relative;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    top: 87px; }
+    .content.login-page .inner .logo-and-title {
+      text-align: center; }
+      .content.login-page .inner .logo-and-title img {
+        margin-bottom: 15px; }
+      .content.login-page .inner .logo-and-title h1 {
+        font-family: 'Raleway', sans-serif;
+        font-size: 1em; }
+    .content.login-page .inner form {
+      width: 300px;
+      margin: 0 auto; }
+
 /**
  * Third-party
  * */
