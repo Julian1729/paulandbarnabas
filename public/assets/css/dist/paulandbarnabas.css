@@ -99,11 +99,12 @@ p {
   align-self: flex-end; }
 
 .text-input-container {
-  height: 1.7rem;
+  height: 1.2rem;
   width: 100%;
   position: relative;
   margin: 25px 0;
-  font-family: 'Raleway', sans-serif; }
+  font-family: 'Raleway', sans-serif;
+  padding-top: 0.5em; }
   .text-input-container .border {
     height: 1px;
     background: #000000;
@@ -134,12 +135,15 @@ p {
   .text-input-container label {
     position: absolute;
     left: 0;
-    bottom: 0.6em;
+    bottom: 0.8em;
     display: block;
     color: #FFF;
     font-size: 0.5em;
     font-weight: 300;
-    pointer-events: none; }
+    pointer-events: none;
+    transition: all 0.3s; }
+    .text-input-container label.float {
+      bottom: 1.2rem; }
 
 .button-row {
   display: flex;

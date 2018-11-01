@@ -10508,6 +10508,42 @@ success: function(response, validation_handler, form, textStatus){
 }
 });
 
+(function($){
+
+  // collect all input containers
+  var $inputContainers = $('.text-input-container');
+
+  function animateLabel(inputContainer){
+    var $inputContainer = $(inputContainer); // convert to jquery object
+    var $input = $($inputContainer).find('input');
+    var $label = $($inputContainer).find('label');
+    $input.focus(function(){
+      floatLabel($label);
+    });
+    $input.blur(function(){
+      var $this = $(this);
+      // only sink label if input value is empty
+      if( Utils.isEmptyString( $this.val() ) ){
+        // clear value
+        $this.val("");
+        // put label back
+        sinkLabel($label);
+      }
+    });
+  }
+
+  function floatLabel($label){
+    $label.addClass('float');
+  }
+
+  function sinkLabel($label){
+    $label.removeClass('float');
+  }
+
+  $inputContainers.each(function(){animateLabel(this)});
+
+}($))
+
 },{"../jquery/jquery.js":1,"../utils.js":5}],5:[function(require,module,exports){
 /**
  * Utility Functions
@@ -10515,10 +10551,16 @@ success: function(response, validation_handler, form, textStatus){
 
 var redirect = function(to){
   window.location.replace(to);
-}
+};
+
+var isEmptyString = function(string){
+  string = string + ""; //cast to string
+  return (string.length === 0 || !string.trim());
+};
 
 module.exports = {
-  redirect: redirect
+  redirect: redirect,
+  isEmptyString: isEmptyString
 };
 
 },{}]},{},[4]);

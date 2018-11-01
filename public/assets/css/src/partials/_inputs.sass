@@ -1,10 +1,16 @@
+$labelTextSize: 0.5em
+$labelOffsetFromBottom: 0.8em
+$inputTextSize: 0.7em
+$inputContainerHeight: 1.2rem
+
 .text-input-container
   //@include font-smooth
-  height: 1.7rem
+  height: $inputContainerHeight
   width: 100%
   position: relative
   margin: 25px 0
   font-family: 'Raleway', sans-serif
+  padding-top: $labelTextSize
 
   .border
     height: 1px
@@ -21,7 +27,7 @@
     left: 0
     bottom: 0
     display: block
-    font-size: 0.7em
+    font-size: $inputTextSize
     //border-bottom: 1px #000000 solid
     //box-shadow: 0 4px 4px $light_cyan
     padding: 5px 0 5px 0
@@ -33,9 +39,13 @@
   label
     position: absolute
     left: 0
-    bottom: 0.6em
+    bottom: $labelOffsetFromBottom
     display: block
     color: $white
-    font-size: 0.5em
+    font-size: $labelTextSize
     font-weight: $raleway_light
     pointer-events: none
+    transition: all 0.3s
+
+    &.float
+      bottom: $inputContainerHeight

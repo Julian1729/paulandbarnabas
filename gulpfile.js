@@ -16,7 +16,9 @@ const autoprefixer = require('gulp-autoprefixer');
 const CONFIG = {
   js: {
     files: [
-      'app.js',
+      // rename app.js to reflect its content
+      // TODO: Are we going to use page specific js files?
+      'app.js'
     ],
     src: './public/assets/js/src/app.js',
     inputDir: './public/assets/js/src/',
