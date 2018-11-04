@@ -2,6 +2,19 @@
 Paul and Barnabas | To Do
 --------------------
 
+General
 - Add language option to admin account signup
 - Design database schema for users and admin account
 - Are we going to use page specific js files?
+
+11-01-2018
+- Figure out how js files will be organized by page
+-- configure browserify to bundle js files accordingly
+- Only run necessary tasks on nodemon reload (https://www.npmjs.com/package/gulp-nodemon)
+- Configure browser-sync??
+- Create input-container pug mixin
+-- set input width dynamically through mixin (should default to 100% in sass partial)
+- Style publisher signup page
+-- use new router for "create account" and split publisher and admin signup
+- DB schema for users (differentiate admin and publisher)
+-- do this by making congregations table (congregation gets made during admin signup)

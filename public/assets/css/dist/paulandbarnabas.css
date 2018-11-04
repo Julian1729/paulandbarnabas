@@ -132,6 +132,8 @@ p {
     .text-input-container input[type=text]:focus + .border, .text-input-container input[type=password]:focus + .border {
       background: #7CC8C2;
       box-shadow: 0 2px 6px #7CC8C2; }
+  .text-input-container .border {
+    transition: all 0.3s; }
   .text-input-container label {
     position: absolute;
     left: 0;
