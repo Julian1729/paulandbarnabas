@@ -7,9 +7,10 @@ General
 - Design database schema for users and admin account
 - Are we going to use page specific js files?
 
-11-05-2018
-- Only run necessary tasks on nodemon reload (https://www.npmjs.com/package/gulp-nodemon)
+??
 - Configure browser-sync??
+
+11-05-2018
 - Write form error handler to display errors in UI
 - Create input-container pug mixin
 -- set input width dynamically through mixin (should default to 100% in sass partial)

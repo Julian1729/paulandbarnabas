@@ -1,0 +1,83 @@
+$labelTextSize: 0.5em
+$inputTextSize: 0.7em
+$labelOffsetFromBottom: 0.8em
+$inputContainerHeight: 1.2rem
+$inputErrorMessageHeight: 0.5em
+
+.text-input-container
+  //@include font-smooth
+  height: $inputContainerHeight
+  width: 100%
+  position: relative
+  margin: 10px 0
+  font-family: 'Raleway', sans-serif
+  padding-top: $labelTextSize
+  padding-bottom: 1em
+
+  &:first-child
+    margin-top: 0
+  &:last-child
+    margin-bottom: 0
+
+  &.error
+    .input-element
+      .border
+        background: $error_red
+      label
+        color: $error_red
+        // OPTIMIZE: add animation to jump
+        // up and down when empty, this
+        // would mean adding different classes
+        // for different error types
+
+  .input-element
+    position: relative
+    height: $inputContainerHeight
+
+    .border
+      height: 1px
+      background: #000000
+      width: 100%
+      position: absolute
+      bottom: 0
+      left: 0
+
+    input[type=text], input[type=password]
+      @include input-reset
+      position: absolute
+      width: 100%
+      left: 0
+      bottom: 0
+      display: block
+      font-size: $inputTextSize
+      //border-bottom: 1px #000000 solid
+      //box-shadow: 0 4px 4px $light_cyan
+      padding: 5px 0 5px 0
+
+      &:focus + .border
+        background: $light_cyan
+        box-shadow: 0 2px 6px $light_cyan
+
+    .border
+      transition: all 0.3s
+
+    label
+      position: absolute
+      left: 0
+      bottom: $labelOffsetFromBottom
+      display: block
+      color: $white
+      font-size: $labelTextSize
+      font-weight: $raleway_light
+      pointer-events: none
+      transition: all 0.3s
+
+      &.float
+        bottom: $inputContainerHeight
+
+  p.input-error-message
+    margin-top: 10px
+    font-size: $inputErrorMessageHeight
+    text-transform: lowercase
+    font-weight: $raleway_light
+    color: $error_red

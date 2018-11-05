@@ -11,14 +11,22 @@ block content
         h1= constants.site_name
       
       form(action="/", method="POST")#login-form
-        .text-input-container
-          input(type="text", name="email", autocomplete="off", autocorrect="off", autocapitalize="off", spellcheck="false")
-          .border
-          label email
-        .text-input-container
-          input(type="password", name="password", autocomplete="off", autocorrect="off", autocapitalize="off", spellcheck="false")
-          .border
-          label password
+        //- .general-error-message-container
+        //-   p Email and Password combination not found
+        .fields
+          .text-input-container
+            .input-element
+              input(type="text", name="email", autocomplete="off", autocorrect="off", autocapitalize="off", spellcheck="false")
+              .border
+              label email
+            p.input-error-message
+          .text-input-container
+            .input-element
+              input(type="password", name="password", autocomplete="off", autocorrect="off", autocapitalize="off", spellcheck="false")
+              .border
+              label password
+            p.input-error-message
+
         .button-row
           button Forgot Password 
           button.prominent.primary Login
