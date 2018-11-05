@@ -1,4 +1,5 @@
 const gulp = require('gulp');
+var path = require('path');
 const pump = require('pump');
 const csso = require('gulp-csso');
 const sass = require('gulp-sass');
@@ -108,8 +109,17 @@ gulp.task('build-css-development', function(){
 gulp.task('start', ['bundleAll', 'build-css-development'], function(){
   nodemon({
     script: 'app.js',
-    // OPTIMIZE: pull out changed files anf only re-bundle those
-    tasks: ['bundleAll', 'build-css-development'],
+    tasks: function(changedFiles){
+      // OPTIMIZE: do not rebundle file is a server side .js was modified
+      var tasks = [];
+      if(!changedFiles) return tasks;
+      changedFiles.forEach(function(file){
+        if(path.extname(file) === '.js' && (changedFiles.indexOf('bundleAll') === -1) ) tasks.push('bundleAll');
+        if(path.extname(file) === '.sass' && (changedFiles.indexOf('build-css-development') === -1) ) tasks.push('build-css-development');
+        if(path.extname(file) === '.pug' && (changedFiles.indexOf('build-css-development') === -1) ) tasks.push('build-css-development');
+    });
+      return tasks
+    },
     ext: 'js pug sass',
     ignore: ['public/assets/js/dist/*']
   });
