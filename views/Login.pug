@@ -1,9 +1,8 @@
 extends Base.pug
 
-block GLOBAL_PUG
-  - var page_name = "";
-  - var body_classes = [];
-  - var scripts = [];
+append scripts
+  script(src="/assets/js/dist/landing.bundle.js")
+  
 block content
   .content.login-page
     .inner

@@ -3,6 +3,7 @@
  * Handle label animation on focus
  */
 const $ = require('jquery');
+const Utils = require('../../utils.js');
 
 // collect all input containers
 var $inputContainers = $('.text-input-container');
