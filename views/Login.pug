@@ -1,5 +1,9 @@
 extends Base.pug
 
+block GLOBAL_PUG
+  - var page_name = "";
+  - var body_classes = [];
+  - var scripts = [];
 block content
   .content.login-page
     .inner

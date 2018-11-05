@@ -7,7 +7,7 @@ General
 - Design database schema for users and admin account
 - Are we going to use page specific js files?
 
-11-01-2018
+11-04-2018
 - Figure out how js files will be organized by page
 -- configure browserify to bundle js files accordingly
 - Only run necessary tasks on nodemon reload (https://www.npmjs.com/package/gulp-nodemon)

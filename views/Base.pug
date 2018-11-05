@@ -1,12 +1,24 @@
 doctype html
+block GLOBAL_PUG
+  - var page_name = "";
+  - var body_classes = [];
+  - var scripts = [];
+
+//- add page_name to class name and scripts if it doesnt exists already
+- console.log(body_classes[page_name]);
+- if(body_classes.indexOf(page_name) === -1) body_classes.unshift(page_name)
+- if(scripts.indexOf(page_name) === -1) scripts.unshift(page_name)
+
 html
   head
     title= page_title
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
+
     // STYLESHEETS
     block stylesheets
       link(href=constants.base_url + "/assets/css/dist/paulandbarnabas.css", rel="stylesheet", type="text/css")
-  body
+
+  body(class=body_classes, data-scripts=scripts.join(" "), data-page-name=page_name)
     .wrapper
       block content
     

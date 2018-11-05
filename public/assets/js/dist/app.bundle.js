@@ -1,118 +1,4 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-/**
- * Attach all plugins to jQuery object and return modified jQuery
- */
-
-var $ = require('jquery');
-
-/**
- * Plugins
- */
- var AjaxForm = require('./plugins/ajaxform.js');
- $.fn.ajaxform = AjaxForm;
-
-module.exports = $;
-
-},{"./plugins/ajaxform.js":2,"jquery":3}],2:[function(require,module,exports){
-const $ = require('jquery');
-
-var AjaxForm = function(options, extraParams){
-
-  var $form = this;
-
-  var callbacks = {
-    success: null,
-    validation_handler: null
-  };
-
-  this.ajaxDefaults = {
-    url: "#",
-    method: "POST",
-    success: function(data, textStatus, jqXHR){
-      var validation_handler = callbacks.validation_handler || default_validation_handler;
-      // call custom callback
-      if( callbacks.success !== null ){
-        callbacks.success(data, validation_handler, $form, textStatus, jqXHR);
-      }else{
-        default_success_callback(data, validation_handler, textStatus, jqXHR);
-      }
-    },
-    fail: function(e){console.log('No fail handler...', e)}
-  };
-
-  // extract success callback
-  if(options.success){
-    // attach to callbacks object
-    callbacks.success = options.success;
-    // remove from options
-    delete options.success;
-  }
-
-  // extract validation handler
-  if(options.validation_handler){
-    callbacks.validation_handler = options.validation_handler;
-    delete options.validation_handler;
-  }
-
-  // merge defaults with options
-  ajaxOptions = $.extend({}, this.ajaxDefaults, options);
-
-  // add extra params to data
-  options.data = extraParams;
-
-  return this.each(function(){
-    init($(this), ajaxOptions);
-  });
-
-};
-
-/**
- * Function to be called after succesful ajax call and response
- * @param  {[Object]} data Data send back, usually a ajaxResponse object
- * @param  {[Function]} validation_handler Validation error callbacks
- * @param  {[jQuery Object]} form The form that was passed
- * @param  {[type]} textStatus
- * @param  {[type]} jqXHR
- * @return {[void]}
- */
-function default_success_callback(data, validation_handler, form, textStatus, jqXHR){
-  console.log('default success handler called');
-}
-
-/**
- * Validation handler to be called when one is not
- * passed in with options
- * @param  {[Array]} errors Array of errors, [name: "error message"]
- * @return {void}
- */
-function default_validation_handler(errors, form){
-  console.log('default validation handler called', errors);
-}
-
-/**
- * Initialation Function
- * @param  {[jQuery Object]} form The DOM Element passed in
- * @param  {[type]} options Filtered jQuery Ajax options
- * @return {[void]}
- */
-function init(form, options){
-
-  form.submit(function(e){
-    // stop page reload
-    e.preventDefault();
-    // collect data
-    var formData = form2js(this, null, false);
-    // merge form data to data in options
-    // WARNING: formData will override duplicate keys that
-    // were passed in as extra params
-    options.data = $.extend({}, options.data, formData);
-    $.ajax(options);
-  });
-}
-
-module.exports = AjaxForm;
-
-},{"jquery":3}],3:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -10478,89 +10364,18 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],4:[function(require,module,exports){
-var $ = require('../jquery/jquery.js');
-var Utils = require('../utils.js');
-
-var signupForm = $('#signup-form').ajaxform({
-url: '/ajax/sign-up',
-method: 'POST',
-success: function(response, validation_handler, form){
-
-  console.log(response);
-
-}
-});
-
-var loginForm = $('#login-form').ajaxform({
-url: '/ajax/login',
-method: 'POST',
-success: function(response, validation_handler, form, textStatus){
-
-  console.log(response);
-
-  if(response.error){
-    console.log('error', response.error);
-  }else if(response.data.redirect){
-    Utils.redirect(response.data.redirect);
-  }
-
-}
-});
-
-(function($){
-
-  // collect all input containers
-  var $inputContainers = $('.text-input-container');
-
-  function animateLabel(inputContainer){
-    var $inputContainer = $(inputContainer); // convert to jquery object
-    var $input = $($inputContainer).find('input');
-    var $label = $($inputContainer).find('label');
-    $input.focus(function(){
-      floatLabel($label);
-    });
-    $input.blur(function(){
-      var $this = $(this);
-      // only sink label if input value is empty
-      if( Utils.isEmptyString( $this.val() ) ){
-        // clear value
-        $this.val("");
-        // put label back
-        sinkLabel($label);
-      }
-    });
-  }
-
-  function floatLabel($label){
-    $label.addClass('float');
-  }
-
-  function sinkLabel($label){
-    $label.removeClass('float');
-  }
-
-  $inputContainers.each(function(){animateLabel(this)});
-
-}($))
-
-},{"../jquery/jquery.js":1,"../utils.js":5}],5:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 /**
- * Utility Functions
+ * Main Js File
  */
+const $ = require('jquery');
 
-var redirect = function(to){
-  window.location.replace(to);
-};
+ function fileSelect(){
+   // get body class name
+   var classList = $('body').attr('class').split(/\s+/);
+   console.log(classList);
+ }
 
-var isEmptyString = function(string){
-  string = string + ""; //cast to string
-  return (string.length === 0 || !string.trim());
-};
+ fileSelect();
 
-module.exports = {
-  redirect: redirect,
-  isEmptyString: isEmptyString
-};
-
-},{}]},{},[4]);
+},{"jquery":1}]},{},[2]);
