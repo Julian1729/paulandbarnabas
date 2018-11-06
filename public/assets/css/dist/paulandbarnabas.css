@@ -132,13 +132,13 @@ form .fields {
     margin-top: 0; }
   .text-input-container:last-child {
     margin-bottom: 0; }
-  .text-input-container.error .input-element .border {
-    background: #FF2424; }
-  .text-input-container.error .input-element label {
-    color: #FF2424; }
   .text-input-container .input-element {
     position: relative;
     height: 1.2rem; }
+    .text-input-container .input-element.error .border {
+      background: #FF2424; }
+    .text-input-container .input-element.error label {
+      color: #FF2424; }
     .text-input-container .input-element .border {
       height: 1px;
       background: #000000;
@@ -180,12 +180,16 @@ form .fields {
       transition: all 0.3s; }
       .text-input-container .input-element label.float {
         bottom: 1.2rem; }
-  .text-input-container p.input-error-message {
-    margin-top: 10px;
-    font-size: 0.5em;
-    text-transform: lowercase;
-    font-weight: 300;
-    color: #FF2424; }
+  .text-input-container .input-error-messages {
+    margin-top: 10px; }
+    .text-input-container .input-error-messages p {
+      font-size: 0.5em;
+      text-transform: lowercase;
+      font-weight: 300;
+      color: #FF2424;
+      margin: 4px 0; }
+      .text-input-container .input-error-messages p:last-child {
+        margin-bottom: 0; }
 
 .button-row {
   display: flex;
@@ -228,27 +232,33 @@ form .fields {
  * Pages
  * */
 /**
+ * All page specific sass partials
+ * */
+/**
  * Login Page (Landing Page)
  * */
-.content.login-page {
+body.landing .content {
   background: #FF7029; }
-  .content.login-page .inner {
+  body.landing .content .inner {
     position: relative;
     left: 0;
     right: 0;
     margin: 0 auto;
     top: 87px; }
-    .content.login-page .inner .logo-and-title {
+    body.landing .content .inner .logo-and-title {
       text-align: center; }
-      .content.login-page .inner .logo-and-title img {
+      body.landing .content .inner .logo-and-title img {
         margin-bottom: 15px; }
-      .content.login-page .inner .logo-and-title h1 {
+      body.landing .content .inner .logo-and-title h1 {
         font-family: 'Raleway', sans-serif;
         font-size: 1em; }
-    .content.login-page .inner form {
+    body.landing .content .inner form {
       width: 300px;
       margin: 0 auto; }
 
+/**
+ * Create Account (signup page)
+ * */
 /**
  * Third-party
  * */

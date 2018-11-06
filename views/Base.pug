@@ -1,13 +1,17 @@
-doctype html
 block GLOBAL_PUG
   - var page_name = "";
-  - var body_classes = [];
-  - var scripts = [];
+  //- var body_classes = [];
+  //- var scripts = [];
 
 //- add page_name to class name and scripts if it doesnt exists already
-- if(body_classes.indexOf(page_name) === -1) body_classes.unshift(page_name)
-- if(scripts.indexOf(page_name) === -1) scripts.unshift(page_name)
+- if(!body_classes) var body_classes = [];
+//- if(!scripts) var scripts = [];
+- if(page_name !== "" && body_classes.indexOf(page_name) === -1) body_classes.unshift(page_name)
+//- if(scripts && scripts.indexOf(page_name) === -1) scripts.unshift(page_name)
 
+include Mixins.pug
+
+doctype html
 html
   head
     title= page_title
@@ -17,7 +21,7 @@ html
     block stylesheets
       link(href=constants.base_url + "/assets/css/dist/paulandbarnabas.css", rel="stylesheet", type="text/css")
 
-  body(class=body_classes, data-scripts=scripts.join(" "), data-page-name=page_name)
+  body(class=body_classes, data-page-name=page_name)
     .wrapper
       block content
     

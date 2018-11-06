@@ -61,7 +61,8 @@ var login = controllerBase.extend({
     UserModel.findOne({email: loginData.email})
       .then(user => {
         if(!user){
-          throw new UserNotFound(`Unable to find user with info: ${JSON.stringify(loginData)}`);
+          logger.debug(`Unable to find user with info: ${JSON.stringify(loginData)}`);
+          throw new InvalidCredentials();
         }
         logger.debug(`User found by email. User: ${user}`);
         return user;
@@ -96,7 +97,7 @@ var login = controllerBase.extend({
       .catch(e => {
 
 
-        if(e instanceof UserNotFound || e instanceof InvalidCredentials){
+        if(e instanceof InvalidCredentials){
           logger.debug(e.name + '\n' + JSON.stringify(e));
           return ajaxResponse(res, {
             error: e

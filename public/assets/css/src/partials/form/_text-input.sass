@@ -2,7 +2,6 @@ $labelTextSize: 0.5em
 $inputTextSize: 0.7em
 $labelOffsetFromBottom: 0.8em
 $inputContainerHeight: 1.2rem
-$inputErrorMessageHeight: 0.5em
 
 .text-input-container
   //@include font-smooth
@@ -19,8 +18,11 @@ $inputErrorMessageHeight: 0.5em
   &:last-child
     margin-bottom: 0
 
-  &.error
-    .input-element
+  .input-element
+    position: relative
+    height: $inputContainerHeight
+
+    &.error
       .border
         background: $error_red
       label
@@ -29,10 +31,6 @@ $inputErrorMessageHeight: 0.5em
         // up and down when empty, this
         // would mean adding different classes
         // for different error types
-
-  .input-element
-    position: relative
-    height: $inputContainerHeight
 
     .border
       height: 1px
@@ -75,9 +73,14 @@ $inputErrorMessageHeight: 0.5em
       &.float
         bottom: $inputContainerHeight
 
-  p.input-error-message
+  .input-error-messages
     margin-top: 10px
-    font-size: $inputErrorMessageHeight
-    text-transform: lowercase
-    font-weight: $raleway_light
-    color: $error_red
+
+    p
+      font-size: 0.5em
+      text-transform: lowercase
+      font-weight: $raleway_light
+      color: $error_red
+      margin: 4px 0
+      &:last-child
+        margin-bottom: 0

@@ -1,22 +1,27 @@
 extends Base.pug
 
+block GLOBAL_PUG
+  - var page_name = 'createaccount';
+
 block content
-  form(action="/createaccount", method="POST")#signup-form
-    label first name
-    input(type="text", name="first_name")
-    label last name
-    input(type="text", name="last_name")
-    label email
-    input(type="text", name="email")
-    label confirm email
-    input(type="text", name="email_confirm")
-    label phone number
-    input(type="text", name="phone_number")
-    label password
-    input(type="password", name="password")
-    label confirm password
-    input(type="password", name="password_confirm")
-    input(type="submit", name="submit")
+  .content.publisher
+    
+    form(action="/createaccount", method="POST")#signup-form
+      label first name
+      input(type="text", name="first_name")
+      label last name
+      input(type="text", name="last_name")
+      label email
+      input(type="text", name="email")
+      label confirm email
+      input(type="text", name="email_confirm")
+      label phone number
+      input(type="text", name="phone_number")
+      label password
+      input(type="password", name="password")
+      label confirm password
+      input(type="password", name="password_confirm")
+      input(type="submit", name="submit")
     
     
     

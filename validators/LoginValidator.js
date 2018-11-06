@@ -3,7 +3,7 @@ var validate = require('./ValidatorBase');
 const LoginConstraints = {
   email: {
     presence: {
-      message: 'Please enter your email',
+      message: 'Please enter a valid email',
       allowEmpty: false
     }
   },

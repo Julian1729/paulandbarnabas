@@ -1,34 +1,25 @@
 extends Base.pug
 
+block GLOBAL_PUG
+  - var page_name = 'landing';
+
 append scripts
   script(src="/assets/js/dist/landing.bundle.js")
   
 block content
-  .content.login-page
+  .content
     .inner
       .logo-and-title
         img(src=constants.base_url + "/assets/images/logos/logo_132x110.png", title="Paul and Barnabas, Territory organization platform for Jehovah's Witnesses")
         h1= constants.site_name
       
       form(action="/", method="POST")#login-form
-        //- .general-error-message-container
-        //-   p Email and Password combination not found
         .fields
-          .text-input-container
-            .input-element
-              input(type="text", name="email", autocomplete="off", autocorrect="off", autocapitalize="off", spellcheck="false")
-              .border
-              label email
-            p.input-error-message
-          .text-input-container
-            .input-element
-              input(type="password", name="password", autocomplete="off", autocorrect="off", autocapitalize="off", spellcheck="false")
-              .border
-              label password
-            p.input-error-message
-
+          +text_input('email')(name="email")
+          +text_input('password')(name="password", type="password")
+        .general-error-message-container
         .button-row
           button Forgot Password 
           button.prominent.primary Login
         .button-row
-          button.prominent.secondary Create an Account
+          button.prominent.secondary(type=button) Create an Account
