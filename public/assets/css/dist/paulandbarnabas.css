@@ -271,22 +271,22 @@ body.createaccount {
    * */ }
 
 /**
- * Admin Panel Landing Page
+ * All Admin Panel Pages
  * */
-body.ap-land .header {
+body.adminpanel .header {
   height: 70px;
   background: #FE994D;
   display: table;
   font-family: 'Lato', serif; }
-  body.ap-land .header .inner {
+  body.adminpanel .header .inner {
     display: table-cell;
     vertical-align: middle;
     position: relative;
     left: 15px; }
-    body.ap-land .header .inner img {
+    body.adminpanel .header .inner img {
       display: inline-block;
       vertical-align: middle; }
-    body.ap-land .header .inner h1 {
+    body.adminpanel .header .inner h1 {
       margin-left: 6px;
       font-size: 0.6em;
       display: inline-block;
@@ -294,27 +294,27 @@ body.ap-land .header {
       color: #FFF;
       font-weight: 300; }
 
-body.ap-land .content {
+body.adminpanel .content {
   display: flex; }
-  body.ap-land .content .sidebar {
+  body.adminpanel .content .sidebar {
     width: 220px;
     background: #EEEEEE;
     -webkit-font-smoothing: antialiased;
     font-smooth: always;
     -moz-osx-font-smoothing: grayscale; }
-    body.ap-land .content .sidebar .inner {
+    body.adminpanel .content .sidebar .inner {
       position: relative;
       top: 20px; }
-      body.ap-land .content .sidebar .inner .profile {
+      body.adminpanel .content .sidebar .inner .profile {
         text-align: center; }
-        body.ap-land .content .sidebar .inner .profile .picture {
+        body.adminpanel .content .sidebar .inner .profile .picture {
           background: #5386FF;
           height: 70px;
           width: 70px;
           border-radius: 100%;
           position: relative;
           margin: 0 auto; }
-          body.ap-land .content .sidebar .inner .profile .picture img {
+          body.adminpanel .content .sidebar .inner .profile .picture img {
             height: 50px;
             width: 50px;
             position: absolute;
@@ -323,29 +323,34 @@ body.ap-land .content {
             bottom: 0;
             right: 0;
             margin: auto; }
-      body.ap-land .content .sidebar .inner .name-and-title {
+      body.adminpanel .content .sidebar .inner .name-and-title {
         margin-top: 10px; }
-        body.ap-land .content .sidebar .inner .name-and-title p:nth-child(1) {
+        body.adminpanel .content .sidebar .inner .name-and-title p:nth-child(1) {
           font-size: 0.7em;
           margin-bottom: 5px;
           font-weight: 700; }
-        body.ap-land .content .sidebar .inner .name-and-title p:nth-child(2) {
+        body.adminpanel .content .sidebar .inner .name-and-title p:nth-child(2) {
           font-size: 0.5em; }
-  body.ap-land .content .panel {
-    flex-grow: 1;
-    position: relative;
-    display: flex;
-    text-align: center;
-    justify-content: center;
-    align-items: center; }
-    body.ap-land .content .panel p:first-of-type {
-      border-radius: 5px;
-      padding: 15px 40px;
-      background: #D8D8D8;
-      color: #FFF;
-      font-family: 'Lato', serif;
-      font-weight: 700;
-      font-size: 0.6em; }
+  body.adminpanel .content .panel {
+    flex-grow: 1; }
+
+/**
+ * Admin Panel Landing Page
+ * */
+body.ap-land .panel {
+  position: relative;
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center; }
+  body.ap-land .panel p:first-of-type {
+    border-radius: 5px;
+    padding: 15px 40px;
+    background: #D8D8D8;
+    color: #FFF;
+    font-family: 'Lato', serif;
+    font-weight: 700;
+    font-size: 0.6em; }
 
 /**
  * Third-party

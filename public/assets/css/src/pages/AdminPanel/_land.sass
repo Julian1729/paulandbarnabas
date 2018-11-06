@@ -2,75 +2,17 @@
  * Admin Panel Landing Page
  *
 body.ap-land
-  .header
-    height: 70px
-    background: $secondary_orange
-    display: table
-    font-family: 'Lato', serif
-
-    .inner
-      display: table-cell
-      vertical-align: middle
-      position: relative
-      left: 15px
-      img
-        display: inline-block
-        vertical-align: middle
-      h1
-        margin-left: 6px
-        font-size: 0.6em
-        display: inline-block
-        vertical-align: middle
-        color: $white
-        font-weight: $lato_light
-  .content
+  .panel
+    position: relative
     display: flex
-
-    .sidebar
-      width: 220px
-      background: #EEEEEE
-      @include font-smooth
-      .inner
-        position: relative
-        top: 20px
-        .profile
-          text-align: center
-          .picture
-            background: $primary_blue
-            height: 70px
-            width: 70px
-            border-radius: 100%
-            position: relative
-            margin: 0 auto
-            img
-              height: 50px
-              width: 50px
-              position: absolute
-              top: 0
-              left: 0
-              bottom: 0
-              right: 0
-              margin: auto
-        .name-and-title
-          margin-top: 10px
-          p:nth-child(1)
-            font-size: 0.7em
-            margin-bottom: 5px
-            font-weight: $raleway_bold
-          p:nth-child(2)
-            font-size: 0.5em
-    .panel
-      flex-grow: 1
-      position: relative
-      display: flex
-      text-align: center
-      justify-content: center
-      align-items: center
-      p:first-of-type
-        border-radius: 5px
-        padding: 15px 40px
-        background: #D8D8D8
-        color: $white
-        font-family: 'Lato', serif
-        font-weight: $lato_bold
-        font-size: 0.6em
+    text-align: center
+    justify-content: center
+    align-items: center
+    p:first-of-type
+      border-radius: 5px
+      padding: 15px 40px
+      background: #D8D8D8
+      color: $white
+      font-family: 'Lato', serif
+      font-weight: $lato_bold
+      font-size: 0.6em
