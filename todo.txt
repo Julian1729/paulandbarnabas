@@ -11,9 +11,24 @@ General
 - Configure browser-sync??
 - set input width dynamically through mixin (should default to 100% in sass partial)
 
+Pages To Create
+- Admin Panel
+-- Landing Page
+-- Create Territory Page
+-- Create Territory Fragment Page
+-- Edit Territory Fragments Page
+
 11-05-2018
 - Style publisher signup page
 - Wire up login create account button
+- Wire up forgot password
 -- use new router for "create account" and split publisher and admin signup
 - DB schema for users (differentiate admin and publisher)
 -- do this by making congregations table (congregation gets made during admin signup)
+
+11-06-2018
+- finish units shema 
+- create admin panel route, controller and view
+- markup for admin panel landing and styling of sidebar
+- markup for create territory page
+-- create needed sass partials and corresponding pug mixins
