@@ -51,8 +51,12 @@ app.set('views', __dirname + '/views');
  // Sign Up
  app.use('/createaccount', require('./routes/CreateAccount'));
 
- // Dasboard
+ // Dashboard
  app.use('/dashboard', require('./routes/Dashboard'));
+
+ // Admin Panel
+ app.use('/adminpanel', require('./routes/AdminPanel'));
+
 
 // Start express server
 server.listen(process.env.PORT, ()=>{

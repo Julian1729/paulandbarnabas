@@ -6,6 +6,7 @@ General
 - Add language option to admin account signup
 - Design database schema for users and admin account
 - Are we going to use page specific js files?
+- determine recognized language abbreviations
 
 ??
 - Configure browser-sync??
@@ -27,7 +28,6 @@ Pages To Create
 -- do this by making congregations table (congregation gets made during admin signup)
 
 11-06-2018
-- finish units shema 
 - create admin panel route, controller and view
 - markup for admin panel landing and styling of sidebar
 - markup for create territory page

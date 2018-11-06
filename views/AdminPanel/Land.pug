@@ -1,0 +1,26 @@
+extends ../Base.pug
+
+block GLOBAL_PUG
+  - var page_name = 'ap-land'
+
+block content
+  .header
+    .inner
+      img(src=constants.base_url + "/assets/images/logos/logo_white_30x25.png", 
+        title="Admin panel", 
+        alt="Paul and Barnabas Admin Panel")
+      h1 admin panel
+  .content
+    .sidebar
+      .inner
+        .profile
+          .picture
+            img(src=constants.base_url + "/assets/images/default-profile-picture.png")
+          .name-and-title
+            p Julian Hernandez
+            p Service Overseer
+    .panel
+      p select an action on the left
+      
+    
+  

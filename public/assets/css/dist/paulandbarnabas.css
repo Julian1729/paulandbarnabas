@@ -73,13 +73,16 @@ p {
   flex-direction: column; }
 
 .header {
-  align-self: flex-start; }
+  align-self: flex-start;
+  width: 100%; }
 
 .content {
-  flex-grow: 1; }
+  flex-grow: 1;
+  width: 100%; }
 
 .footer {
-  align-self: flex-end; }
+  align-self: flex-end;
+  width: 100%; }
 
 /**
  * Partials
@@ -92,13 +95,16 @@ p {
   flex-direction: column; }
 
 .header {
-  align-self: flex-start; }
+  align-self: flex-start;
+  width: 100%; }
 
 .content {
-  flex-grow: 1; }
+  flex-grow: 1;
+  width: 100%; }
 
 .footer {
-  align-self: flex-end; }
+  align-self: flex-end;
+  width: 100%; }
 
 /**
  * All Form Element Partials
@@ -259,6 +265,88 @@ body.landing .content {
 /**
  * Create Account (signup page)
  * */
+body.createaccount {
+  /**
+   * Publisher Account
+   * */ }
+
+/**
+ * Admin Panel Landing Page
+ * */
+body.ap-land .header {
+  height: 70px;
+  background: #FE994D;
+  display: table;
+  font-family: 'Lato', serif; }
+  body.ap-land .header .inner {
+    display: table-cell;
+    vertical-align: middle;
+    position: relative;
+    left: 15px; }
+    body.ap-land .header .inner img {
+      display: inline-block;
+      vertical-align: middle; }
+    body.ap-land .header .inner h1 {
+      margin-left: 6px;
+      font-size: 0.6em;
+      display: inline-block;
+      vertical-align: middle;
+      color: #FFF;
+      font-weight: 300; }
+
+body.ap-land .content {
+  display: flex; }
+  body.ap-land .content .sidebar {
+    width: 220px;
+    background: #EEEEEE;
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
+    -moz-osx-font-smoothing: grayscale; }
+    body.ap-land .content .sidebar .inner {
+      position: relative;
+      top: 20px; }
+      body.ap-land .content .sidebar .inner .profile {
+        text-align: center; }
+        body.ap-land .content .sidebar .inner .profile .picture {
+          background: #5386FF;
+          height: 70px;
+          width: 70px;
+          border-radius: 100%;
+          position: relative;
+          margin: 0 auto; }
+          body.ap-land .content .sidebar .inner .profile .picture img {
+            height: 50px;
+            width: 50px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            margin: auto; }
+      body.ap-land .content .sidebar .inner .name-and-title {
+        margin-top: 10px; }
+        body.ap-land .content .sidebar .inner .name-and-title p:nth-child(1) {
+          font-size: 0.7em;
+          margin-bottom: 5px;
+          font-weight: 700; }
+        body.ap-land .content .sidebar .inner .name-and-title p:nth-child(2) {
+          font-size: 0.5em; }
+  body.ap-land .content .panel {
+    flex-grow: 1;
+    position: relative;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center; }
+    body.ap-land .content .panel p:first-of-type {
+      border-radius: 5px;
+      padding: 15px 40px;
+      background: #D8D8D8;
+      color: #FFF;
+      font-family: 'Lato', serif;
+      font-weight: 700;
+      font-size: 0.6em; }
+
 /**
  * Third-party
  * */
