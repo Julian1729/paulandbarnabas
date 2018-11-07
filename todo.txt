@@ -28,5 +28,6 @@ Pages To Create
 -- do this by making congregations table (congregation gets made during admin signup)
 
 11-06-2018
+- create sidepanel menu with links
 - markup for create territory page
 -- create needed sass partials and corresponding pug mixins

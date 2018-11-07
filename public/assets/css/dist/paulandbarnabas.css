@@ -323,6 +323,22 @@ body.adminpanel .content {
             bottom: 0;
             right: 0;
             margin: auto; }
+      body.adminpanel .content .sidebar .inner .menu {
+        margin-top: 25px; }
+        body.adminpanel .content .sidebar .inner .menu .item {
+          display: block;
+          padding: 5px 0;
+          background: #7CC8C2;
+          text-align: center;
+          font-size: 0.5em;
+          cursor: pointer;
+          margin: 5px 0; }
+          body.adminpanel .content .sidebar .inner .menu .item.active {
+            background: #FFF; }
+        body.adminpanel .content .sidebar .inner .menu a {
+          text-decoration: none;
+          color: inherit;
+          font-size: inherit; }
       body.adminpanel .content .sidebar .inner .name-and-title {
         margin-top: 10px; }
         body.adminpanel .content .sidebar .inner .name-and-title p:nth-child(1) {

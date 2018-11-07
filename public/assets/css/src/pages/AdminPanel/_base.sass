@@ -48,6 +48,21 @@ body.adminpanel
               bottom: 0
               right: 0
               margin: auto
+        .menu
+          margin-top: 25px
+          .item
+            display: block
+            padding: 5px 0
+            background: $light_cyan
+            text-align: center
+            font-size: 0.5em
+            cursor: pointer
+            margin: 5px 0
+            &.active
+              background: $white
+          a
+            @include anchor-reset
+
         .name-and-title
           margin-top: 10px
           p:nth-child(1)
