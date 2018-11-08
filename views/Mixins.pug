@@ -2,7 +2,11 @@
 mixin text_input(labelText)
   .text-input-container
     .input-element
-      input(type=attributes.type ||  "text", name=attributes.name autocomplete="off", autocorrect="off", autocapitalize="off", spellcheck="false")
+      input(type=attributes.type ||  "text", name=attributes.name, autocomplete="off", autocorrect="off", autocapitalize="off", spellcheck="false")
       .border
       label= labelText || attributes.name
     .input-error-messages
+
+//- Section Header
+mixin section_header(heading)
+  p.section-header= heading

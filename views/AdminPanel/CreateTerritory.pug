@@ -1,0 +1,67 @@
+extends AdminBase.pug
+
+prepend GLOBAL_PUG
+  - var page_name = "ap-createterritory"
+
+block panel
+  form
+    .pane
+      +section_header('select street')
+      select
+        option street one
+        option street two
+        option street three
+      
+      button(type="button") or create street
+      
+      div
+        label street name
+        input(name="new_street_name")
+    .pane
+      +section_header('create block')
+      div
+        label block hundred
+        input(type="number", name="block_hundred")
+      div
+        label odd
+        input(type="radio", value="odd", name="odd_even")
+      div
+        label even
+        input(type="radio", value="odd", name="odd_even")
+      div
+        label generate houses from 
+        input(type="number")
+        span to
+        input(type="number")
+    .pane
+      +section_header('units')
+      table
+        tr
+          td 4501
+        tr
+          td 4503
+    .pane
+      +section_header('assign to fragment')
+      div
+        label leave fragment unassigned
+        input(type="checkbox", name="fragment_unassigned")
+      table
+        tr
+          th Number
+          th Holder
+          th Block Count
+          th House Count
+          th (btn)
+        tr
+          td 1
+          td Todd Roberson
+          td 13
+          td 153
+          td
+    button(type="submit", name="submit") create territory
+          
+      
+          
+      
+    
+  

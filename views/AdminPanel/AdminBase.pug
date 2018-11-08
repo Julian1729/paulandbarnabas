@@ -22,9 +22,10 @@ block content
             p Julian Hernandez
             p Service Overseer
         .menu
-          a.item(href="") create territory
+          a.item(href=constants.base_url + "/adminpanel/createterritory") create territory
           a.item(href="") create territory fragment
           a.item(href="") edit territory fragments
           a.item(href="#") manage publishers
     .panel
-      block panel
+      .wrapper
+        block panel

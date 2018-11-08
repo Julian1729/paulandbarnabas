@@ -6,6 +6,11 @@ var land = (req, res, next) => {
 
 };
 
+var createTerritory = (req, res, next) => {
+  res.render('AdminPanel/CreateTerritory');
+};
+
 module.exports = controllerBase.extend({
-  land
+  land,
+  createTerritory
 });

@@ -24,7 +24,7 @@ body.adminpanel
     display: flex
 
     .sidebar
-      width: 220px
+      min-width: 220px
       background: #EEEEEE
       @include font-smooth
       .inner
@@ -73,3 +73,10 @@ body.adminpanel
             font-size: 0.5em
     .panel
       flex-grow: 1
+      .wrapper
+        max-width: 1024px
+        margin: 0 auto
+        .pane
+          float: left
+          width: 50%
+          padding: 40px  
