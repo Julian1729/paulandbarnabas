@@ -29,9 +29,11 @@ Pages To Create
 
 
 11-08-2018
-- markup for create territory page
-- create congregation and territory models
--- also corresponding schemas
+- create congregation model
+- test congregation model
+- create territory model
+- test territory model
+- figure out order of document creation...document creation relies on existence of others
 - javascript getter for create territory information and page ui logic
 
 11-09-2018
