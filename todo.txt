@@ -7,6 +7,7 @@ General
 - Design database schema for users and admin account
 - Are we going to use page specific js files?
 - determine recognized language abbreviations
+- create dark version of text input, add support for number type
 
 ??
 - Configure browser-sync??
@@ -19,22 +20,14 @@ Pages To Create
 -- Create Territory Fragment Page
 -- Edit Territory Fragments Page
 
-11-05-2018
+Login and Signup
 - Style publisher signup page
 - Wire up login create account button
 - Wire up forgot password
 -- use new router for "create account" and split publisher and admin signup
-- DB schema for users (differentiate admin and publisher)
 -- do this by making congregations table (congregation gets made during admin signup)
 
-
-11-08-2018
-- create congregation model
-- test congregation model
-- create territory model
+11-09-2018
 - test territory model
 - figure out order of document creation...document creation relies on existence of others
 - javascript getter for create territory information and page ui logic
-
-11-09-2018
-- create dark version of text input, add support for number type
