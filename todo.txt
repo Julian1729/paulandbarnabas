@@ -28,6 +28,5 @@ Login and Signup
 -- do this by making congregations table (congregation gets made during admin signup)
 
 11-09-2018
-- test territory model
 - figure out order of document creation...document creation relies on existence of others
 - javascript getter for create territory information and page ui logic
