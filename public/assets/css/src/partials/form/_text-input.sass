@@ -5,13 +5,12 @@ $inputContainerHeight: 1.2rem
 
 .text-input-container
   //@include font-smooth
-  height: $inputContainerHeight
+  //height: $inputContainerHeight
   width: 100%
   position: relative
   margin: 10px 0
   font-family: 'Raleway', sans-serif
   padding-top: $labelTextSize
-  padding-bottom: 1em
 
   &:first-child
     margin-top: 0
@@ -84,3 +83,8 @@ $inputContainerHeight: 1.2rem
       margin: 4px 0
       &:last-child
         margin-bottom: 0
+
+  &.dark
+
+    label
+      color: $primary_grey

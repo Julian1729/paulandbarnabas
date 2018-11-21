@@ -3,3 +3,53 @@
  *
 
 body.ap-createterritory
+
+  /**
+   * Units Pane
+   *
+
+  .pane.units
+
+    p.details
+      font-size: 1.3em
+      font-weight: $lato_bold
+      font-family: 'Lato', sans-serif
+      margin: 25px 0
+
+    .units-container
+      .units-column
+        width: 200px
+        display: inline-block
+        vertical-align: top
+        &:nth-of-type(1)
+          padding-right: 15px
+        &:nth-of-type(2)
+          border-left: 2px solid $primary_grey
+          padding-left: 15px
+        .unit
+          font-family: 'Lato'
+          font-size: 0.8em
+          padding: 15px 0
+          border-bottom: 2px solid $primary_blue
+          &:last-of-type
+            border-bottom: none
+          .info-row
+            position: relative
+            *
+              display: inline-block
+              vertical-align: middle
+            img
+              cursor: pointer
+              &.remove
+                margin-right: 10px
+              &.add
+                position: absolute
+                right: 0
+                top: 0
+                bottom: 0
+                margin: auto
+          .subunit-container
+            .subunit
+              margin-top: 15px
+              width: 150px
+              margin-left: auto

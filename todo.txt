@@ -27,6 +27,9 @@ Login and Signup
 -- use new router for "create account" and split publisher and admin signup
 -- do this by making congregations table (congregation gets made during admin signup)
 
-11-09-2018
-- figure out order of document creation...document creation relies on existence of others
-- javascript getter for create territory information and page ui logic
+11-17-2018
+-- write markup for units table
+-- write js logic for units
+- write front end unit collection code in "collectData" function
+- BACKEND
+-- figure out order of document creation...document creation relies on existence of others

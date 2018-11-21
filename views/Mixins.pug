@@ -1,6 +1,8 @@
 //- Text Input
 mixin text_input(labelText)
-  .text-input-container
+  //- WARNING: This may be confusing because the attributes 
+  //- applied to the mixin are distrubuted across 2 elements
+  .text-input-container(style=attributes.style, class=attributes.class, id=attributes.id)
     .input-element
       input(type=attributes.type ||  "text", name=attributes.name, autocomplete="off", autocorrect="off", autocapitalize="off", spellcheck="false")
       .border

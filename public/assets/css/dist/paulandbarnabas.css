@@ -84,6 +84,9 @@ body > .wrapper {
     align-self: flex-end;
     width: 100%; }
 
+#templates {
+  display: none; }
+
 /**
  * Partials
  * */
@@ -102,6 +105,9 @@ body > .wrapper {
   body > .wrapper > .footer {
     align-self: flex-end;
     width: 100%; }
+
+#templates {
+  display: none; }
 
 /**
  * All Form Element Partials
@@ -124,13 +130,11 @@ form .fields {
     font-weight: 700; }
 
 .text-input-container {
-  height: 1.2rem;
   width: 100%;
   position: relative;
   margin: 10px 0;
   font-family: 'Raleway', sans-serif;
-  padding-top: 0.5em;
-  padding-bottom: 1em; }
+  padding-top: 0.5em; }
   .text-input-container:first-child {
     margin-top: 0; }
   .text-input-container:last-child {
@@ -193,6 +197,8 @@ form .fields {
       margin: 4px 0; }
       .text-input-container .input-error-messages p:last-child {
         margin-bottom: 0; }
+  .text-input-container.dark label {
+    color: #979797; }
 
 .button-row {
   display: flex;
@@ -392,6 +398,51 @@ body.ap-land .panel .wrapper {
 /**
  * Admin Panel - Create Territory Page
  * */
+body.ap-createterritory {
+  /**
+   * Units Pane
+   * */ }
+  body.ap-createterritory .pane.units p.details {
+    font-size: 1.3em;
+    font-weight: 700;
+    font-family: 'Lato', sans-serif;
+    margin: 25px 0; }
+  body.ap-createterritory .pane.units .units-container .units-column {
+    width: 200px;
+    display: inline-block;
+    vertical-align: top; }
+    body.ap-createterritory .pane.units .units-container .units-column:nth-of-type(1) {
+      padding-right: 15px; }
+    body.ap-createterritory .pane.units .units-container .units-column:nth-of-type(2) {
+      border-left: 2px solid #979797;
+      padding-left: 15px; }
+    body.ap-createterritory .pane.units .units-container .units-column .unit {
+      font-family: 'Lato';
+      font-size: 0.8em;
+      padding: 15px 0;
+      border-bottom: 2px solid #5386FF; }
+      body.ap-createterritory .pane.units .units-container .units-column .unit:last-of-type {
+        border-bottom: none; }
+      body.ap-createterritory .pane.units .units-container .units-column .unit .info-row {
+        position: relative; }
+        body.ap-createterritory .pane.units .units-container .units-column .unit .info-row * {
+          display: inline-block;
+          vertical-align: middle; }
+        body.ap-createterritory .pane.units .units-container .units-column .unit .info-row img {
+          cursor: pointer; }
+          body.ap-createterritory .pane.units .units-container .units-column .unit .info-row img.remove {
+            margin-right: 10px; }
+          body.ap-createterritory .pane.units .units-container .units-column .unit .info-row img.add {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            margin: auto; }
+      body.ap-createterritory .pane.units .units-container .units-column .unit .subunit-container .subunit {
+        margin-top: 15px;
+        width: 150px;
+        margin-left: auto; }
+
 /**
  * Third-party
  * */

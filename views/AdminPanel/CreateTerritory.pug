@@ -3,8 +3,24 @@ extends AdminBase.pug
 prepend GLOBAL_PUG
   - var page_name = "ap-createterritory"
 
+append scripts
+  script(src=constants.base_url + "/assets/js/dist/ap-createterritory.bundle.js", type="text/javascript")
+
+block templates
+  //- subunit text input template
+  +text_input('subunit title')(class="dark subunit")
+  
+  .unit(data-number="")
+    .info-row
+      img.remove(src=constants.base_url + "/assets/images/delete.png", alt="Delete unit", title="Delete unit")
+      span.number
+      img.add(src=constants.base_url + "/assets/images/add.png", alt="Add subunit", title="Add subunit")
+    .subunit-container
+
 block panel
-  form
+  form#create-territory-form
+    
+    //- Street select pane
     .pane
       +section_header('select street')
       select
@@ -17,6 +33,8 @@ block panel
       div
         label street name
         input(name="new_street_name")
+    
+    //- Create block pane
     .pane
       +section_header('create block')
       div
@@ -30,16 +48,21 @@ block panel
         input(type="radio", value="odd", name="odd_even")
       div
         label generate houses from 
-        input(type="number")
+        input(type="number", name="generate_from")
         span to
-        input(type="number")
-    .pane
+        input(type="number", name="generate_to")
+    
+    //- Units Pane
+    .pane.units
       +section_header('units')
-      table
-        tr
-          td 4501
-        tr
-          td 4503
+      
+      p.details 4500 Oakland
+      
+      .units-container
+        .units-column
+        .units-column
+    
+    //- Fragment Assignment Pane
     .pane
       +section_header('assign to fragment')
       div
@@ -58,10 +81,6 @@ block panel
           td 13
           td 153
           td
+        tr
+          input(type="radio", value="", name="fragment_assignment")
     button(type="submit", name="submit") create territory
-          
-      
-          
-      
-    
-  

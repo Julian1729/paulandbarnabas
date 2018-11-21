@@ -8,14 +8,14 @@ const Utils = require('../../utils.js');
 // collect all input containers
 var $inputContainers = $('.text-input-container');
 
-function animateLabel(inputContainer){
-  var $inputContainer = $(inputContainer); // convert to jquery object
+function attachEvents(e){
+  var $inputContainer = $(e); // convert to jquery object
   var $input = $($inputContainer).find('input');
   var $label = $($inputContainer).find('label');
-  $input.focus(function(){
+  $input.on('focus', function(){
     floatLabel($label);
   });
-  $input.blur(function(){
+  $input.on('blur', function(){
     var $this = $(this);
     // only sink label if input value is empty
     if( Utils.isEmptyString( $this.val() ) ){
@@ -35,4 +35,9 @@ function sinkLabel($label){
   $label.removeClass('float');
 }
 
-$inputContainers.each(function(){animateLabel(this)});
+/**
+ * Attach event handler to all existing text inputs
+ */
+$inputContainers.each(function(){attachEvents(this)});
+
+module.exports = {attachEvents};

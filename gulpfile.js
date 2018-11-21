@@ -18,7 +18,8 @@ const CONFIG = {
   js: {
     files: [
       'landing',
-      'signup'
+      'signup',
+      'ap-createterritory'
     ],
     src: './public/assets/js/src/app.js',
     inputDir: './public/assets/js/src/pages/',
