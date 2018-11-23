@@ -10523,53 +10523,99 @@ $inputContainers.each(function(){attachEvents(this)});
 
 module.exports = {attachEvents};
 
-},{"../../utils.js":6,"jquery":3}],5:[function(require,module,exports){
+},{"../../utils.js":7,"jquery":3}],5:[function(require,module,exports){
+var $ = require('../../jquery/jquery.js');
+
+/**
+ * Add error class and append error messages
+ * @param  {[type]} validationErrors [description]
+ * @return {[type]}                  [description]
+ */
+function standardHandler(validationErrors){
+    for (var inputName in validationErrors) {
+      if (validationErrors.hasOwnProperty(inputName)) {
+        // find input-element container with corresponding input
+        var $inputContainer = $('input[name=' + inputName + ']').parent();
+        if($inputContainer.length) {
+          // add error class
+          $inputContainer.addClass('error');
+          // insert error messages
+          var $messageContainer = $inputContainer.next();//.find('.input-error-messages');
+          var errorMessages = validationErrors[inputName];
+          errorMessages.forEach(function(msg){
+            $messageContainer.append('<p>' + msg + '</p>')
+          });
+        }
+      }
+    }
+}
+
+  /**
+   * Simple validation handler. Find input element
+   * and add error class, no error messages
+   * @param  {object} validationErrors
+   * @return {void}
+   */
+  function simpleHandler(validationErrors){
+    for (var inputName in validationErrors) {
+      if (validationErrors.hasOwnProperty(inputName)) {
+        // find input-element container with corresponding input
+        var $inputContainer = $('input[name=' + inputName + ']').parent();
+        if($inputContainer.length) {
+          // add error class
+          $inputContainer.addClass('error');
+        }
+      }
+    }
+  }
+
+  /**
+   * Clear error classes from within a container,
+   * usually a form element
+   * @type {jQuery Object} Must be jquery object
+   */
+  function clearErrors($form){
+    if(!$form instanceof $) $form = $($form);
+    // remove error class from last submit
+    $form.find('.input-element.error').each(function(){
+      $(this).removeClass('error');
+    });
+    // remove error messages from container
+    $form.find('.input-error-messages').each(function(){
+      $(this).html('');
+    });
+  }
+
+module.exports = {
+  standardHandler,
+  simpleHandler,
+  clearErrors
+};
+
+},{"../../jquery/jquery.js":1}],6:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 var Utils = require('../../utils.js');
 const inputs = require('../modules/text-input.js');
+const {standardHandler, clearErrors} = require('../modules/validationHandler');
 
 var loginForm = $('#login-form').ajaxform({
 url: '/ajax/login',
 method: 'POST',
-validation_handler: function(validationErrors){
-  for (var inputName in validationErrors) {
-    if (validationErrors.hasOwnProperty(inputName)) {
-      // find input-element container with corresponding input
-      var $inputContainer = $('input[name=' + inputName + ']').parent();
-      if($inputContainer.length) {
-        // add error class
-        $inputContainer.addClass('error');
-        // insert error messages
-        var $messageContainer = $inputContainer.next();//.find('.input-error-messages');
-        var errorMessages = validationErrors[inputName];
-        errorMessages.forEach(function(msg){
-          $messageContainer.append('<p>' + msg + '</p>')
-        });
-      }
-    }
-  }
-},
+validation_handler: validationHandler,
 success: function(response, validation_handler, $form, textStatus){
 
   console.log(response);
 
   var $generalErrorMessageContainer = $form.find('.general-error-message-container');
 
-  // remove error class from last submit
-  $form.find('.input-element.error').each(function(){
-    $(this).removeClass('error');
-  });
-  // remove error messages from container
-  $form.find('.input-error-messages').each(function(){
-    $(this).html('');
-  });
+  clearErrors($form)
   // clear general error messages
   $form.parent().find('.general-error-message-container').html('');
 
   if(response.error){
     switch (response.error.name) {
       case 'FormValidationError':
-        return validation_handler(response.error.validationErrors);
+        return standardHandler(response.error.validationErrors);
         break;
       case 'InvalidCredentials':
         return $generalErrorMessageContainer
@@ -10586,7 +10632,7 @@ success: function(response, validation_handler, $form, textStatus){
 }
 });
 
-},{"../../jquery/jquery.js":1,"../../utils.js":6,"../modules/text-input.js":4}],6:[function(require,module,exports){
+},{"../../jquery/jquery.js":1,"../../utils.js":7,"../modules/text-input.js":4,"../modules/validationHandler":5}],7:[function(require,module,exports){
 /**
  * Utility Functions
  */
@@ -10605,4 +10651,4 @@ module.exports = {
   isEmptyString: isEmptyString
 };
 
-},{}]},{},[5]);
+},{}]},{},[6]);
