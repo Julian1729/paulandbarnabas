@@ -21,7 +21,7 @@ block panel
   form#create-territory-form
     
     //- Street select pane
-    .pane
+    .pane#streetselect
       +section_header('select street')
       select
         option streetone
@@ -31,26 +31,27 @@ block panel
       button(type="button") or create street
       
       div
-        label street name
-        input(name="new_street_name")
+        +text_input('street name')(name="new_street_name", class="dark")
     
     //- Create block pane
-    .pane
+    .pane.createblock#createblock
       +section_header('create block')
       div
-        label block hundred
-        input(type="number", name="block_hundred")
+        +text_input('block hundred')(name="block_hundred", type="number", class="dark")
       div
         label odd
         input(type="radio", value="odd", name="odd_even")
       div
         label even
-        input(type="radio", value="odd", name="odd_even")
+        input(type="radio", value="even", name="odd_even")
       div
         label generate houses from 
-        input(type="number", name="generate_from")
+        //- input(type="number", name="generate_from", id="generate-from")
+        +text_input('start')(type="number", name="generate_from", id="generate-from", class="dark")
         span to
-        input(type="number", name="generate_to")
+        //- input(type="number", name="generate_to", id="generate-to")
+        +text_input('end')(type="number", name="generate_to", id="generate-to", class="dark")
+        button(type="button", id="generate-units") generate units
     
     //- Units Pane
     .pane.units
@@ -63,7 +64,7 @@ block panel
         .units-column
     
     //- Fragment Assignment Pane
-    .pane
+    .pane#fragments
       +section_header('assign to fragment')
       div
         label leave fragment unassigned

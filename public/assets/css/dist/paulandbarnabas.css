@@ -153,7 +153,7 @@ form .fields {
       position: absolute;
       bottom: 0;
       left: 0; }
-    .text-input-container .input-element input[type=text], .text-input-container .input-element input[type=password] {
+    .text-input-container .input-element input[type=text], .text-input-container .input-element input[type=password], .text-input-container .input-element input[type=number] {
       font-size: 1em;
       outline: none;
       -webkit-appearance: none;
@@ -170,7 +170,7 @@ form .fields {
       display: block;
       font-size: 0.7em;
       padding: 5px 0 5px 0; }
-      .text-input-container .input-element input[type=text]:focus + .border, .text-input-container .input-element input[type=password]:focus + .border {
+      .text-input-container .input-element input[type=text]:focus + .border, .text-input-container .input-element input[type=password]:focus + .border, .text-input-container .input-element input[type=number]:focus + .border {
         background: #7CC8C2;
         box-shadow: 0 2px 6px #7CC8C2; }
     .text-input-container .input-element .border {
@@ -244,7 +244,8 @@ p.section-header {
   font-size: 1.2em;
   font-family: 'Lato', serif;
   position: relative;
-  padding-bottom: 6px; }
+  padding-bottom: 6px;
+  margin-bottom: 25px; }
   p.section-header::after {
     content: "";
     height: 2px;
@@ -406,7 +407,7 @@ body.ap-createterritory {
     font-size: 1.3em;
     font-weight: 700;
     font-family: 'Lato', sans-serif;
-    margin: 25px 0; }
+    margin-bottom: 25px; }
   body.ap-createterritory .pane.units .units-container .units-column {
     width: 200px;
     display: inline-block;
