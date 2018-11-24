@@ -23,14 +23,13 @@ block panel
     //- Street select pane
     .pane#streetselect
       +section_header('select street')
-      select
-        option streetone
-        option streettwo
-        option streetthree
-      
-      button(type="button") or create street
-      
-      div
+      .select
+        select
+          option streetone
+          option streettwo
+          option streetthree
+        span or create street
+      .newstreet
         +text_input('street name')(name="new_street_name", class="dark")
     
     //- Create block pane
@@ -54,17 +53,17 @@ block panel
         button(type="button", id="generate-units") generate units
     
     //- Units Pane
-    .pane.units
+    .pane.units#units
       +section_header('units')
       
       p.details 4500 Oakland
       
       .units-container
-        .units-column
-        .units-column
+        .units-column.one
+        .units-column.two
     
     //- Fragment Assignment Pane
-    .pane#fragments
+    .pane#fragmentassignment
       +section_header('assign to fragment')
       div
         label leave fragment unassigned
