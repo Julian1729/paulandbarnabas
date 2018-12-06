@@ -58,5 +58,24 @@ module.exports = data => {
       }
     }
   }
+
+
+  switch (data.odd_even) {
+    case "even":
+      c.block_hundred = _.extend(c.block_hundred, {
+        numericality: {
+          even: true
+        }
+      })
+      break;
+    case "odd":
+      c.block_hundred = _.extend(c.block_hundred, {
+        numericality: {
+          odd: true
+        }
+      });
+      break;
+  }
+
   return validate(data, c);
 };
