@@ -8,7 +8,7 @@ body.ap-createterritory
    * Units Pane
    *
 
-  .pane.units
+  .pane#units
 
     p.details
       font-size: 1.3em
@@ -53,3 +53,34 @@ body.ap-createterritory
               margin-top: 15px
               width: 150px
               margin-left: auto
+
+  .pane#streetselect
+
+
+    .select-street
+      display: flex
+      align-items: flex-end
+      margin-bottom: 10px
+      #createstreetbtn
+        font-size: 0.5em
+        color: $primary_blue
+        cursor: pointer
+        white-space: nowrap
+        margin-left: 15px
+
+    .newstreet .input-element
+      width: 50%
+
+    .existing-blocks
+      td.filled
+        background: #000000
+      .street-label
+        font-size: 0.5em
+        color: white
+        font-family: 'Lato', serif
+        font-weight: $lato_light
+        background: $dark_cyan
+        display: table
+        border-radius: 5px 5px 0 0
+        padding: 5px 15px
+        margin-bottom: -1px

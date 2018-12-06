@@ -8,7 +8,7 @@ append scripts
 
 block templates
   //- subunit text input template
-  +text_input('subunit title')(class="dark subunit")
+  +text_input('subunit title')(class="dark subunit", name="subunits[]")
   
   .unit(data-number="")
     .info-row
@@ -23,17 +23,41 @@ block panel
     //- Street select pane
     .pane#streetselect
       +section_header('select street')
-      .select
-        select
-          option streetone
-          option streettwo
-          option streetthree
-        span or create street
+      .select-street
+        +select_input()(name="street", id="street_selector")
+          option Oakland
+          option(value="45678", selected) Akron
+          option Saul
+          option Sellers
+          option Wakeling
+            
+        span#createstreetbtn #[strong or] create new street
       .newstreet
-        +text_input('street name')(name="new_street_name", class="dark")
+        +text_input('street name')(name="new_street_name", class="dark hide", id="new_street_name", disabled)
+    
+      .existing-blocks
+        p.street-label Oakland
+        table
+          tr
+            th Hundred
+            th Odd
+            th Even  
+              
+          tr
+            td 4500
+            td.filled
+            td
+          tr
+            td 4500
+            td yes
+            td no
+          tr
+            td 4500
+            td yes
+            td.filled
     
     //- Create block pane
-    .pane.createblock#createblock
+    .pane#createblock
       +section_header('create block')
       div
         +text_input('block hundred')(name="block_hundred", type="number", class="dark")
@@ -53,7 +77,7 @@ block panel
         button(type="button", id="generate-units") generate units
     
     //- Units Pane
-    .pane.units#units
+    .pane#units
       +section_header('units')
       
       p.details 4500 Oakland
@@ -65,22 +89,13 @@ block panel
     //- Fragment Assignment Pane
     .pane#fragmentassignment
       +section_header('assign to fragment')
-      div
-        label leave fragment unassigned
-        input(type="checkbox", name="fragment_unassigned")
-      table
-        tr
-          th Number
-          th Holder
-          th Block Count
-          th House Count
-          th (btn)
-        tr
-          td 1
-          td Todd Roberson
-          td 13
-          td 153
-          td
-        tr
-          input(type="radio", value="", name="fragment_assignment")
+      +select_input()(name="fragment_assignment")
+        option(value="", selected) Choose Fragment Holder
+        option(value="897") Todd Roberson
+        option(value="987") Emmett Nixon Jr.
+          
+      label leave fragment unassigned
+      input(type="checkbox", name="fragment_unassigned")
+      
+    
     button(type="submit", name="submit") create territory

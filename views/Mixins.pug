@@ -4,7 +4,7 @@ mixin text_input(labelText)
   //- applied to the mixin are distrubuted across 2 elements
   .text-input-container(style=attributes.style, class=attributes.class, id=attributes.id)
     .input-element
-      input(type=attributes.type ||  "text", name=attributes.name, autocomplete="off", autocorrect="off", autocapitalize="off", spellcheck="false")
+      input(type=attributes.type ||  "text", name=attributes.name, autocomplete="off", autocorrect="off", autocapitalize="off", spellcheck="false", disabled = attributes.disabled)
       .border
       label= labelText || attributes.name
     .input-error-messages
@@ -12,3 +12,9 @@ mixin text_input(labelText)
 //- Section Header
 mixin section_header(heading)
   p.section-header= heading
+  
+//- Select Element
+mixin select_input()
+  .select.input-element(style=attributes.style, class=attributes.class, id=attributes.id)
+    select(name=attributes.name)
+      block

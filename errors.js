@@ -43,8 +43,19 @@ class InvalidCredentials extends Error {
   }
 }
 
+class CongregationNotFound extends Error {
+
+  constructor(message){
+    super();
+    this.name = 'CongregationNotFound';
+    this.msg = message;
+  }
+
+}
+
  module.exports = {
    UserNotFound,
    FormValidationError,
-   InvalidCredentials
+   InvalidCredentials,
+   CongregationNotFound
  };

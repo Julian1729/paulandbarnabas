@@ -53,11 +53,7 @@ const Schema = mongoose.Schema;
     }
   });
 
-  var unit_schema = new Schema({
-    number: {
-      type: Number,
-      required: true
-    },
+  var subunit_schema = new Schema({
     name: String,
     tags: [String],
     householders: [householder_schema],
@@ -74,7 +70,27 @@ const Schema = mongoose.Schema;
     }
   });
 
-  unit_schema.subunit = [unit_schema];
+  var unit_schema = new Schema({
+    number: {
+      type: Number,
+      required: true
+    },
+    name: String,
+    tags: [String],
+    householders: [householder_schema],
+    visits: [visit_schema],
+    subunits: [subunit_schema],
+    isdonotcall: {
+      type: Boolean,
+      default: false
+    },
+    language: String,
+    notes: [note_schema],
+    iscalledon: {
+      type: Boolean,
+      default: false
+    }
+  });
 
 
 var current_holder_schema = new Schema({

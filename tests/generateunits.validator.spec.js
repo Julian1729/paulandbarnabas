@@ -1,6 +1,6 @@
 const {expect} = require('chai');
 
-const Validator = require('../validators/GenerateUnits');
+const Validator = require('../public/assets/js/src/validators/GenerateUnits');
 const GUSeed = require('./seed/GenerateUnits');
 
 describe('Generate Units Validator', () => {
@@ -20,7 +20,7 @@ describe('Generate Units Validator', () => {
   it('should return required message', () => {
     var validation = Validator(GUSeed.invalid[0]);
     expect(validation).to.have.property('block_hundred');
-    expect(validation.block_hundred[0]).to.equal('is required');
+    expect(validation.block_hundred[0]).to.exist;
   });
 
   it('should fail numeric check', () => {
