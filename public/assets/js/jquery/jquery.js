@@ -10,4 +10,7 @@ var $ = require('jquery');
  var AjaxForm = require('./plugins/ajaxform.js');
  $.fn.ajaxform = AjaxForm;
 
+ var DisableInputs = require('./plugins/disableInputs');
+ $.fn.disableinputs = DisableInputs;
+
 module.exports = $;

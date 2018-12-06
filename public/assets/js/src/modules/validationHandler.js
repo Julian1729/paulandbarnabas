@@ -1,5 +1,7 @@
 var $ = require('../../jquery/jquery.js');
 
+// FIXME: THE WAY CONTIAINERS ARE FOIND NEEDS TO BE CHANGED TO WORK WITH ALL INPUT ELEMETNS
+
 /**
  * Add error class and append error messages
  * @param  {[type]} validationErrors [description]

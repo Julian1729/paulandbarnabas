@@ -11,9 +11,12 @@ var $ = require('jquery');
  var AjaxForm = require('./plugins/ajaxform.js');
  $.fn.ajaxform = AjaxForm;
 
+ var DisableInputs = require('./plugins/disableInputs');
+ $.fn.disableinputs = DisableInputs;
+
 module.exports = $;
 
-},{"./plugins/ajaxform.js":2,"jquery":3}],2:[function(require,module,exports){
+},{"./plugins/ajaxform.js":2,"./plugins/disableInputs":3,"jquery":4}],2:[function(require,module,exports){
 const $ = require('jquery');
 
 var AjaxForm = function(options, extraParams){
@@ -112,7 +115,34 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"jquery":3}],3:[function(require,module,exports){
+},{"jquery":4}],3:[function(require,module,exports){
+var $ = require('jquery');
+
+var DisableInputs = function(querySelector, toggle){
+
+  var $wrapper = this;
+
+  var $inputElements = $wrapper.find(querySelector || 'input, select, textarea');
+  $inputElements.each(disable);
+
+};
+
+/**
+ * Add disable
+ * @param  {jQuery Object} $inputElement JQuery input element
+ * @return {void}
+ */
+function disable(){
+  var $this = $(this);
+  $this.prop('disabled', function(i, val){
+    return !val;
+  });
+
+}
+
+module.exports = DisableInputs;
+
+},{"jquery":4}],4:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -10478,7 +10508,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /**
  * Text Input
  * Handle label animation on focus
@@ -10523,8 +10553,10 @@ $inputContainers.each(function(){attachEvents(this)});
 
 module.exports = {attachEvents};
 
-},{"../../utils.js":7,"jquery":3}],5:[function(require,module,exports){
+},{"../../utils.js":8,"jquery":4}],6:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
+
+// FIXME: THE WAY CONTIAINERS ARE FOIND NEEDS TO BE CHANGED TO WORK WITH ALL INPUT ELEMETNS
 
 /**
  * Add error class and append error messages
@@ -10592,7 +10624,7 @@ module.exports = {
   clearErrors
 };
 
-},{"../../jquery/jquery.js":1}],6:[function(require,module,exports){
+},{"../../jquery/jquery.js":1}],7:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 var Utils = require('../../utils.js');
 const inputs = require('../modules/text-input.js');
@@ -10632,7 +10664,7 @@ success: function(response, validation_handler, $form, textStatus){
 }
 });
 
-},{"../../jquery/jquery.js":1,"../../utils.js":7,"../modules/text-input.js":4,"../modules/validationHandler":5}],7:[function(require,module,exports){
+},{"../../jquery/jquery.js":1,"../../utils.js":8,"../modules/text-input.js":5,"../modules/validationHandler":6}],8:[function(require,module,exports){
 /**
  * Utility Functions
  */
@@ -10651,4 +10683,4 @@ module.exports = {
   isEmptyString: isEmptyString
 };
 
-},{}]},{},[6]);
+},{}]},{},[7]);

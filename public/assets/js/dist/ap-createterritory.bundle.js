@@ -11,9 +11,12 @@ var $ = require('jquery');
  var AjaxForm = require('./plugins/ajaxform.js');
  $.fn.ajaxform = AjaxForm;
 
+ var DisableInputs = require('./plugins/disableInputs');
+ $.fn.disableinputs = DisableInputs;
+
 module.exports = $;
 
-},{"./plugins/ajaxform.js":2,"jquery":3}],2:[function(require,module,exports){
+},{"./plugins/ajaxform.js":2,"./plugins/disableInputs":3,"jquery":4}],2:[function(require,module,exports){
 const $ = require('jquery');
 
 var AjaxForm = function(options, extraParams){
@@ -112,7 +115,34 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"jquery":3}],3:[function(require,module,exports){
+},{"jquery":4}],3:[function(require,module,exports){
+var $ = require('jquery');
+
+var DisableInputs = function(querySelector, toggle){
+
+  var $wrapper = this;
+
+  var $inputElements = $wrapper.find(querySelector || 'input, select, textarea');
+  $inputElements.each(disable);
+
+};
+
+/**
+ * Add disable
+ * @param  {jQuery Object} $inputElement JQuery input element
+ * @return {void}
+ */
+function disable(){
+  var $this = $(this);
+  $this.prop('disabled', function(i, val){
+    return !val;
+  });
+
+}
+
+module.exports = DisableInputs;
+
+},{"jquery":4}],4:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -10478,7 +10508,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -27589,7 +27619,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /*!
  * validate.js 0.12.0
  *
@@ -28777,7 +28807,7 @@ return jQuery;
         typeof module !== 'undefined' ? /* istanbul ignore next */ module : null,
         typeof define !== 'undefined' ? /* istanbul ignore next */ define : null);
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 
 var templates = $('#templates');
@@ -28802,7 +28832,7 @@ module.exports = {
   getTemplate
 };
 
-},{"../../jquery/jquery.js":1}],7:[function(require,module,exports){
+},{"../../jquery/jquery.js":1}],8:[function(require,module,exports){
 /**
  * Text Input
  * Handle label animation on focus
@@ -28847,8 +28877,10 @@ $inputContainers.each(function(){attachEvents(this)});
 
 module.exports = {attachEvents};
 
-},{"../../utils.js":11,"jquery":3}],8:[function(require,module,exports){
+},{"../../utils.js":12,"jquery":4}],9:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
+
+// FIXME: THE WAY CONTIAINERS ARE FOIND NEEDS TO BE CHANGED TO WORK WITH ALL INPUT ELEMETNS
 
 /**
  * Add error class and append error messages
@@ -28916,10 +28948,11 @@ module.exports = {
   clearErrors
 };
 
-},{"../../jquery/jquery.js":1}],9:[function(require,module,exports){
-const ti = require('../modules/text-input.js');
+},{"../../jquery/jquery.js":1}],10:[function(require,module,exports){
 const $ = require('jquery');
 const _ = require('lodash');
+
+const ti = require('../modules/text-input.js');
 const validate = require('validate.js');
 const form2js = require('../../vendor/form2js');
 const {getTemplate} = require('../modules/template.js');
@@ -28938,6 +28971,9 @@ var panes = {
 };
 var unitContainer = panes.units.find('.units-container');
 
+
+(function(form){
+
 /**
  * Attach handlers
  */
@@ -28948,11 +28984,58 @@ var unitContainer = panes.units.find('.units-container');
  });
 
 
-// function collectData(form){
-//   // WARNING: this cannot be a jquery object
-//   // collect form data with form2js
-//   var formData = form2js(form);
-// }
+function collectData(form){
+  // WARNING: form cannot be a jquery object
+  var formData = form2js(form);
+  //var units = collectUnitData();
+  //var blockData = _.merge(formData, units);
+
+  // append unit data
+  formData.units = collectUnitData();
+  // convert to json to send
+  formData = JSON.stringify(formData);
+
+  // send to backend
+  $.ajax({
+    url: '/ajax/create-territory',
+    method: 'POST',
+    contentType: 'application/json',
+    dataType: 'json',
+    data: formData,
+    success: function(response){
+      console.log(response);
+    }
+  });
+}
+
+/**
+ * Get data from generated units
+ * @return {Array} Unit data array
+ */
+function collectUnitData(){
+
+  // collect all units inside unit container
+  var units = unitContainer.find('.unit');
+  var collectedUnits = [];
+  units.each(function(){
+    var dataObj = {};
+    // convert to jquery object
+    var $this = $(this);
+    // retrieve number
+    dataObj.number = $this.data('number');
+    // collect all subunit data
+    var subunitData = form2js($this.find('.subunit-container')[0], '.', false);
+    // merge into data obj
+    dataObj = _.merge(dataObj, subunitData);
+    // push into collectedUnits
+    collectedUnits.push(dataObj);
+  });
+  return collectedUnits;
+
+}
+
+}(form, unitContainer));
+
 
 /**
  * Unit UI
@@ -29025,7 +29108,6 @@ var unitContainer = panes.units.find('.units-container');
       var firstColumnCount = units.length / 2;
       // populate first column
       for(i=0; i < firstColumnCount; i++){
-        console.log('i', i);
         unitColOne.append(units.shift());
       }
       // populate second column with remaining units
@@ -29070,7 +29152,33 @@ var unitContainer = panes.units.find('.units-container');
 
 }(panes, unitContainer));
 
-},{"../../vendor/form2js":12,"../modules/template.js":6,"../modules/text-input.js":7,"../modules/validationHandler.js":8,"../validators/GenerateUnits":10,"jquery":3,"lodash":4,"validate.js":5}],10:[function(require,module,exports){
+/**
+ * Create street button
+ */
+(function(pane){
+
+  /**
+   * DOM Elements
+   */
+  var button = pane.find('#createstreetbtn');
+  var streetInput = pane.find('#new_street_name');
+  var streetSelector = pane.find('#street_selector');
+
+  function eventHandler(e){
+    streetInput.toggleClass('hide');
+    streetInput.disableinputs(null, true);
+    streetSelector.toggleClass('disabled');
+    streetSelector.disableinputs();
+  }
+
+  /**
+   * Attach Events
+   */
+  button.on('click', eventHandler);
+
+}(panes.streetselect));
+
+},{"../../vendor/form2js":13,"../modules/template.js":7,"../modules/text-input.js":8,"../modules/validationHandler.js":9,"../validators/GenerateUnits":11,"jquery":4,"lodash":5,"validate.js":6}],11:[function(require,module,exports){
 var validate = require('validate.js');
 
 validate.validators.greaterThanAttribute = function(value, options, key, attributes){
@@ -29121,7 +29229,7 @@ module.exports = (formValues) => {
   return validate(formValues, GenerateUnitsConstraints);
 };
 
-},{"validate.js":5}],11:[function(require,module,exports){
+},{"validate.js":6}],12:[function(require,module,exports){
 /**
  * Utility Functions
  */
@@ -29140,7 +29248,7 @@ module.exports = {
   isEmptyString: isEmptyString
 };
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *
@@ -29491,4 +29599,4 @@ module.exports = {
 
 }));
 
-},{}]},{},[9]);
+},{}]},{},[10]);

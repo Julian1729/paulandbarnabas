@@ -1,6 +1,7 @@
-const ti = require('../modules/text-input.js');
 const $ = require('jquery');
 const _ = require('lodash');
+
+const ti = require('../modules/text-input.js');
 const validate = require('validate.js');
 const form2js = require('../../vendor/form2js');
 const {getTemplate} = require('../modules/template.js');
@@ -19,6 +20,9 @@ var panes = {
 };
 var unitContainer = panes.units.find('.units-container');
 
+
+(function(form){
+
 /**
  * Attach handlers
  */
@@ -29,11 +33,58 @@ var unitContainer = panes.units.find('.units-container');
  });
 
 
-// function collectData(form){
-//   // WARNING: this cannot be a jquery object
-//   // collect form data with form2js
-//   var formData = form2js(form);
-// }
+function collectData(form){
+  // WARNING: form cannot be a jquery object
+  var formData = form2js(form);
+  //var units = collectUnitData();
+  //var blockData = _.merge(formData, units);
+
+  // append unit data
+  formData.units = collectUnitData();
+  // convert to json to send
+  formData = JSON.stringify(formData);
+
+  // send to backend
+  $.ajax({
+    url: '/ajax/create-territory',
+    method: 'POST',
+    contentType: 'application/json',
+    dataType: 'json',
+    data: formData,
+    success: function(response){
+      console.log(response);
+    }
+  });
+}
+
+/**
+ * Get data from generated units
+ * @return {Array} Unit data array
+ */
+function collectUnitData(){
+
+  // collect all units inside unit container
+  var units = unitContainer.find('.unit');
+  var collectedUnits = [];
+  units.each(function(){
+    var dataObj = {};
+    // convert to jquery object
+    var $this = $(this);
+    // retrieve number
+    dataObj.number = $this.data('number');
+    // collect all subunit data
+    var subunitData = form2js($this.find('.subunit-container')[0], '.', false);
+    // merge into data obj
+    dataObj = _.merge(dataObj, subunitData);
+    // push into collectedUnits
+    collectedUnits.push(dataObj);
+  });
+  return collectedUnits;
+
+}
+
+}(form, unitContainer));
+
 
 /**
  * Unit UI
@@ -106,7 +157,6 @@ var unitContainer = panes.units.find('.units-container');
       var firstColumnCount = units.length / 2;
       // populate first column
       for(i=0; i < firstColumnCount; i++){
-        console.log('i', i);
         unitColOne.append(units.shift());
       }
       // populate second column with remaining units
@@ -150,3 +200,29 @@ var unitContainer = panes.units.find('.units-container');
   $('#generate-units').click(eventHandler);
 
 }(panes, unitContainer));
+
+/**
+ * Create street button
+ */
+(function(pane){
+
+  /**
+   * DOM Elements
+   */
+  var button = pane.find('#createstreetbtn');
+  var streetInput = pane.find('#new_street_name');
+  var streetSelector = pane.find('#street_selector');
+
+  function eventHandler(e){
+    streetInput.toggleClass('hide');
+    streetInput.disableinputs(null, true);
+    streetSelector.toggleClass('disabled');
+    streetSelector.disableinputs();
+  }
+
+  /**
+   * Attach Events
+   */
+  button.on('click', eventHandler);
+
+}(panes.streetselect));
