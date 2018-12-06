@@ -29,36 +29,37 @@ var unitContainer = panes.units.find('.units-container');
  form.submit(function(e){
    e.preventDefault();
    var $form = $(this); // cast form element to jquery object
-   collectData(this);
+   var formData = collectData(this);
+   // send to backend
+   formData = JSON.stringify(formData);
+   $.ajax({
+     url: '/ajax/create-territory',
+     method: 'POST',
+     contentType: 'application/json',
+     dataType: 'json',
+     data: formData,
+     success: function(response){
+       console.log(response);
+     }
+   });
  });
 
-
+/**
+ * Collect form data, along with unit data
+ * @param  {HTMLElement} form Node to collect data from
+ * @return {Object}
+ */
 function collectData(form){
   // WARNING: form cannot be a jquery object
   var formData = form2js(form);
-  //var units = collectUnitData();
-  //var blockData = _.merge(formData, units);
-
   // append unit data
   formData.units = collectUnitData();
   // convert to json to send
-  formData = JSON.stringify(formData);
-
-  // send to backend
-  $.ajax({
-    url: '/ajax/create-territory',
-    method: 'POST',
-    contentType: 'application/json',
-    dataType: 'json',
-    data: formData,
-    success: function(response){
-      console.log(response);
-    }
-  });
+  return formData;
 }
 
 /**
- * Get data from generated units
+ * Extract all data from generated units
  * @return {Array} Unit data array
  */
 function collectUnitData(){
@@ -142,7 +143,7 @@ function collectUnitData(){
       unitColOne.html('');
       unitColTwo.html('');
       // generate units
-      var units = generateUnits(formData.generate_from, formData.generate_to, odd_or_even);
+      var units = generateUnits(formData.generate_from, formData.generate_to, formData.odd_even);
       var firstColumnCount = units.length / 2;
       // populate first column
       for(i=0; i < firstColumnCount; i++){

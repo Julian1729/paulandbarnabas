@@ -28980,36 +28980,37 @@ var unitContainer = panes.units.find('.units-container');
  form.submit(function(e){
    e.preventDefault();
    var $form = $(this); // cast form element to jquery object
-   collectData(this);
+   var formData = collectData(this);
+   // send to backend
+   formData = JSON.stringify(formData);
+   $.ajax({
+     url: '/ajax/create-territory',
+     method: 'POST',
+     contentType: 'application/json',
+     dataType: 'json',
+     data: formData,
+     success: function(response){
+       console.log(response);
+     }
+   });
  });
 
-
+/**
+ * Collect form data, along with unit data
+ * @param  {HTMLElement} form Node to collect data from
+ * @return {Object}
+ */
 function collectData(form){
   // WARNING: form cannot be a jquery object
   var formData = form2js(form);
-  //var units = collectUnitData();
-  //var blockData = _.merge(formData, units);
-
   // append unit data
   formData.units = collectUnitData();
   // convert to json to send
-  formData = JSON.stringify(formData);
-
-  // send to backend
-  $.ajax({
-    url: '/ajax/create-territory',
-    method: 'POST',
-    contentType: 'application/json',
-    dataType: 'json',
-    data: formData,
-    success: function(response){
-      console.log(response);
-    }
-  });
+  return formData;
 }
 
 /**
- * Get data from generated units
+ * Extract all data from generated units
  * @return {Array} Unit data array
  */
 function collectUnitData(){
@@ -29088,23 +29089,12 @@ function collectUnitData(){
     // validate
     var validation = GenerateUnitsValidation(formData);
     if(validation) return simpleHandler(validation);
-    // validate that generation values correspond to "odd or even" selection
-      var odd_or_even = (formData.odd_even === 'odd') ? 'odd' : 'even';
-      // validate constraints
-      var constraints = {numericality : {}};
-      constraints.numericality[odd_or_even] = true;
-      var mergedResults = {};
-      // from
-      _.merge(mergedResults, validate(_.pick(formData, 'generate_from'), {generate_from: constraints}));
-      // to
-      _.merge(mergedResults, validate(_.pick(formData, 'generate_to'), {generate_to: constraints}));
-      if(!_.isEmpty(mergedResults)) return simpleHandler(mergedResults);
     // start unit generation
       // clean out all units in container OPTIMIZE: ask before doing so
       unitColOne.html('');
       unitColTwo.html('');
       // generate units
-      var units = generateUnits(formData.generate_from, formData.generate_to, odd_or_even);
+      var units = generateUnits(formData.generate_from, formData.generate_to, formData.odd_even);
       var firstColumnCount = units.length / 2;
       // populate first column
       for(i=0; i < firstColumnCount; i++){
@@ -29193,7 +29183,7 @@ validate.validators.greaterThanAttribute = function(value, options, key, attribu
   }
 };
 
-const GenerateUnitsConstraints = {
+var GenerateUnitsConstraints = {
   block_hundred: {
     presence: {
       allowEmpty: false
@@ -29232,27 +29222,20 @@ const GenerateUnitsConstraints = {
 
 module.exports = (formValues) => {
     var c = _.cloneDeep(GenerateUnitsConstraints);
-  // validate block hundred and generation values based on odd or even
+  // validate generation values based on odd or even
   switch (formValues.odd_even) {
     case "odd":
-      // validate block hundred
-      c.block_hundred.numericality.odd = true;
       // validate generate to and from values
       c.generate_to.numericality.odd = true;
       c.generate_from.numericality.odd = true;
       break;
     case "even":
-      // validate block hundred
-      c.block_hundred.numericality.even = true;
       // validate generate to and from values
       c.generate_to.numericality.even = true;
       c.generate_from.numericality.even = true;
       break;
   }
-
-
-
-  return validate(formValues, GenerateUnitsConstraints);
+  return validate(formValues, c);
 };
 
 },{"lodash":5,"validate.js":6}],12:[function(require,module,exports){
