@@ -1,4 +1,5 @@
 var validate = require('validate.js');
+const _ = require('lodash');
 
 validate.validators.greaterThanAttribute = function(value, options, key, attributes){
   if(typeof options !== 'string') throw new Error('must be string');
@@ -11,10 +12,14 @@ validate.validators.greaterThanAttribute = function(value, options, key, attribu
   }
 };
 
-const GenerateUnitsConstraints = {
+var GenerateUnitsConstraints = {
   block_hundred: {
     presence: {
       allowEmpty: false
+    },
+    numericality: {
+      onlyInteger: true,
+      strict: true
     }
   },
   odd_even: {
@@ -45,5 +50,19 @@ const GenerateUnitsConstraints = {
 };
 
 module.exports = (formValues) => {
-  return validate(formValues, GenerateUnitsConstraints);
+    var c = _.cloneDeep(GenerateUnitsConstraints);
+  // validate generation values based on odd or even
+  switch (formValues.odd_even) {
+    case "odd":
+      // validate generate to and from values
+      c.generate_to.numericality.odd = true;
+      c.generate_from.numericality.odd = true;
+      break;
+    case "even":
+      // validate generate to and from values
+      c.generate_to.numericality.even = true;
+      c.generate_from.numericality.even = true;
+      break;
+  }
+  return validate(formValues, c);
 };

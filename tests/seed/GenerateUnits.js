@@ -41,6 +41,16 @@ var invalid = [
     generate_to: 4200
   },
 
+  /**
+   * generate_to should be even
+   */
+  {
+    block_hundred: 4500,
+    odd_even: "even",
+    generate_from: 4500,
+    generate_to: 4503
+  }
+
 ];
 
 module.exports = {

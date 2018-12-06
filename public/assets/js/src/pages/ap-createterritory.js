@@ -137,17 +137,6 @@ function collectUnitData(){
     // validate
     var validation = GenerateUnitsValidation(formData);
     if(validation) return simpleHandler(validation);
-    // validate that generation values correspond to "odd or even" selection
-      var odd_or_even = (formData.odd_even === 'odd') ? 'odd' : 'even';
-      // validate constraints
-      var constraints = {numericality : {}};
-      constraints.numericality[odd_or_even] = true;
-      var mergedResults = {};
-      // from
-      _.merge(mergedResults, validate(_.pick(formData, 'generate_from'), {generate_from: constraints}));
-      // to
-      _.merge(mergedResults, validate(_.pick(formData, 'generate_to'), {generate_to: constraints}));
-      if(!_.isEmpty(mergedResults)) return simpleHandler(mergedResults);
     // start unit generation
       // clean out all units in container OPTIMIZE: ask before doing so
       unitColOne.html('');

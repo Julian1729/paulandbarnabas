@@ -29180,6 +29180,7 @@ function collectUnitData(){
 
 },{"../../vendor/form2js":13,"../modules/template.js":7,"../modules/text-input.js":8,"../modules/validationHandler.js":9,"../validators/GenerateUnits":11,"jquery":4,"lodash":5,"validate.js":6}],11:[function(require,module,exports){
 var validate = require('validate.js');
+const _ = require('lodash');
 
 validate.validators.greaterThanAttribute = function(value, options, key, attributes){
   if(typeof options !== 'string') throw new Error('must be string');
@@ -29196,6 +29197,10 @@ const GenerateUnitsConstraints = {
   block_hundred: {
     presence: {
       allowEmpty: false
+    },
+    numericality: {
+      onlyInteger: true,
+      strict: true
     }
   },
   odd_even: {
@@ -29226,10 +29231,31 @@ const GenerateUnitsConstraints = {
 };
 
 module.exports = (formValues) => {
+    var c = _.cloneDeep(GenerateUnitsConstraints);
+  // validate block hundred and generation values based on odd or even
+  switch (formValues.odd_even) {
+    case "odd":
+      // validate block hundred
+      c.block_hundred.numericality.odd = true;
+      // validate generate to and from values
+      c.generate_to.numericality.odd = true;
+      c.generate_from.numericality.odd = true;
+      break;
+    case "even":
+      // validate block hundred
+      c.block_hundred.numericality.even = true;
+      // validate generate to and from values
+      c.generate_to.numericality.even = true;
+      c.generate_from.numericality.even = true;
+      break;
+  }
+
+
+
   return validate(formValues, GenerateUnitsConstraints);
 };
 
-},{"validate.js":6}],12:[function(require,module,exports){
+},{"lodash":5,"validate.js":6}],12:[function(require,module,exports){
 /**
  * Utility Functions
  */

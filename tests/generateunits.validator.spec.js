@@ -35,4 +35,10 @@ describe('Generate Units Validator', () => {
     expect(validation).to.have.property('generate_to');
   });
 
+  it('should fail odd even check on generate_to', () => {
+    var validation = Validator(GUSeed.invalid[3]);
+    expect(validation).to.exist;
+    expect(validation).to.have.property('generate_to');
+  });
+  
 });
