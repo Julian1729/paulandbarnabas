@@ -187,8 +187,8 @@ var createTerritory = controllerBase.extend({
     // consolidate street name
     territoryData.street_name = territoryData.street || territoryData.new_street_name;
 
+    // VALIDATE INPUT
     var validation = CreateTerritoryValidator(territoryData);
-
     if(validation){
       logger.debug('validation error\n' + JSON.stringify(validation, null, 2))
       return ajaxResponse(res, {
@@ -208,10 +208,10 @@ var createTerritory = controllerBase.extend({
         }
       })
 
+      // SEARCH FOR STREET IN DB, CREATE IT IF IT DOESN'T EXIST
       .then(territory => {
-        var toReturn = {
-          territory,
-          street: null
+        var infoObj = {
+          territory
         };
         // search for street name within array
         // check for street existence
@@ -225,34 +225,35 @@ var createTerritory = controllerBase.extend({
         }
         if(foundStreet){
           logger.debug(`${territoryData.street_name} street already exists`);
-          toReturn.street = foundStreet;
-          return toReturn;
-        }else{
-          logger.debug(`${territoryData.street_name} needs to be created`);
-          // street doesn't exist...create it
-          var newStreet = {
-            name: territoryData.street_name
-          };
-          territory.streets.push(newStreet);
-          return territory.save()
-            .then(territory => {
-              // return street
-              var street = _.find(territory.streets, function(streetObj){
-                return streetObj.name === newStreet.name;
-              });
-              if(!street) throw new Error('New street not found back in returned object from database.')
-              logger.debug(`${street.name} street created`);
-              return {
-                territory,
-                street
-              };
-
-            })
-            // delegate to main catch
-            .catch(e => { throw e; });
+          infoObj.street = foundStreet;
+          return infoObj;
         }
+
+        logger.debug(`${territoryData.street_name} needs to be created`);
+        // street doesn't exist...create it
+        var newStreet = {
+          name: territoryData.street_name
+        };
+        territory.streets.push(newStreet);
+        return territory.save()
+          .then(territory => {
+            // return street
+            var street = _.find(territory.streets, function(streetObj){
+              return streetObj.name === newStreet.name;
+            });
+            if(!street) throw new Error('New street not found back in returned object from database.')
+            logger.debug(`${street.name} street created`);
+            return {
+              territory,
+              street
+            };
+
+          })
+          // delegate to main catch
+          .catch(e => { throw e; });
       })
 
+      // SEARCH FOR BLOCK, CREATE IT IF IT DOESN'T EXIST
       .then(infoObj => {
         var streetSide = infoObj.territory.streets.id(infoObj.street._id)[territoryData.odd_even];
         var block = _.find(streetSide, function(blockObj){
@@ -287,7 +288,12 @@ var createTerritory = controllerBase.extend({
       // INSERT UNITS
       .then(infoObj => {
         var units = infoObj.block.units;
-        var newUnitCount = 0;
+        // WARNING: I have no idea why emptying the array had
+        // to be done this way. For some reason setting it to an empty array
+        // didnt work when saved to mongoose. https://github.com/Automattic/mongoose/issues/1126
+        while(units.length > 0) {
+            units.pop();
+        }
         // loop through units, create base unit object, and insert into array
         territoryData.units.forEach(unitObj => {
           var unitBase = {};
@@ -304,12 +310,13 @@ var createTerritory = controllerBase.extend({
           }
           // add unit into block
           units.push(unitBase);
-          newUnitCount++;
         });
+
+        //console.log('units', units);
         // save updated territory doc
         return infoObj.territory.save()
           .then(territory => {
-            logger.debug(`${newUnitCount} units added into block on ${territoryData.odd_even} side of ${infoObj.street.name}`);
+            logger.debug(`${units.length} units added into block on ${territoryData.odd_even} side of ${infoObj.street.name}`);
           })
           .catch(e => {throw e});
       })
