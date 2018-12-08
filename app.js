@@ -62,3 +62,5 @@ app.set('views', __dirname + '/views');
 server.listen(process.env.PORT, ()=>{
   console.log(`"${constants.site_name}" live on port ${process.env.PORT}`);
 });
+
+module.exports = app;

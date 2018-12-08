@@ -55,4 +55,28 @@ describe('Utils', () => {
 
   });
 
+  it('should convert hyphenated string to camel case', () => {
+
+    var string = 'this-is-test-string';
+    var camelCase = Utils.camelCase(string);
+    expect(camelCase).to.equal('thisIsTestString');
+
+  });
+
+  it('should convert spaced string to camel case', () => {
+
+    var string = 'this is test string';
+    var camelCase = Utils.camelCase(string, ' ');
+    expect(camelCase).to.equal('thisIsTestString');
+
+  });
+
+  it('should convert to pascual case', () => {
+
+    var string = 'this-is-test-string';
+    var PascualCase = Utils.pascualCase(string);
+    expect(PascualCase).to.equal('ThisIsTestString');
+
+  });
+
 });

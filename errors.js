@@ -53,9 +53,31 @@ class CongregationNotFound extends Error {
 
 }
 
+class NonExistentController extends Error {
+
+  constructor(message){
+    super();
+    this.name = 'NonExistentController';
+    this.msg = message;
+  }
+
+}
+
+class NonExistentAction extends Error {
+
+  constructor(message){
+    super();
+    this.name = 'NonExistentAction';
+    this.msg = message;
+  }
+
+}
+
  module.exports = {
    UserNotFound,
    FormValidationError,
    InvalidCredentials,
-   CongregationNotFound
+   CongregationNotFound,
+   NonExistentController,
+   NonExistentAction
  };

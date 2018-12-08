@@ -3,6 +3,7 @@
  */
 
 const bcrypt = require('bcrypt');
+const _ = require('lodash');
 
 const clearCollection = (model) => {
 
@@ -36,8 +37,44 @@ const bcryptPassword = passwordString => {
 
 };
 
+const camelCase = (string, delimiter) => {
+
+  // default delimiter to hyphen (-)
+  delimiter = delimiter || '-';
+  // split string
+  var splits = string.split(delimiter);
+  var camelCaseString = '';
+  // if unable to split return og string
+  if(!splits.length) return string;
+  // take first string, convert to lowercase and insert into string
+  var first = splits.shift().toLowerCase();
+  camelCaseString += first;
+  // capitalize remaining and concat to string
+  splits.forEach(str => {
+    camelCaseString += _.capitalize(str);
+  });
+  return camelCaseString;
+
+};
+
+const pascualCase = (string, delimiter) => {
+
+  // default delimiter to hyphen (-)
+  delimiter = delimiter || '-';
+  // split string
+  var splits = string.split(delimiter);
+  var PascualCaseString = '';
+  splits.forEach(str => {
+    PascualCaseString += _.capitalize(str);
+  });
+  return PascualCaseString;
+
+};
+
 module.exports = {
   clearCollection,
   collectFormData,
-  bcryptPassword
+  bcryptPassword,
+  camelCase,
+  pascualCase
 };

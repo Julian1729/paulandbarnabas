@@ -28984,7 +28984,7 @@ var unitContainer = panes.units.find('.units-container');
    // send to backend
    formData = JSON.stringify(formData);
    $.ajax({
-     url: '/ajax/create-territory',
+     url: '/ajax/create-territory/save-territory',
      method: 'POST',
      contentType: 'application/json',
      dataType: 'json',
