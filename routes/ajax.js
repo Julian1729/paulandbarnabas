@@ -42,7 +42,7 @@ var dispatch = (req, res, next) => {
     if(e.code === "MODULE_NOT_FOUND"){
       // module was unable to be located, respond with 404
       var error = new NonExistentController(`"${requestedController}" is not a valid controller"`);
-      logger.debug(error);
+      console.log(e);
       return res.status(404).send(error);
     }
     // re throw error

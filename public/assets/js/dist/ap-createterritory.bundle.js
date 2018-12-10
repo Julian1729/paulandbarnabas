@@ -18,6 +18,7 @@ module.exports = $;
 
 },{"./plugins/ajaxform.js":2,"./plugins/disableInputs":3,"jquery":4}],2:[function(require,module,exports){
 const $ = require('jquery');
+const form2js = require('../../vendor/form2js');
 
 var AjaxForm = function(options, extraParams){
 
@@ -115,7 +116,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"jquery":4}],3:[function(require,module,exports){
+},{"../../vendor/form2js":13,"jquery":4}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){

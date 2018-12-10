@@ -1,4 +1,5 @@
 const $ = require('jquery');
+const form2js = require('../../vendor/form2js');
 
 var AjaxForm = function(options, extraParams){
 

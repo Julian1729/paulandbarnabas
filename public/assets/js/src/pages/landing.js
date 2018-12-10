@@ -4,9 +4,9 @@ const inputs = require('../modules/text-input.js');
 const {standardHandler, clearErrors} = require('../modules/validationHandler');
 
 var loginForm = $('#login-form').ajaxform({
-url: '/ajax/login',
+url: '/ajax/account/login',
 method: 'POST',
-validation_handler: validationHandler,
+validation_handler: standardHandler,
 success: function(response, validation_handler, $form, textStatus){
 
   console.log(response);

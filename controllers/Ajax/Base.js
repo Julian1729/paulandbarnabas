@@ -1,8 +1,6 @@
 const HttpStatus = require('http-status-codes');
 const _ = require('lodash');
 
-const constants = require('../config/constants');
-
 /**
  * Send back a standard JSON response to an ajax request
  * @param  {[Object]} res Express response object to be able to execute response
@@ -31,6 +29,5 @@ var ajaxResponse = (res, options, httpStatus) => {
 };
 
 module.exports = {
-  constants,
   ajaxResponse
 };
