@@ -73,11 +73,24 @@ class NonExistentAction extends Error {
 
 }
 
+/**
+ * Model Method Errors
+ */
+
+class StreetNotFound extends Error {
+  constructor(message){
+    super();
+    this.name = 'StreetNotFound';
+    this.msg = message;
+  }
+}
+
  module.exports = {
    UserNotFound,
    FormValidationError,
    InvalidCredentials,
    CongregationNotFound,
    NonExistentController,
-   NonExistentAction
+   NonExistentAction,
+   StreetNotFound
  };

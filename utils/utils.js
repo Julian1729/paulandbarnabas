@@ -71,10 +71,20 @@ const pascualCase = (string, delimiter) => {
 
 };
 
+const isOdd = (number) => {
+
+  if(number % 2){
+    return true;
+  }
+  return false;
+
+}
+
 module.exports = {
   clearCollection,
   collectFormData,
   bcryptPassword,
   camelCase,
-  pascualCase
+  pascualCase,
+  isOdd
 };

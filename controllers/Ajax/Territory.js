@@ -5,9 +5,14 @@ const CreateTerritoryValidator = require('../../validators/CreateTerritory');
 const {CongregationNotFound, FormValidationError} = require('../../errors');
 const TerritoryModel = require('../../models/Territory');
 const {ObjectId} = require('mongodb');
+const {ajaxResponse} = require('./Base');
 const logger = require('../../utils/logger');
 const Utils = require('../../utils/utils');
 const constants = require('../../config/config');
+const errors = require('../../errors');
+
+// FIXME: hard coded congregation object id!!
+var hardcodedID = "5c01eb89ef008c67a6f77add";
 
 var saveTerritory = (req, res, next) => {
 
@@ -33,8 +38,6 @@ var saveTerritory = (req, res, next) => {
     })
   }
 
-  // FIXME: hard coded congregation object id!!
-  var hardcodedID = "5c01eb89ef008c67a6f77add";
   TerritoryModel.findOne({congregation: hardcodedID})
     .then(territory => {
       if(territory){
@@ -164,7 +167,6 @@ var saveTerritory = (req, res, next) => {
           error: e
         });
       }else{
-        console.log(e);
         return ajaxResponse(res, {
           status: 500
         });
@@ -173,6 +175,42 @@ var saveTerritory = (req, res, next) => {
 
 };
 
+var getBlocks = (req, res, next) => {
+
+  var congregationId = req.body.congregation;
+  var street = req.body.street;
+  // find blocks
+  TerritoryModel.findByCongregation(congregationId)
+    .then(territory => {
+      // get block from street
+      var blocks = territory
+        .findStreet(street)
+        .getBlocks();
+
+      return ajaxResponse(res, {
+        data: blocks
+      });
+
+    })
+    .catch(e => {
+
+      if(e instanceof errors.StreetNotFound){
+        return ajaxResponse(res, {
+          status: 500,
+          error: e
+        });
+      }else{
+        return ajaxResponse(res, {
+          status: 500,
+          error: e
+        });
+      }
+
+    });
+
+};
+
 module.exports = {
-  saveTerritory
+  saveTerritory,
+  getBlocks
 };

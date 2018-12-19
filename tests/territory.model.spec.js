@@ -187,4 +187,88 @@ describe('Territory Model', () => {
 
   });
 
+    describe('Territory Methods', () => {
+
+      it('should find Oakland street in territory', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var street = territory.findStreet('Oakland');
+            expect(street).to.have.property('name');
+            expect(street.name).to.equal('Oakland');
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should find Territory by congregation id', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            Territory.findByCongregation(seed.territory.completed.congregation)
+              .then(congregation => {
+                expect(congregation).to.exist;
+                done();
+              })
+              .catch(e => done(e));
+          })
+          .catch(e => done(e));
+
+      });
+
+    });
+
+    describe('Street methods', () => {
+
+      it('should return all blocks', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var blocks = territory
+              .findStreet('Oakland')
+              .getBlocks('even');
+            expect(blocks).to.be.an('array').but.have.lengthOf(1);
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should find the 4500 block of Oakland St.', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var block = territory
+              .findStreet('Oakland')
+              .findBlock(4500);
+            expect(block).to.exist;
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
+        it('should not find the 4600 block of Oakland St.', (done) => {
+
+          var testTerritory = Territory(seed.territory.completed);
+          testTerritory.save()
+            .then(territory => {
+              var block = territory
+                .findStreet('Oakland')
+                .findBlock(4600);
+              expect(block).to.not.exist;
+              done();
+            })
+            .catch(e => done(e));
+
+        });
+
+    });
+
+
 });

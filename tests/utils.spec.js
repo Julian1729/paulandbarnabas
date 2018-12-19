@@ -79,4 +79,18 @@ describe('Utils', () => {
 
   });
 
+  it('should return true for odd number', () => {
+
+    var res = Utils.isOdd(7);
+    expect(res).to.be.true;
+
+  });
+
+  it('should return false for even number', () => {
+
+      var res = Utils.isOdd(2);
+      expect(res).to.be.false;
+
+  });
+
 });

@@ -4,22 +4,8 @@ var router = express.Router();
 const {NonExistentController, NonExistentAction} = require('../errors');
 const logger = require('../utils/logger');
 const Utils = require('../utils/utils');
-const FREAK = require('../controllers/Ajax/CreateTerritory');
 
 const relativePath = '../controllers/Ajax';
-
-var findController = (req, res, next) => {
-  var requestedController = req.params.controller;
-  // check to make sure that the controller exists
-  if(controller[requestedController] && controller[requestedController].run){
-    controller[requestedController].run(req, res, next);
-  }else{
-    // OPTIMIZE: Add an error logger here only to be used in prod
-    res.send({
-      err: `"${requestedController}" not found`
-    });
-  }
-};
 
 var dispatch = (req, res, next) => {
 
