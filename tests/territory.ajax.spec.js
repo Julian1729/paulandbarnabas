@@ -46,6 +46,32 @@ describe('Territory Ajax', () => {
 
     });
 
+    it('should return all streets', (done) => {
+
+      // enter territory into DB
+      var testTerritory = TerritoryModel(territorySeed.territory.completed);
+      // add another street
+      testTerritory.streets.push({name: 'Wakeling'})
+      testTerritory.save()
+        .then(territory => {
+
+          request(app)
+            .post('/ajax/territory/get-streets')
+            .expect(200)
+            .send({congregation: territory.congregation})
+            .end((err, res) => {
+              var ajaxResponse = JSON.parse(res.text);
+              expect(ajaxResponse).to.have.property('data');
+              expect(ajaxResponse.status).to.equal(200);
+              expect(ajaxResponse.data).to.have.lengthOf(2);
+              done();
+            });
+
+        })
+        .catch(e => done(e));
+
+    });
+
   });
 
 });

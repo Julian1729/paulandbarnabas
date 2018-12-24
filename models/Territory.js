@@ -1,5 +1,6 @@
 const mongoose = require('./db');
 const Schema = mongoose.Schema;
+const {ObjectId} = require('mongodb');
 
 const Utils = require('../utils/utils');
 const errors = require('../errors');
@@ -209,7 +210,13 @@ var TerritorySchema = new Schema({
    */
   TerritorySchema.statics.findByCongregation = function(congregationId){
 
-   return this.findOne({congregation: congregationId});//.then(res => { return 'this string'; }).catch(e => e);
+   return this.findOne({congregation: congregationId})
+    .then(territory => {
+      if(territory === null) throw new errors.TerritoryNotFound();
+      return territory;
+    })
+    // re throw error to be handled on other side
+    .catch(e => {throw e});
 
   };
 
@@ -255,6 +262,28 @@ var TerritorySchema = new Schema({
     return street;
 
   };
+
+  TerritorySchema.methods.findFragment = function(number){
+
+    var fragment = this.fragments.find(f => f.number === parseInt(number));
+    if(!fragment) throw new errors.FragmentNotFound(`"${number}" not found in Territory with congregation id ${this.congregation}`);
+    return fragment;
+
+  };
+
+  /**
+   * Assign a block to a congregation fragment
+   * @param  {mixed} fragmentNumber Unique fragment number (e.g 15)
+   * @param  {mixed} blockId Block ObjectId
+   * @return {Promise}
+   */
+  TerritorySchema.methods.assignBlockToFragment = function(fragmentNumber, blockId){
+
+    var fragment = this.findFragment(fragmentNumber);
+    fragment.blocks.push(blockId);
+    return this.save();
+
+  }
 
 
 /**

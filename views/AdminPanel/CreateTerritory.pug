@@ -25,36 +25,26 @@ block panel
       +section_header('select street')
       .select-street
         +select_input()(name="street", id="street_selector")
-          option Oakland
-          option(value="45678", selected) Akron
-          option Saul
-          option Sellers
-          option Wakeling
+          option(selected, disabled) select street
             
         span#createstreetbtn #[strong or] create new street
       .newstreet
         +text_input('street name')(name="new_street_name", class="dark hide", id="new_street_name", disabled)
-    
+              
       .existing-blocks
-        p.street-label Oakland
-        table
+        p.street-label
+        table#existing-blocks-table
           tr
             th Hundred
             th Odd
-            th Even  
-              
-          tr
-            td 4500
-            td.filled
-            td
-          tr
-            td 4500
-            td yes
-            td no
-          tr
-            td 4500
-            td yes
-            td.filled
+            th Even
+          tr#existing-row-template.hide
+            td.hundred
+            td.odd
+            td.even
+          tr#no-blocks-found.hide
+            td No blocks found
+      
     
     //- Create block pane
     .pane#createblock
@@ -80,19 +70,20 @@ block panel
     .pane#units
       +section_header('units')
       
-      p.details 4500 Oakland
+      p.details
+        span.hundred
+        span.name
       
       .units-container
         .units-column.one
+          p No Units
         .units-column.two
     
     //- Fragment Assignment Pane
     .pane#fragmentassignment
       +section_header('assign to fragment')
       +select_input()(name="fragment_assignment")
-        option(value="", selected) Choose Fragment Holder
-        option(value="897") Todd Roberson
-        option(value="987") Emmett Nixon Jr.
+        option(value="", selected) Choose Fragment
           
       label leave fragment unassigned
       input(type="checkbox", name="fragment_unassigned")

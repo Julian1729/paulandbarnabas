@@ -85,6 +85,22 @@ class StreetNotFound extends Error {
   }
 }
 
+class TerritoryNotFound extends Error {
+  constructor(message){
+    super();
+    this.name = 'TerritoryNotFound';
+    this.msg = message;
+  }
+}
+
+class FragmentNotFound extends Error {
+  constructor(message){
+    super();
+    this.name = 'FragmentNotFound';
+    this.msg = message;
+  }
+}
+
  module.exports = {
    UserNotFound,
    FormValidationError,
@@ -92,5 +108,7 @@ class StreetNotFound extends Error {
    CongregationNotFound,
    NonExistentController,
    NonExistentAction,
-   StreetNotFound
+   StreetNotFound,
+   TerritoryNotFound,
+   FragmentNotFound
  };

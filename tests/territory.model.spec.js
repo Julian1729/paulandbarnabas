@@ -7,6 +7,7 @@ const User = require('../models/User');
 const seed = require('./seed/Territory');
 const seedUsers = require('./seed/User');
 const Utils = require('../utils/utils');
+const errors = require('../errors');
 
 
 describe('Territory Model', () => {
@@ -216,6 +217,50 @@ describe('Territory Model', () => {
               .catch(e => done(e));
           })
           .catch(e => done(e));
+
+      });
+
+    it('should not find congregation by id and return error', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            Territory.findByCongregation(new ObjectId())
+              .then(congregation => {
+                done( new Error('this should not have passed'));
+              })
+              .catch(e => {
+                expect(e instanceof errors.TerritoryNotFound).to.be.true;
+                done();
+              });
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should save block into fragment', (done) => {
+
+        var targetFragmentNumber = seed.territory.completed.fragments[0].number;
+        var targetBlockId = null;
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            targetBlockId = territory
+              .findStreet('Oakland')
+              .findBlock(4500)._id;
+
+            expect(targetBlockId).to.exist;
+            return territory.assignBlockToFragment(targetFragmentNumber, targetBlockId)
+          })
+          .then(territory => {
+            var fragment = territory.findFragment(targetFragmentNumber);
+            expect(fragment).to.exist;
+            var findBlock = fragment.blocks.find(id => id === targetBlockId);
+            expect(findBlock).to.exist;
+            done();
+          })
+          .catch(e => done(e));
+
 
       });
 

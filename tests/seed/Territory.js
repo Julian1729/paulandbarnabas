@@ -104,7 +104,9 @@ var notes =  {
 
 territory.completed = {
   congregation: new ObjectId(),
-  fragments: [],
+  fragments: [{
+    number: 1
+  }],
   streets: [{
       name: 'Oakland',
       odd: [],

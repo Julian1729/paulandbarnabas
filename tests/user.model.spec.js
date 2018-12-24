@@ -1,8 +1,12 @@
 const expect = require('expect.js');
+const chaiExpect = require('chai').expect;
+const {ObjectId} = require('mongodb');
 
+const Congregation = require('../models/Congregation');
+const CongregationSeed = require('./seed/Congregation');
 const User = require('../models/User');
 const Utils = require('../utils/utils');
-const seed = require('./seed/User');
+const UserSeed = require('./seed/User');
 
 describe('User Model', () => {
 
@@ -20,11 +24,11 @@ describe('User Model', () => {
    */
   it('should save user to the database', (done) => {
 
-      var user = new User(seed.completeUser);
+      var user = new User(UserSeed.completeUser);
       user.save().then((doc)=>{
         User.find({}).then((users) => {
           expect(users.length).to.be(1);
-          expect(users[0].first_name).to.eql(seed.completeUser.first_name);
+          expect(users[0].first_name).to.eql(UserSeed.completeUser.first_name);
           return done();
         });
       }, (e) => {
@@ -38,12 +42,12 @@ describe('User Model', () => {
    */
   it('should hash the users password', (done) => {
 
-    var user = new User(seed.completeUser);
+    var user = new User(UserSeed.completeUser);
     user.save().then((doc)=>{
       User.find({}).then((users) => {
         expect(users.length).to.be(1);
-        expect(users[0].first_name).to.be(seed.completeUser.first_name);
-        expect(users[0].password).to.not.eql(seed.completeUser.password);
+        expect(users[0].first_name).to.be(UserSeed.completeUser.first_name);
+        expect(users[0].password).to.not.eql(UserSeed.completeUser.password);
         return done();
       });
     }, (e) => {
@@ -57,7 +61,7 @@ describe('User Model', () => {
    */
   it('should not re-hash the users password', (done) => {
 
-    var user = new User(seed.completeUser);
+    var user = new User(UserSeed.completeUser);
     // Inject user into database
     user.save().then((doc)=>{
       expect(doc).to.be.ok();
@@ -88,7 +92,7 @@ describe('User Model', () => {
    */
   it('should re-hash the users password', (done) => {
 
-    var user = new User(seed.completeUser);
+    var user = new User(UserSeed.completeUser);
     // Inject user into database
     user.save().then((doc)=>{
       expect(doc).to.be.ok();
@@ -113,7 +117,7 @@ describe('User Model', () => {
 
   it('should not enter extra information', (done) => {
 
-    var user = new User(seed.completeUser);
+    var user = new User(UserSeed.completeUser);
     user.save()
       .then(doc => {
         expect(doc).to.have.property('first_name');
@@ -124,6 +128,92 @@ describe('User Model', () => {
 
   });
 
+  it('should find all users that belong to certain congrgation', (done) => {
+
+    var seedCongregation = new Congregation(CongregationSeed.validCongregation);
+    // CREATE CONREGATION
+    seedCongregation.save()
+      // CREATE USERS WITH CONGREGATION REFERENCE
+      .then(congregation => {
+        var user1 = {
+          first_name: 'Julian',
+          last_name: 'Hernandez',
+          email: 'hernandez.julian17@gmail.com',
+          email_confirm: 'hernandez.julian17@gmail.com',
+          phone_number: '2154000468',
+          title: 'Ministerial Servant',
+          password: 'newpasssword',
+          password_confirm: 'newpasssword',
+          congregation: new ObjectId(congregation._id)
+        };
+
+        var user2 = {
+          first_name: 'Todd',
+          last_name: 'Roberson',
+          email: 'toddy@gmail.com',
+          phone_number: '2153333333',
+          title: 'Ministerial Servant',
+          password: 'newpasssword',
+          congregation: new ObjectId(congregation._id)
+        };
+
+        return User.collection.insertMany([user1, user2]);
+      })
+      // ATTEMPT TO FIND USERS THAT BELONG TO CONGREGATION
+      .then(users => {
+        User.find({congregation: seedCongregation._id})
+          .then(users => {
+            chaiExpect(users).to.have.lengthOf(2);
+            done();
+          })
+          .catch(e => done(e));
+
+      })
+      .catch(e => done(e))
+
+  });
+
   // OPTIMIZE: Test that user input can be re bcrpted and then compared
+
+});
+
+it('should return list of all users', (done) => {
+
+  var user1 = new User({
+    first_name: 'Julian',
+    last_name: 'Hernandez',
+    email: 'hernandez.julian17@gmail.com',
+    email_confirm: 'hernandez.julian17@gmail.com',
+    phone_number: '2154000468',
+    title: 'Ministerial Servant',
+    password: 'newpasssword',
+    password_confirm: 'newpasssword',
+    congregation: new ObjectId()
+  });
+
+  var user2 = new User({
+    first_name: 'Todd',
+    last_name: 'Roberson',
+    email: 'toddy@gmail.com',
+    phone_number: '2153333333',
+    title: 'Ministerial Servant',
+    password: 'newpasssword',
+    congregation: new ObjectId()
+  });
+
+  user1.save()
+    .then(user => {
+      return user2.save();
+    })
+    .then(user2 => {
+      // FIND LIST
+      return User.getList();
+    })
+    .then(list => {
+      chaiExpect(list).to.have.lengthOf(2);
+      chaiExpect(list[0]).to.have.property('congregation');
+      done();
+    })
+    .catch(e => done(e));
 
 });

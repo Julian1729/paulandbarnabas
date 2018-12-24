@@ -7,17 +7,6 @@ var
   logger = require('../utils/logger'),
   _ = require('lodash');
 
-/**
- * Schema for holding a user's assignments such as Territory fragments
- * @type {Schema}
- */
-var assignmentsSchema = new Schema({
-  fragments: [{
-    type: Schema.ObjectId,
-    // FIXME: reference the fragments of corresponding territory
-  }]
-});
-
 
 var UserSchema = new Schema({
   first_name: {
@@ -46,13 +35,13 @@ var UserSchema = new Schema({
     required: true
   },
   title: String,
-  // OPTIMIZE: Implement congregation reference
-  // should hold ObjectIds that reference a congregation in the "Congregations" collection
-    // host: {
-    //   type: Schema.ObjectId,
-    //   ref: 'Congregation'
-    // }
-  // OPTIMIZE: Implement assignmentsSchema
+  congregation: {
+    type: Schema.ObjectId,
+    ref: 'Congregation'
+  },
+  fragments: [{
+    type: Schema.ObjectId
+  }]
 });
 
 /**
@@ -86,6 +75,22 @@ UserSchema.pre('save', function(next){
   });
 
 });
+
+/**
+ * Statics
+ */
+UserSchema.statics.getList = function(){
+
+  return this.find({}, 'first_name last_name congregation id');
+
+};
+
+// FIXME: should not accept congregation as arg, should get from session
+UserSchema.statics.findByID = function(congregation, id){
+
+  return this.findOne({congregation: congregation, _id: id});
+
+};
 
 /**
  * Methods

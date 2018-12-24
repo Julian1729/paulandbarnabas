@@ -1,9 +1,10 @@
 /**
  * Create Territory Ajax Controller
  */
+const {CongregationNotFound, FragmentNotFound, FormValidationError} = require('../../errors');
 const CreateTerritoryValidator = require('../../validators/CreateTerritory');
-const {CongregationNotFound, FormValidationError} = require('../../errors');
 const TerritoryModel = require('../../models/Territory');
+const UserModel = require('../../models/User');
 const {ObjectId} = require('mongodb');
 const {ajaxResponse} = require('./Base');
 const logger = require('../../utils/logger');
@@ -38,16 +39,7 @@ var saveTerritory = (req, res, next) => {
     })
   }
 
-  TerritoryModel.findOne({congregation: hardcodedID})
-    .then(territory => {
-      if(territory){
-        logger.debug('congregation territory found');
-        return territory;
-      }else{
-        throw new CongregationNotFound(`Territory with congregation ID ${hardcodedID} not found.`)
-      }
-    })
-
+  TerritoryModel.findByCongregation(hardcodedID)
     // SEARCH FOR STREET IN DB, CREATE IT IF IT DOESN'T EXIST
     .then(territory => {
       var infoObj = {
@@ -152,21 +144,32 @@ var saveTerritory = (req, res, next) => {
         units.push(unitBase);
       });
 
-      //console.log('units', units);
       // save updated territory doc
       return infoObj.territory.save()
         .then(territory => {
           logger.debug(`${units.length} units added into block on ${territoryData.odd_even} side of ${infoObj.street.name}`);
+          return infoObj;
         })
         .catch(e => {throw e});
     })
-
+    // UPDATE FRAGMENT ASSIGNMENT
+    .then(infoObj => {
+      if(territoryData.fragment_unassigned !== null) return;
+      var fragmentNumber = territoryData.fragment_assignment;
+      infoObj.territory
+        .assignBlockToFragment(fragmentNumber, infoObj.block._id)
+        .then(territory => {
+          logger.debug(`block saved into fragment ${fragmentNumber}`);
+        })
+        .catch(e => {throw e});
+    })
     .catch(e => {
-      if(e instanceof CongregationNotFound){
+      if(e instanceof CongregationNotFound || e instanceof FragmentNotFound){
         return ajaxResponse(res, {
           error: e
         });
       }else{
+        logger.debug(e.stack);
         return ajaxResponse(res, {
           status: 500
         });
@@ -210,7 +213,51 @@ var getBlocks = (req, res, next) => {
 
 };
 
+var getFragments = (req, res, next) => {
+
+  TerritoryModel.findOne({congregation: hardcodedID}, 'fragments')
+    .then(result => {
+      return ajaxResponse(res, {
+        data: result.fragments
+      });
+    })
+    .catch(e => {
+      return ajaxResponse(res, {
+        status: 500
+      });
+    })
+
+};
+
+var getStreets = (req, res, next) => {
+
+  var congregationId = req.body.congregation;
+
+  // find streets
+  TerritoryModel.findByCongregation(congregationId)
+    .then(territory => {
+      return ajaxResponse(res, {
+        data: territory.streets
+      });
+    })
+    .catch(e => {
+      if(e instanceof errors.TerritoryNotFound){
+        return ajaxResponse(res, {
+          status: 500,
+          error: e
+        });
+      }
+
+      return ajaxResponse(res, {
+        status: 500
+      });
+    });
+
+};
+
 module.exports = {
   saveTerritory,
-  getBlocks
+  getBlocks,
+  getStreets,
+  getFragments
 };

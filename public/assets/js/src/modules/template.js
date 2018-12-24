@@ -18,6 +18,19 @@ function getTemplate(querySelector){
   return template.clone();
 }
 
+/**
+ * not tested
+ * @param  {[type]} id [description]
+ * @return {[type]}    [description]
+ */
+function getTextTemplate(id){
+  var string = $('#' + id);
+  if(string.length === 0) throw new Error('"' + querySelector + '" no templates with this id');
+  var node = $.parseHTML(string.html());
+  return node;
+}
+
 module.exports = {
-  getTemplate
+  getTemplate,
+  getTextTemplate
 };
