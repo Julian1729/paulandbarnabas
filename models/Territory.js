@@ -1,6 +1,7 @@
 const mongoose = require('./db');
 const Schema = mongoose.Schema;
 const {ObjectId} = require('mongodb');
+const _ = require('lodash');
 
 const Utils = require('../utils/utils');
 const errors = require('../errors');
@@ -280,6 +281,9 @@ var TerritorySchema = new Schema({
   TerritorySchema.methods.assignBlockToFragment = function(fragmentNumber, blockId){
 
     var fragment = this.findFragment(fragmentNumber);
+    // assure block isnt' already inside fragment
+    var alreadyExists = fragment.blocks.find(block => block.equals(blockId));
+    if(alreadyExists) return this;
     fragment.blocks.push(blockId);
     return this.save();
 

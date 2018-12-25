@@ -21,8 +21,10 @@ var panes = {
 };
 var unitContainer = panes.units.find('.units-container');
 
+var dev = require('../../../../../dev_vars');
+
 // FIXME: hard coded congregation object id!!
-var hardcodedID = "5c01eb89ef008c67a6f77add";
+//var hardcodedId = "5c01eb89ef008c67a6f77add";
 
 /**
  * Existing Blocks Loader
@@ -38,7 +40,7 @@ var hardcodedID = "5c01eb89ef008c67a6f77add";
   $streetSelect.change(refreshTable);
 
 
-  function refreshTable(streetName, congregationId){
+  function refreshTable(streetName){
     var $this = $(this);
     var $selectElement = $this.find('select');
     var street = $selectElement.val();
@@ -50,8 +52,7 @@ var hardcodedID = "5c01eb89ef008c67a6f77add";
       url: '/ajax/territory/get-blocks',
       method: 'post',
       data: {
-        street: street,
-        congregation: hardcodedID
+        street: street
       },
       success: morphTable
     });
@@ -372,10 +373,6 @@ function collectUnitData(){
   $.ajax({
     url: '/ajax/territory/get-streets',
     method: 'POST',
-    data: {
-      congregation: hardcodedID
-    },
-
     success: populateStreetNames
   })
 

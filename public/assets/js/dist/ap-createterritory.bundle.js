@@ -1,5 +1,17 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 /**
+ * Hardcoded Variables to be migrated out after development
+ */
+
+var congregationId = "5c01eb89ef008c67a6f77add";
+
+
+module.exports = {
+  congregationId
+};
+
+},{}],2:[function(require,module,exports){
+/**
  * Attach all plugins to jQuery object and return modified jQuery
  */
 
@@ -16,7 +28,7 @@ var $ = require('jquery');
 
 module.exports = $;
 
-},{"./plugins/ajaxform.js":2,"./plugins/disableInputs":3,"jquery":4}],2:[function(require,module,exports){
+},{"./plugins/ajaxform.js":3,"./plugins/disableInputs":4,"jquery":5}],3:[function(require,module,exports){
 const $ = require('jquery');
 const form2js = require('../../vendor/form2js');
 
@@ -116,7 +128,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":13,"jquery":4}],3:[function(require,module,exports){
+},{"../../vendor/form2js":14,"jquery":5}],4:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -143,7 +155,7 @@ function disable(){
 
 module.exports = DisableInputs;
 
-},{"jquery":4}],4:[function(require,module,exports){
+},{"jquery":5}],5:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -10509,7 +10521,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -27620,7 +27632,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /*!
  * validate.js 0.12.0
  *
@@ -28808,7 +28820,7 @@ return jQuery;
         typeof module !== 'undefined' ? /* istanbul ignore next */ module : null,
         typeof define !== 'undefined' ? /* istanbul ignore next */ define : null);
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 
 var templates = $('#templates');
@@ -28846,7 +28858,7 @@ module.exports = {
   getTextTemplate
 };
 
-},{"../../jquery/jquery.js":1}],8:[function(require,module,exports){
+},{"../../jquery/jquery.js":2}],9:[function(require,module,exports){
 /**
  * Text Input
  * Handle label animation on focus
@@ -28891,7 +28903,7 @@ $inputContainers.each(function(){attachEvents(this)});
 
 module.exports = {attachEvents};
 
-},{"../../utils.js":12,"jquery":4}],9:[function(require,module,exports){
+},{"../../utils.js":13,"jquery":5}],10:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 
 // FIXME: THE WAY CONTIAINERS ARE FOIND NEEDS TO BE CHANGED TO WORK WITH ALL INPUT ELEMETNS
@@ -28962,7 +28974,7 @@ module.exports = {
   clearErrors
 };
 
-},{"../../jquery/jquery.js":1}],10:[function(require,module,exports){
+},{"../../jquery/jquery.js":2}],11:[function(require,module,exports){
 const $ = require('jquery');
 const _ = require('lodash');
 
@@ -28986,8 +28998,10 @@ var panes = {
 };
 var unitContainer = panes.units.find('.units-container');
 
+var dev = require('../../../../../dev_vars');
+
 // FIXME: hard coded congregation object id!!
-var hardcodedID = "5c01eb89ef008c67a6f77add";
+//var hardcodedId = "5c01eb89ef008c67a6f77add";
 
 /**
  * Existing Blocks Loader
@@ -29003,7 +29017,7 @@ var hardcodedID = "5c01eb89ef008c67a6f77add";
   $streetSelect.change(refreshTable);
 
 
-  function refreshTable(streetName, congregationId){
+  function refreshTable(streetName){
     var $this = $(this);
     var $selectElement = $this.find('select');
     var street = $selectElement.val();
@@ -29015,8 +29029,7 @@ var hardcodedID = "5c01eb89ef008c67a6f77add";
       url: '/ajax/territory/get-blocks',
       method: 'post',
       data: {
-        street: street,
-        congregation: hardcodedID
+        street: street
       },
       success: morphTable
     });
@@ -29337,10 +29350,6 @@ function collectUnitData(){
   $.ajax({
     url: '/ajax/territory/get-streets',
     method: 'POST',
-    data: {
-      congregation: hardcodedID
-    },
-
     success: populateStreetNames
   })
 
@@ -29363,7 +29372,7 @@ function collectUnitData(){
 
 }(panes.streetselect));
 
-},{"../../utils":12,"../../vendor/form2js":13,"../modules/template.js":7,"../modules/text-input.js":8,"../modules/validationHandler.js":9,"../validators/GenerateUnits":11,"jquery":4,"lodash":5,"validate.js":6}],11:[function(require,module,exports){
+},{"../../../../../dev_vars":1,"../../utils":13,"../../vendor/form2js":14,"../modules/template.js":8,"../modules/text-input.js":9,"../modules/validationHandler.js":10,"../validators/GenerateUnits":12,"jquery":5,"lodash":6,"validate.js":7}],12:[function(require,module,exports){
 var validate = require('validate.js');
 const _ = require('lodash');
 
@@ -29433,7 +29442,7 @@ module.exports = (formValues) => {
   return validate(formValues, c);
 };
 
-},{"lodash":5,"validate.js":6}],12:[function(require,module,exports){
+},{"lodash":6,"validate.js":7}],13:[function(require,module,exports){
 /**
  * Utility Functions
  */
@@ -29452,7 +29461,7 @@ module.exports = {
   isEmptyString: isEmptyString
 };
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *
@@ -29803,4 +29812,4 @@ module.exports = {
 
 }));
 
-},{}]},{},[10]);
+},{}]},{},[11]);

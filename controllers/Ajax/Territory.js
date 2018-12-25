@@ -12,10 +12,11 @@ const Utils = require('../../utils/utils');
 const constants = require('../../config/config');
 const errors = require('../../errors');
 
-// FIXME: hard coded congregation object id!!
-var hardcodedID = "5c01eb89ef008c67a6f77add";
+const dev = require('../../dev_vars');
 
 var saveTerritory = (req, res, next) => {
+
+  var congregationId = dev.congregationId;
 
   var territoryData = Utils.collectFormData([
     'block_hundred',
@@ -39,7 +40,7 @@ var saveTerritory = (req, res, next) => {
     })
   }
 
-  TerritoryModel.findByCongregation(hardcodedID)
+  TerritoryModel.findByCongregation(congregationId)
     // SEARCH FOR STREET IN DB, CREATE IT IF IT DOESN'T EXIST
     .then(territory => {
       var infoObj = {
@@ -180,7 +181,8 @@ var saveTerritory = (req, res, next) => {
 
 var getBlocks = (req, res, next) => {
 
-  var congregationId = req.body.congregation;
+
+  var congregationId = dev.congregationId; // FIXME: this should come from session
   var street = req.body.street;
   // find blocks
   TerritoryModel.findByCongregation(congregationId)
@@ -215,7 +217,9 @@ var getBlocks = (req, res, next) => {
 
 var getFragments = (req, res, next) => {
 
-  TerritoryModel.findOne({congregation: hardcodedID}, 'fragments')
+  var congregationId = dev.congregationId; // FIXME: this should come from session
+
+  TerritoryModel.findOne({congregation: congregationId}, 'fragments')
     .then(result => {
       return ajaxResponse(res, {
         data: result.fragments
@@ -231,7 +235,7 @@ var getFragments = (req, res, next) => {
 
 var getStreets = (req, res, next) => {
 
-  var congregationId = req.body.congregation;
+  var congregationId = dev.congregationId; // FIXME: this should come from session
 
   // find streets
   TerritoryModel.findByCongregation(congregationId)
@@ -251,6 +255,7 @@ var getStreets = (req, res, next) => {
       return ajaxResponse(res, {
         status: 500
       });
+
     });
 
 };
