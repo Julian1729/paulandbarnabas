@@ -21,11 +21,6 @@ var panes = {
 };
 var unitContainer = panes.units.find('.units-container');
 
-var dev = require('../../../../../dev_vars');
-
-// FIXME: hard coded congregation object id!!
-//var hardcodedId = "5c01eb89ef008c67a6f77add";
-
 /**
  * Existing Blocks Loader
  */

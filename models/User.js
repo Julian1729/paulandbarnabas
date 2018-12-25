@@ -7,7 +7,6 @@ var
   logger = require('../utils/logger'),
   _ = require('lodash');
 
-
 var UserSchema = new Schema({
   first_name: {
     type: String,
@@ -79,9 +78,9 @@ UserSchema.pre('save', function(next){
 /**
  * Statics
  */
-UserSchema.statics.getList = function(){
+UserSchema.statics.getUsersByCongregation = function(congregation){
 
-  return this.find({}, 'first_name last_name congregation id');
+  return this.find({congregation: congregation}, 'first_name last_name id');
 
 };
 

@@ -73,6 +73,16 @@ class NonExistentAction extends Error {
 
 }
 
+class SessionUninitialized extends Error {
+
+  constructor(message){
+    super();
+    this.name = 'SessionUninitialized';
+    this.msg = message;
+  }
+
+}
+
 /**
  * Model Method Errors
  */
@@ -110,5 +120,6 @@ class FragmentNotFound extends Error {
    NonExistentAction,
    StreetNotFound,
    TerritoryNotFound,
-   FragmentNotFound
+   FragmentNotFound,
+   SessionUninitialized
  };

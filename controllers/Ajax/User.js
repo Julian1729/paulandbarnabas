@@ -4,13 +4,16 @@
 
 const UserModel = require('../../models/User');
 const {ajaxResponse} = require('./Base');
+const {UserSession} = require('../../session/session');
 
 /**
  * Get only names and ids of users
  */
 var getList = (req, res, next) => {
 
-  UserModel.getList()
+  var congregationId = req.session.congregation;
+
+  UserModel.getUsersByCongregation(congregationId)
     .then(list => {
       ajaxResponse(res, {
         data: list

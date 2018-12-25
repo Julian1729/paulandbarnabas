@@ -1,11 +1,13 @@
 /**
  * Create Territory Ajax Controller
  */
+const {ObjectId} = require('mongodb');
+
 const {CongregationNotFound, FragmentNotFound, FormValidationError} = require('../../errors');
 const CreateTerritoryValidator = require('../../validators/CreateTerritory');
 const TerritoryModel = require('../../models/Territory');
+const {UserSession} = require('../../session/session');
 const UserModel = require('../../models/User');
-const {ObjectId} = require('mongodb');
 const {ajaxResponse} = require('./Base');
 const logger = require('../../utils/logger');
 const Utils = require('../../utils/utils');
@@ -16,7 +18,7 @@ const dev = require('../../dev_vars');
 
 var saveTerritory = (req, res, next) => {
 
-  var congregationId = dev.congregationId;
+  var congregationId = req.session.congregation;
 
   var territoryData = Utils.collectFormData([
     'block_hundred',
@@ -182,7 +184,8 @@ var saveTerritory = (req, res, next) => {
 var getBlocks = (req, res, next) => {
 
 
-  var congregationId = dev.congregationId; // FIXME: this should come from session
+  // var congregationId = dev.congregationId; // FIXME: this should come from session
+  var congregationId = req.session.congregation;
   var street = req.body.street;
   // find blocks
   TerritoryModel.findByCongregation(congregationId)
@@ -217,7 +220,8 @@ var getBlocks = (req, res, next) => {
 
 var getFragments = (req, res, next) => {
 
-  var congregationId = dev.congregationId; // FIXME: this should come from session
+  // var congregationId = dev.congregationId; // FIXME: this should come from session
+  var congregationId = req.session.congregation;
 
   TerritoryModel.findOne({congregation: congregationId}, 'fragments')
     .then(result => {
@@ -235,7 +239,8 @@ var getFragments = (req, res, next) => {
 
 var getStreets = (req, res, next) => {
 
-  var congregationId = dev.congregationId; // FIXME: this should come from session
+  // var congregationId = dev.congregationId; // FIXME: this should come from session
+  var congregationId = req.session.congregation;
 
   // find streets
   TerritoryModel.findByCongregation(congregationId)
