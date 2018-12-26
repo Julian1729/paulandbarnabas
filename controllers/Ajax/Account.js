@@ -3,10 +3,13 @@
  *
  * Gateway to all modifications done to any user account
  */
-const {FormValidationError, InvalidCredentials} = require('../../errors.js');
+const HttpStatus = require('http-status-codes');
+
+const {FormValidationError, InvalidCredentials, SessionUninitialized} = require('../../errors.js');
 const SignUpValidator = require('../../validators/SignUpValidator');
 const LoginValidator = require('../../validators/LoginValidator');
 const UserModel = require('../../models/User');
+const Session = require('../../session/session');
 const logger = require('../../utils/logger');
 const {ajaxResponse} = require('./Base');
 const Utils = require('../../utils/utils');
@@ -110,13 +113,18 @@ const Utils = require('../../utils/utils');
       })
       .then( user => {
         logger.info(user);
+        logger.debug(user._id);
 
         // USER AUTHENTICATED
-        // set session params
-        req.session.authenticated = true;
-        req.session.user = {
-          id: user._id
-        };
+        Session.createSession(req, {
+          first_name: user.first_name,
+          last_name: user.last_name,
+          user_id: user._id,
+          congregation: user.congregation,
+          authenticated: true,
+          isAdmin: false
+        });
+
         return ajaxResponse(res, {
           data:{
             redirect: '/dashboard'
@@ -125,7 +133,7 @@ const Utils = require('../../utils/utils');
       })
       .catch(e => {
 
-        if(e instanceof InvalidCredentials){
+        if(e instanceof InvalidCredentials || e instanceof SessionUninitialized){
           logger.debug(e.name + '\n' + JSON.stringify(e));
           return ajaxResponse(res, {
             error: e

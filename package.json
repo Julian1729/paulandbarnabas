@@ -45,6 +45,7 @@
     "mocha": "^5.2.0",
     "pump": "^3.0.0",
     "supertest": "^3.3.0",
+    "supertest-session": "^3.3.0",
     "vinyl-source-stream": "^2.0.0"
   }
 }

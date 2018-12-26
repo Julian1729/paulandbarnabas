@@ -1,12 +1,15 @@
 const expect = require('expect.js');
 const chaiExpect = require('chai').expect;
 const {ObjectId} = require('mongodb');
+const session = require('supertest-session');
+
 
 const Congregation = require('../models/Congregation');
 const CongregationSeed = require('./seed/Congregation');
 const User = require('../models/User');
 const Utils = require('../utils/utils');
 const UserSeed = require('./seed/User');
+const app = require('../app');
 
 describe('User Model', () => {
 
@@ -175,45 +178,78 @@ describe('User Model', () => {
 
   // OPTIMIZE: Test that user input can be re bcrpted and then compared
 
-});
+  describe('Uses Session', () => {
 
-it('should return list of all users', (done) => {
+    var authenticatedSession;
 
-  var user1 = new User({
-    first_name: 'Julian',
-    last_name: 'Hernandez',
-    email: 'hernandez.julian17@gmail.com',
-    email_confirm: 'hernandez.julian17@gmail.com',
-    phone_number: '2154000468',
-    title: 'Ministerial Servant',
-    password: 'newpasssword',
-    password_confirm: 'newpasssword',
-    congregation: new ObjectId()
+    beforeEach((done) => {
+
+    // enter valid user into db
+    var user = new User(UserSeed.completeUser);
+    user.save()
+      .then( user => {
+
+        var authAttempt = session(app);
+        authAttempt
+          .post('/ajax/account/login')
+          .send({
+            email: UserSeed.completeUser.email,
+            password: UserSeed.completeUser.password
+          })
+          .expect(200)
+          .end((err, req) => {
+            authenticatedSession = authAttempt;
+            done();
+          });
+
+      })
+      .catch( e => done(e) );
+
+    });
+
+    it('should return list of all users', (done) => {
+
+      var congregation = new ObjectId();
+
+      var user1 = new User({
+        first_name: 'Julian',
+        last_name: 'Hernandez',
+        email: 'user1@example.com',
+        email_confirm: 'user1@example.com',
+        phone_number: '2154000468',
+        title: 'Ministerial Servant',
+        password: 'newpasssword',
+        password_confirm: 'newpasssword',
+        congregation: congregation
+      });
+
+      var user2 = new User({
+        first_name: 'Todd',
+        last_name: 'Roberson',
+        email: 'toddy@gmail.com',
+        phone_number: '2153333333',
+        title: 'Ministerial Servant',
+        password: 'newpasssword',
+        congregation: congregation
+      });
+
+      user1.save()
+        .then(user => {
+          return user2.save();
+        })
+        .then(user2 => {
+          // FIND LIST
+          return User.getUsersByCongregation(congregation);
+        })
+        .then(list => {
+          chaiExpect(list).to.have.lengthOf(2);
+          chaiExpect(list[0]).to.have.property('congregation');
+          done();
+        })
+        .catch(e => done(e));
+
+    });
+
   });
-
-  var user2 = new User({
-    first_name: 'Todd',
-    last_name: 'Roberson',
-    email: 'toddy@gmail.com',
-    phone_number: '2153333333',
-    title: 'Ministerial Servant',
-    password: 'newpasssword',
-    congregation: new ObjectId()
-  });
-
-  user1.save()
-    .then(user => {
-      return user2.save();
-    })
-    .then(user2 => {
-      // FIND LIST
-      return User.getList();
-    })
-    .then(list => {
-      chaiExpect(list).to.have.lengthOf(2);
-      chaiExpect(list[0]).to.have.property('congregation');
-      done();
-    })
-    .catch(e => done(e));
 
 });
