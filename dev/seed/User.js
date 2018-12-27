@@ -4,13 +4,24 @@
 const {ObjectId} = require('mongodb');
 
 var user1 = {
-    "_id" : new ObjectId("5bc014188c7bec2c0aeddcf3"),
-    "first_name" : "Julian",
-    "last_name" : "Hernandez",
-    "email" : "hernandez.julian17@gmail.com",
-    "password" : "$2b$10$FKl6qDU5i9JgJ/dj5EaKEOutyaQkqiUXZoe/L7LUKcefJVWa01ycG",
-    "__v" : 0,
-    "congregation" : new ObjectId("5c01eb89ef008c67a6f77add")
-}
+  first_name: 'Julian',
+  last_name: 'Hernandez',
+  email: 'hernandez.julian17@gmail.com',
+  phone_number: '2154000468',
+  title: 'Ministerial Servant',
+  password: 'newpasssword',
+  password_confirm: 'newpasssword',
+  congregation: null
+};
 
-module.exports = [user1];
+var user2 = {
+  first_name: 'Todd',
+  last_name: 'Roberson',
+  email: 'toddy@gmail.com',
+  phone_number: '2673334444',
+  title: 'Ministerial Servant',
+  password: 'toddspassword',
+  congregation: new ObjectId()
+};
+
+module.exports = [user1, user2];

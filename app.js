@@ -57,6 +57,11 @@ app.set('views', __dirname + '/views');
  // Admin Panel
  app.use('/adminpanel', require('./routes/AdminPanel'));
 
+ // Seed database if in development
+ if(process.env.NODE_ENV === 'development'){
+  require('./dev/seed/Seed');
+ }
+
 
 // Start express server
 server.listen(process.env.PORT, ()=>{
