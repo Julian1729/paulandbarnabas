@@ -14,9 +14,19 @@ var createTerritory = (req, res, next) => {
   req.session.congregation = dev.congregationId;
 
   res.render('AdminPanel/CreateTerritory');
+  
+};
+
+var createFragment = (req, res, next) => {
+
+  req.session.congregation = dev.congregationId;
+
+  res.render('AdminPanel/CreateFragment');
+
 };
 
 module.exports = controllerBase.extend({
   land,
-  createTerritory
+  createTerritory,
+  createFragment
 });

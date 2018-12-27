@@ -1,0 +1,12 @@
+extends AdminBase.pug
+
+prepend GLOBAL_PUG
+  - var page_name = "ap-createterritory"
+
+append scripts
+  script(src=constants.base_url + "/assets/js/dist/ap-createfragment.bundle.js", type="text/javascript")
+
+block panel
+  .pane
+    +section_header('select publisher')
+  

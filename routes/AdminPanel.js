@@ -14,4 +14,9 @@ router.get('/createterritory', (req, res, next) => {
   controller.createTerritory(req, res, next);
 });
 
+// Create Fragment
+router.get('/createfragment', (req, res, next) => {
+  controller.createFragment(req, res, next);
+});
+
 module.exports = router;

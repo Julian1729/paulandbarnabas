@@ -37,10 +37,7 @@ var UserSchema = new Schema({
   congregation: {
     type: Schema.ObjectId,
     ref: 'Congregation'
-  },
-  fragments: [{
-    type: Schema.ObjectId
-  }]
+  }
 });
 
 /**
