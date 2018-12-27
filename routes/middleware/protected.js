@@ -9,11 +9,8 @@ var authenticate = (req, res, next) => {
     Session.validate(session)
     next();
   } catch (e) {
-    if(e instanceof errors.SessionUninitialized){
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('this is 500 error');
-    }
-    if(e instanceof errors.SessionUnauthenticated){
-      return res.status(HttpStatus.FORBIDDEN).send('this is 403 forbidden');
+    if(e instanceof errors.SessionUninitialized || e instanceof errors.SessionUnauthenticated){
+      return res.redirect('/');
     }
   }
 };

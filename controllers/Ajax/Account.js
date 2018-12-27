@@ -9,10 +9,13 @@ const {FormValidationError, InvalidCredentials, SessionUninitialized} = require(
 const SignUpValidator = require('../../validators/SignUpValidator');
 const LoginValidator = require('../../validators/LoginValidator');
 const UserModel = require('../../models/User');
+const constants = require('../../config/constants');
 const Session = require('../../session/session');
 const logger = require('../../utils/logger');
 const {ajaxResponse} = require('./Base');
 const Utils = require('../../utils/utils');
+
+const dev = require('../../dev_vars');
 
 
 /**
@@ -39,29 +42,30 @@ const Utils = require('../../utils/utils');
         var User = new UserModel(signUpData);
         User.save()
           .then((newUser) => {
-            // set authenticated session, and store user id
-            req.session.authenticated = true;
-            req.session.user = {
-              id: newUser._ids
-            };
+            Session.createSession(req, {
+              first_name: newUser.first_name,
+              last_name: newUser.last_name,
+              isAdmin: false,
+              congregation: dev.congregationId,
+              user_id: newUser._id,
+              authenticated: true
+            });
 
             // send ajax response
             return ajaxResponse(res, {
               data: {
-                redirect: `${config.base_url}/dashboard`
+                redirect: `${constants.base_url}/dashboard`
               }
             });
           })
           .catch(e => {
-            logger.log(`Error in saving user \n${e}`);
+            logger.log(`Error in saving user \n${e.stack}`);
             return ajaxResponse(res, {
               status: HttpStatus.INTERNAL_SERVER_ERROR
             });
           });
       })
       .catch((validationErrors) => {
-        // FIXME: use validation error
-        logger.debug('catch ran');
         return ajaxResponse(res, {
           error: new FormValidationError(validationErrors)
         });

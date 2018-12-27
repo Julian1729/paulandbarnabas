@@ -47,7 +47,6 @@ var SessionConstraints = {
 const v = session => {
   var results = validate(session, SessionConstraints);
   if(results){
-    console.log(`failed validation: ${JSON.stringify(results, null, 2)}`);
     throw new SessionUninitialized();
   }
   if(session.authenticated === false){

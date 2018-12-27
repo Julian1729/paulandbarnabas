@@ -3,6 +3,10 @@ extends Base.pug
 block GLOBAL_PUG
   - var page_name = 'createaccount';
 
+
+append scripts
+  script(src="/assets/js/dist/signup.bundle.js")
+
 block content
   .content.publisher
     
