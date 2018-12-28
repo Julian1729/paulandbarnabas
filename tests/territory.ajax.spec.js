@@ -8,7 +8,7 @@ const territorySeed = require('./seed/Territory');
 const UserSeed = require('./seed/User');
 const UserModel = require('../models/User');
 const Utils = require('../utils/utils');
-const app = require('../app');
+const {app} = require('../app');
 
 describe('Territory Ajax', () => {
 

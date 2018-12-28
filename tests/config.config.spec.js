@@ -24,14 +24,14 @@ describe('Configuration', () => {
   it('should default to development', () => {
     // leave process.env.NODE_ENV at null
     const config = require('../config/config');
-    expect(process.env.MODE).to.eql('development');
+    expect(process.env.NODE_ENV).to.eql('development');
   });
 
   it('should set testing variables', () => {
     process.env.NODE_ENV = 'testing';
     expect(process.env.NODE_ENV).to.eql('testing');
     const config = require('../config/config');
-    expect(process.env.MODE).to.eql('testing');
+    expect(process.env.NODE_ENV).to.eql('testing');
     expect(process.env.MONGODB_URI).to.eql('mongodb://localhost:27017/PaulAndBarnabasTesting');
   });
 

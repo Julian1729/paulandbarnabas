@@ -1,5 +1,6 @@
 const path = require('path');
 const http = require('http');
+const yargs = require('yargs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
@@ -7,6 +8,20 @@ const session = require('express-session');
 const publicPath = path.join(__dirname, '/public');
 const config = require('./config/config');
 const constants = require('./config/constants');
+
+var seedData = null;
+
+/**
+ * Parse command line arguemnts with yargs
+ */
+yargs
+  .option('seed', {
+    alias: 's',
+    describe: 'Wipe and seed database with data defined in dev/seed'
+  })
+  .help();
+// Arguments
+var argv = yargs.argv;
 
 /**
  * Create HTTP Server and Express
@@ -58,8 +73,8 @@ app.set('views', __dirname + '/views');
  app.use('/adminpanel', require('./routes/AdminPanel'));
 
  // Seed database if in development
- if(process.env.NODE_ENV === 'development'){
-  require('./dev/seed/Seed');
+ if(process.env.NODE_ENV === 'development' && (argv.seed || argv._[0] === 'seed')){
+  seedData = require('./dev/seed/Seed');
  }
 
 
@@ -68,4 +83,7 @@ server.listen(process.env.PORT, ()=>{
   console.log(`"${constants.site_name}" live on port ${process.env.PORT}`);
 });
 
-module.exports = app;
+module.exports = {
+  app,
+  seedData
+};

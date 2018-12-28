@@ -9,7 +9,7 @@ const CongregationSeed = require('./seed/Congregation');
 const User = require('../models/User');
 const Utils = require('../utils/utils');
 const UserSeed = require('./seed/User');
-const app = require('../app');
+const {app} = require('../app');
 
 describe('User Model', () => {
 

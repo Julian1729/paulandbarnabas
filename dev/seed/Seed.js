@@ -1,7 +1,6 @@
 /**
  * Insert seed data into database, and export results
  */
-
 const CongregationModel = require('../../models/Congregation');
 const CongregationSeed = require('./Congregation');
 const UserModel = require('../../models/User');
@@ -12,6 +11,7 @@ const logger = require('../../utils/logger');
 const Utils = require('../../utils/utils');
 
 var insertedData = {};
+
 
 // Clear Congregation Collection
 Utils.clearCollection(CongregationModel)
@@ -60,4 +60,4 @@ Utils.clearCollection(CongregationModel)
     throw e;
   });
 
-  module.exports = insertedData;
+module.exports = insertedData;
