@@ -9,9 +9,7 @@ const TerritoryModel = require('../../models/Territory');
 const TerritorySeed = require('./Territory');
 const logger = require('../../utils/logger');
 const Utils = require('../../utils/utils');
-
-var insertedData = {};
-
+const seededData = require('./data');
 
 // Clear Congregation Collection
 Utils.clearCollection(CongregationModel)
@@ -33,7 +31,7 @@ Utils.clearCollection(CongregationModel)
   // Save congregation
   .then(congregations => {
     logger.debug(`${congregations.length} congregations entered into db`);
-    insertedData.congregations = congregations;
+    seededData.congregations = congregations;
     // Set congregation Id for users to first congregation entered
     UserSeed.forEach(user => {
       user.congregation = congregations[0]._id;
@@ -43,21 +41,20 @@ Utils.clearCollection(CongregationModel)
   // Save Users
   .then(users => {
     logger.debug(`${users.length} users entered into db`)
-    insertedData.users = users;
+    seededData.users = users;
     // Add congregation to territory obj
     TerritorySeed.forEach(territory => {
-      territory.congregation = insertedData.congregations[0]._id;
+      territory.congregation = seededData.congregations[0]._id;
     });
     return TerritoryModel.create(TerritorySeed);
   })
   // Save Territory
   .then(territories => {
     logger.debug(`${territories.length} territories entered into db`);
-    insertedData.territories = territories;
+    seededData.territories = territories;
+    return true;
   })
   .catch(e => {
     logger.debug(e.stack);
     throw e;
   });
-
-module.exports = insertedData;
