@@ -21,7 +21,7 @@ var user2 = {
   phone_number: '2673334444',
   title: 'Ministerial Servant',
   password: 'toddspassword',
-  congregation: new ObjectId()
+  congregation: null
 };
 
 module.exports = [user1, user2];

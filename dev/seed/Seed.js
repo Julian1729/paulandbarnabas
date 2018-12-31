@@ -1,5 +1,5 @@
 /**
- * Insert seed data into database, and export results
+ * Insert seed data into database, and populate datat file with inserted contents
  */
 const CongregationModel = require('../../models/Congregation');
 const CongregationSeed = require('./Congregation');
@@ -46,6 +46,25 @@ Utils.clearCollection(CongregationModel)
     TerritorySeed.forEach(territory => {
       territory.congregation = seededData.congregations[0]._id;
     });
+    // Create Session data from first user
+    var user = users[0];
+    var admin = {
+      first_name: user.first_name,
+      last_name: user.last_name,
+      isAdmin: true,
+      congregation: user.congregation,
+      user_id: user._id,
+      authenticated: true
+    };
+    var regular = {
+      first_name: user.first_name,
+      last_name: user.last_name,
+      isAdmin: false,
+      congregation: user.congregation,
+      user_id: user._id,
+      authenticated: true
+    };
+    seededData.sessions = {admin, regular};
     return TerritoryModel.create(TerritorySeed);
   })
   // Save Territory
