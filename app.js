@@ -71,11 +71,9 @@ app.set('views', __dirname + '/views');
  app.use('/adminpanel', require('./routes/AdminPanel'));
 
  // Seed database if in development
- if(process.env.NODE_ENV === 'development' && (argv.seed || argv._[0] === 'seed')){
-  require('./dev/seed/seed');
-}else{
-  // populate seed data file with seed data
-  require('./dev/seed/populate');
+ if(process.env.NODE_ENV === 'development'){
+  var seed = (argv.seed || argv._[0] === 'seed');
+  require('./dev/seed/populate')(seed);
 }
 
 

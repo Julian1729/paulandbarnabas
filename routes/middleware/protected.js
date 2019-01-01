@@ -4,7 +4,8 @@ var HttpStatus = require('http-status-codes');
 var seedData = require('../../dev/seed/data');
 
 var authenticate = (req, res, next) => {
-  
+  console.log(seedData);
+
   var session = req.session;
   try {
     Session.validate(session)
