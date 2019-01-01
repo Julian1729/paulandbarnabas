@@ -4,6 +4,9 @@ const router = express.Router();
 const controller = require('../controllers/AdminPanel');
 const protected = require('./middleware/protected');
 
+// Protect all Admin Panel routes
+router.use(protected);
+
 // Home
 router.get('/', (req, res, next) => {
 

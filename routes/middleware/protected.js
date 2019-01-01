@@ -4,7 +4,7 @@ var HttpStatus = require('http-status-codes');
 var seedData = require('../../dev/seed/data');
 
 var authenticate = (req, res, next) => {
-
+  
   var session = req.session;
   try {
     Session.validate(session)
@@ -21,7 +21,7 @@ var authenticate = (req, res, next) => {
       return res.redirect('/');
     }
   }
-  
+
 };
 
 module.exports = [

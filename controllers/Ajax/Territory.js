@@ -14,8 +14,6 @@ const Utils = require('../../utils/utils');
 const constants = require('../../config/config');
 const errors = require('../../errors');
 
-const dev = require('../../dev_vars');
-
 var saveTerritory = (req, res, next) => {
 
   var congregationId = req.session.congregation;
