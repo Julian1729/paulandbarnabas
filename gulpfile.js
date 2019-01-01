@@ -19,7 +19,8 @@ const CONFIG = {
     files: [
       'landing',
       'signup',
-      'ap-createterritory'
+      'ap-createterritory',
+      'ap-createfragment'
     ],
     src: './public/assets/js/src/app.js',
     inputDir: './public/assets/js/src/pages/',
