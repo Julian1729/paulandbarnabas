@@ -4,7 +4,6 @@ extends ../Base.pug
 block GLOBAL_PUG
   - var body_classes = ['adminpanel'];
 
-//-!!! FIXME use passed in variables to fill in name
 block content
   .header
     .inner
@@ -19,11 +18,10 @@ block content
           .picture
             img(src=constants.base_url + "/assets/images/default-profile-picture.png")
           .name-and-title
-            p Julian Hernandez
-            p Service Overseer
+            p #{user.first_name} #{user.last_name}
         .menu
           a.item(href=constants.base_url + "/adminpanel/createterritory") create territory
-          a.item(href="") create territory fragment
+          a.item(href=constants.base_url + "/adminpanel/createfragment") create territory fragment
           a.item(href="") edit territory fragments
           a.item(href="#") manage publishers
     .panel
