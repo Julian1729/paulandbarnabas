@@ -6,7 +6,7 @@ var universal = {
 
   version: "1.0.0",
 
-  site_description: "Paul and Barnabas is a metropolitan territory oriented congregation territory manager."
+  site_description: "Paul and Barnabas is a metropolitan territory oriented congregation territory manager for Jehovah's Witnesses."
 
 };
 

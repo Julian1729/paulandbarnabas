@@ -1,11 +1,12 @@
 /**
  * Session Test
  */
+const {expect} = require('chai');
 
 const SessionValidator = require('../validators/SessionValidator');
 const SessionSeed = require('./seed/Session');
 const errors = require('../errors');
-const {expect} = require('chai');
+const Session = require('../session/session');
 
 
 describe('Session', () => {
@@ -26,6 +27,12 @@ describe('Session', () => {
         expect(e instanceof errors.SessionUnauthenticated).to.be.true;
     }
 
+  });
+
+  it('should return a object with user credentials', () => {
+    var credentials = Session.pickUserCredentials(SessionSeed.valid);
+    expect(credentials).to.exist;
+    expect(credentials).to.include.all.keys('first_name', 'last_name', 'user_id', 'congregation', 'isAdmin');
   });
 
 });

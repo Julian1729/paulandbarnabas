@@ -15,9 +15,6 @@ const logger = require('../../utils/logger');
 const {ajaxResponse} = require('./Base');
 const Utils = require('../../utils/utils');
 
-const dev = require('../../dev_vars');
-
-
 /**
  * Actions
  */

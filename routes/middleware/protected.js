@@ -24,6 +24,16 @@ var authenticate = (req, res, next) => {
 
 };
 
+/**
+ * Attach session variables to req.locals
+ * to make available to pug templates
+ */
+var localizeSession =  (req, res, next) => {
+  res.locals.user = Session.pickUserCredentials(req.session);
+  next();
+};
+
 module.exports = [
-  authenticate
+  authenticate,
+  localizeSession
 ];
