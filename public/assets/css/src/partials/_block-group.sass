@@ -1,0 +1,26 @@
+.block-group
+  margin-top: 25px
+  font-family: 'Lato', sans-serif
+  &:first-of-type
+    margin-top: 0
+  p.street
+    padding: 6px
+    color: white
+    font-size: 0.8em
+    background: $primary_blue
+    @include font-smooth
+  .blocks
+    border-left: 5px solid $primary_blue
+    padding-left: 4px
+    .block
+      padding: 8px 5px
+      font-size: 0.7em
+      border-bottom: 1px solid $primary_grey
+      &:last-of-type
+        border-bottom: none
+      .hundred
+        color: $primary_grey
+      .odd
+        color: $primary_orange
+      .even
+        color: $dark_purple

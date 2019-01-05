@@ -1,12 +1,38 @@
 extends AdminBase.pug
 
 prepend GLOBAL_PUG
-  - var page_name = "ap-createterritory"
+  - var page_name = "ap-createfragment"
 
 append scripts
   script(src=constants.base_url + "/assets/js/dist/ap-createfragment.bundle.js", type="text/javascript")
 
 block panel
   .pane
-    +section_header('select publisher')
+    +section_header('fragment details')
+  
+  .pane
+    .fragment-display-wrapper
+      .inner
+        .header
+          p.fragment-number Fragment ##[span(id="fragment-number") 23]
+          p.fragment-stats #[span(id="fragment-block-count") 8] Blocks / #[span(id="fragment-unit-count") 100] Units
+        .container
+          p.empty-message Please select a street to begin assigning blocks to this fragment
+          
+          .block-group
+            p.street Oakland
+            .blocks
+              .block
+                p.details #[span(class="hundred") 4500] #[span(class="odd") odd]
+              .block
+                p.details #[span(class="hundred") 4500] #[span(class="even") even]
+                
+          .block-group
+            p.street Wakeling
+            .blocks
+              .block
+                p.details #[span(class="hundred") 4500] #[span(class="odd") odd]
+              .block
+                p.details #[span(class="hundred") 4500] #[span(class="even") even]
+
   

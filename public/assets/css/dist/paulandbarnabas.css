@@ -313,6 +313,35 @@ table {
   table th, table td {
     padding: 5px 15px; }
 
+.block-group {
+  margin-top: 25px;
+  font-family: 'Lato', sans-serif; }
+  .block-group:first-of-type {
+    margin-top: 0; }
+  .block-group p.street {
+    padding: 6px;
+    color: white;
+    font-size: 0.8em;
+    background: #5386FF;
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
+    -moz-osx-font-smoothing: grayscale; }
+  .block-group .blocks {
+    border-left: 5px solid #5386FF;
+    padding-left: 4px; }
+    .block-group .blocks .block {
+      padding: 8px 5px;
+      font-size: 0.7em;
+      border-bottom: 1px solid #979797; }
+      .block-group .blocks .block:last-of-type {
+        border-bottom: none; }
+      .block-group .blocks .block .hundred {
+        color: #979797; }
+      .block-group .blocks .block .odd {
+        color: #FF7029; }
+      .block-group .blocks .block .even {
+        color: #FF55F7; }
+
 /**
  * Pages
  * */
@@ -352,20 +381,20 @@ body.createaccount {
 /**
  * All Admin Panel Pages
  * */
-body.adminpanel .header {
+body.adminpanel .page-header {
   height: 70px;
   background: #FE994D;
   display: table;
   font-family: 'Lato', serif; }
-  body.adminpanel .header .inner {
+  body.adminpanel .page-header .inner {
     display: table-cell;
     vertical-align: middle;
     position: relative;
     left: 15px; }
-    body.adminpanel .header .inner img {
+    body.adminpanel .page-header .inner img {
       display: inline-block;
       vertical-align: middle; }
-    body.adminpanel .header .inner h1 {
+    body.adminpanel .page-header .inner h1 {
       margin-left: 6px;
       font-size: 0.6em;
       display: inline-block;
@@ -525,6 +554,37 @@ body.ap-createterritory {
     border-radius: 5px 5px 0 0;
     padding: 5px 15px;
     margin-bottom: -1px; }
+
+/**
+ * Admin Panel - Create Fragment Page
+ * */
+body.ap-createfragment .fragment-display-wrapper {
+  width: 100%; }
+  body.ap-createfragment .fragment-display-wrapper .inner .header {
+    padding: 20px 15px;
+    background: #FF7029;
+    color: #FFF;
+    -webkit-font-smoothing: antialiased;
+    font-smooth: always;
+    -moz-osx-font-smoothing: grayscale; }
+    body.ap-createfragment .fragment-display-wrapper .inner .header .fragment-number {
+      font-family: 'Lato', serif;
+      font-size: 0.8em;
+      margin-bottom: 5px;
+      font-weight: 700; }
+    body.ap-createfragment .fragment-display-wrapper .inner .header .fragment-stats {
+      font-size: 0.7em;
+      font-weight: 300; }
+      body.ap-createfragment .fragment-display-wrapper .inner .header .fragment-stats span {
+        font-weight: 700; }
+  body.ap-createfragment .fragment-display-wrapper .inner .container {
+    padding: 25px;
+    border-right: 5px solid #FF7029;
+    border-bottom: 5px solid #FF7029;
+    border-left: 5px solid #FF7029; }
+    body.ap-createfragment .fragment-display-wrapper .inner .container .empty-message {
+      font-size: 0.6em;
+      color: #979797; }
 
 /**
  * Third-party
