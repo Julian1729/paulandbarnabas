@@ -8,15 +8,24 @@ var $ = require('jquery');
 /**
  * Plugins
  */
- var AjaxForm = require('./plugins/ajaxform.js');
+ var AjaxForm = require('./plugins/ajaxform');
  $.fn.ajaxform = AjaxForm;
 
  var DisableInputs = require('./plugins/disableInputs');
  $.fn.disableinputs = DisableInputs;
 
+ var PopulateStreetNames = require('./plugins/populatestreetnames');
+ $.fn.populatestreetnames = PopulateStreetNames;
+
+ var PopulateFragments = require('./plugins/populatefragments');
+ $.fn.populatefragments = PopulateFragments;
+
+ var PopulateUsers = require('./plugins/populateusers');
+ $.fn.populateusers = PopulateUsers;
+
 module.exports = $;
 
-},{"./plugins/ajaxform.js":2,"./plugins/disableInputs":3,"jquery":4}],2:[function(require,module,exports){
+},{"./plugins/ajaxform":2,"./plugins/disableInputs":3,"./plugins/populatefragments":4,"./plugins/populatestreetnames":5,"./plugins/populateusers":6,"jquery":7}],2:[function(require,module,exports){
 const $ = require('jquery');
 const form2js = require('../../vendor/form2js');
 
@@ -116,7 +125,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":8,"jquery":4}],3:[function(require,module,exports){
+},{"../../vendor/form2js":11,"jquery":7}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -143,7 +152,106 @@ function disable(){
 
 module.exports = DisableInputs;
 
-},{"jquery":4}],4:[function(require,module,exports){
+},{"jquery":7}],4:[function(require,module,exports){
+var $ = require('jquery');
+
+var PopulateFragments = function(){
+
+  var $selector = this;
+
+  $.ajax({
+    url: '/ajax/territory/get-fragments',
+    method: 'GET',
+    success: populateFragments
+  })
+
+  function populateFragments (response){
+    if(response.error){
+      return console.log('HANDLE THIS ERROR');
+    }
+    var fragments = response.data;
+    fragments.forEach(function(fragment){
+      var number = fragment.number;
+      // create option
+      var option = $(document.createElement('option')).val(number).text(number);
+      $selector.append(option);
+    });
+  }
+
+};
+
+module.exports = PopulateFragments;
+
+},{"jquery":7}],5:[function(require,module,exports){
+var $ = require('jquery');
+
+var PopulateStreetNames = function(){
+
+  $selector = this;
+
+  $.ajax({
+    url: '/ajax/territory/get-streets',
+    method: 'POST',
+    success: populateStreetNames
+  })
+
+  function populateStreetNames(response){
+    if(response.error){
+      return console.log('HANDLE THIS ERROR', response.error);
+    }
+    var streets = response.data;
+    streets.forEach(function(street){
+      var id = street._id;
+      var name = street.name;
+      // create option
+      var option = $(document.createElement('option'))
+        .val(name)
+        .attr('id', id)
+        .text(name);
+      $selector.append(option);
+    });
+
+  };
+  
+}
+
+module.exports = PopulateStreetNames;
+
+},{"jquery":7}],6:[function(require,module,exports){
+/**
+ * Populate Select elements users by congregation
+ */
+var $ = require('jquery');
+
+var PopulateUsers = function(){
+
+  var $selector = this;
+
+  $.ajax({
+    url: '/ajax/user/get-list',
+    method: 'GET',
+    success: populateUsers
+  })
+
+  function populateUsers (response){
+    if(response.error){
+      return console.log('HANDLE THIS ERROR');
+    }
+    var users = response.data;
+    users.forEach(function(user){
+      // create option
+      var option = $(document.createElement('option'))
+        .val(user._id)
+        .text(user.first_name + " " + user.last_name);
+      $selector.append(option);
+    });
+  }
+
+};
+
+module.exports = PopulateUsers;
+
+},{"jquery":7}],7:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -10509,7 +10617,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],5:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /**
  * Text Input
  * Handle label animation on focus
@@ -10554,7 +10662,7 @@ $inputContainers.each(function(){attachEvents(this)});
 
 module.exports = {attachEvents};
 
-},{"../../utils.js":7,"jquery":4}],6:[function(require,module,exports){
+},{"../../utils.js":10,"jquery":7}],9:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 var Utils = require('../../utils.js');
 const inputs = require('../modules/text-input.js');
@@ -10569,7 +10677,7 @@ success: function(response, validation_handler, form){
 }
 });
 
-},{"../../jquery/jquery.js":1,"../../utils.js":7,"../modules/text-input.js":5}],7:[function(require,module,exports){
+},{"../../jquery/jquery.js":1,"../../utils.js":10,"../modules/text-input.js":8}],10:[function(require,module,exports){
 /**
  * Utility Functions
  */
@@ -10588,7 +10696,7 @@ module.exports = {
   isEmptyString: isEmptyString
 };
 
-},{}],8:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *
@@ -10939,4 +11047,4 @@ module.exports = {
 
 }));
 
-},{}]},{},[6]);
+},{}]},{},[9]);

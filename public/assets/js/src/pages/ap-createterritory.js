@@ -1,6 +1,6 @@
-const $ = require('jquery');
 const _ = require('lodash');
 
+const $ = require('../../jquery/jquery');
 const ti = require('../modules/text-input.js');
 const validate = require('validate.js');
 const form2js = require('../../vendor/form2js');
@@ -334,27 +334,7 @@ function collectUnitData(){
 (function(pane){
 
   var $selector = pane.find('select[name=fragment_assignment]');
-
-  $.ajax({
-    url: '/ajax/territory/get-fragments',
-    method: 'GET',
-    success: populateFragments
-  })
-
-  function populateFragments (response){
-    console.log('the res', response);
-    if(response.error){
-      return console.log('HANDLE THIS ERROR');
-    }
-    var fragments = response.data;
-    fragments.forEach(function(fragment){
-      var number = fragment.number;
-      // create option
-      var option = $(document.createElement('option')).val(number).text(number);
-      $selector.append(option);
-    });
-  }
-
+  $selector.populatefragments();
 
 }(panes.fragmentassignment));
 
@@ -364,28 +344,6 @@ function collectUnitData(){
 (function(pane){
 
   var $selector = pane.find('select[name=street]');
-
-  $.ajax({
-    url: '/ajax/territory/get-streets',
-    method: 'POST',
-    success: populateStreetNames
-  })
-
-  function populateStreetNames(response){
-    if(response.error){
-      return console.log('HANDLE THIS ERROR', response.error);
-    }
-    var streets = response.data;
-    streets.forEach(function(street){
-      var id = street._id;
-      var name = street.name;
-      // create option
-      var option = $(document.createElement('option'))
-        .val(name)
-        .attr('id', id)
-        .text(name);
-      $selector.append(option);
-    });
-  }
+  $selector.populatestreetnames();
 
 }(panes.streetselect));
