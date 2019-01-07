@@ -1,1 +1,2 @@
-console.log('this is a test');
+// text input animation
+require('../modules/text-input');

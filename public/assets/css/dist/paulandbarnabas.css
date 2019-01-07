@@ -59,6 +59,8 @@ strong {
 /**
  * Universal Mixins
  * */
+/**
+ * Text Styles */
 h1 {
   font-size: 1.6em; }
 
@@ -68,8 +70,26 @@ h2 {
 h3 {
   font-size: 1.2em; }
 
+h4 {
+  font-size: 1.1em; }
+
+h5 {
+  font-size: 1em; }
+
+h6 {
+  font-size: 0.9em; }
+
 p {
   font-size: 1em; }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Lato', sans-serif;
+  color: #4E4E4E;
+  margin: 5px 0; }
+
+small {
+  font-size: 0.6em;
+  color: #4E4E4E; }
 
 body > .wrapper {
   height: 100%;
@@ -127,7 +147,7 @@ body > .wrapper {
 /**
  * General Form Styling
  * */
-form .fields {
+.fields {
   margin: 25px 0; }
 
 /**
@@ -585,6 +605,9 @@ body.ap-createfragment .fragment-display-wrapper {
     body.ap-createfragment .fragment-display-wrapper .inner .container .empty-message {
       font-size: 0.6em;
       color: #979797; }
+
+body.ap-createfragment .fragment-details .fragment-number {
+  width: 150px; }
 
 /**
  * Third-party

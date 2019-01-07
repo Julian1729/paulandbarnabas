@@ -7,9 +7,31 @@ append scripts
   script(src=constants.base_url + "/assets/js/dist/ap-createfragment.bundle.js", type="text/javascript")
 
 block panel
-  .pane
+  //- Fragment Details Pane
+  .pane.fragment-details
     +section_header('fragment details')
+    form#fragment-form
+      .fields
+        +text_input('fragment number')(name="number", type="number" class="dark fragment-number")
+      .fields
+        h6 assign to
+        +select_input()(name="assignment")
+          option(value="", selected="true") leave unassigned
+          option(value="") Todd Roberson
+          option(value="") Emmett Nixon
+          option(value="") Luis Rodruigez
+    +section_header('select territory')
+    small select a street to begin assigning blocks to this fragment
+    .fields
+      h6 street
+      +select_input()(name="current_street_selection")
+        option(value="") Wakeling
+        option(value="") Oakland
+        option(value="") Saul
+    .fields
+      h6 blocks
   
+  //- Fragment Graphic
   .pane
     .fragment-display-wrapper
       .inner
@@ -34,5 +56,4 @@ block panel
                 p.details #[span(class="hundred") 4500] #[span(class="odd") odd]
               .block
                 p.details #[span(class="hundred") 4500] #[span(class="even") even]
-
   
