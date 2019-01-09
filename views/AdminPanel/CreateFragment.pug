@@ -16,20 +16,57 @@ block panel
       .fields
         h6 assign to
         +select_input()(name="assignment")
-          option(value="", selected="true") leave unassigned
-          option(value="") Todd Roberson
-          option(value="") Emmett Nixon
-          option(value="") Luis Rodruigez
+          option(value="") leave unassigned
+          option(value="", disabled)
+          
     +section_header('select territory')
     small select a street to begin assigning blocks to this fragment
     .fields
       h6 street
       +select_input()(name="current_street_selection")
-        option(value="") Wakeling
-        option(value="") Oakland
-        option(value="") Saul
     .fields
       h6 blocks
+      table.select-blocks
+        tr
+          th Hundred
+          th Odd/Even
+          th Units
+
+        tr(data-details=
+          `{
+            "hundred": 4600,
+            "odd_even": "even",
+            "units": 16,
+            "id": "1231243"
+          }`)
+          td 4600
+          td Even
+          td 15
+
+        tr(data-details=
+          `{
+            "hundred": 4600,
+            "odd_even": "odd",
+            "units": 24,
+            "id": "123123"
+          }`)
+          td 4600
+          td Odd
+          td 24
+
+        tr(data-details=
+          `{
+            "hundred": 4700,
+            "odd_even": "even",
+            "units": 8,
+            "id": "89889"
+          }`)
+          td 4700
+          td Even
+          td 8
+
+          
+        
   
   //- Fragment Graphic
   .pane

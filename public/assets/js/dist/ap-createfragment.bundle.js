@@ -1,4 +1,257 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+/**
+ * Attach all plugins to jQuery object and return modified jQuery
+ */
+
+var $ = require('jquery');
+
+/**
+ * Plugins
+ */
+ var AjaxForm = require('./plugins/ajaxform');
+ $.fn.ajaxform = AjaxForm;
+
+ var DisableInputs = require('./plugins/disableInputs');
+ $.fn.disableinputs = DisableInputs;
+
+ var PopulateStreetNames = require('./plugins/populatestreetnames');
+ $.fn.populatestreetnames = PopulateStreetNames;
+
+ var PopulateFragments = require('./plugins/populatefragments');
+ $.fn.populatefragments = PopulateFragments;
+
+ var PopulateUsers = require('./plugins/populateusers');
+ $.fn.populateusers = PopulateUsers;
+
+module.exports = $;
+
+},{"./plugins/ajaxform":2,"./plugins/disableInputs":3,"./plugins/populatefragments":4,"./plugins/populatestreetnames":5,"./plugins/populateusers":6,"jquery":7}],2:[function(require,module,exports){
+const $ = require('jquery');
+const form2js = require('../../vendor/form2js');
+
+var AjaxForm = function(options, extraParams){
+
+  var $form = this;
+
+  var callbacks = {
+    success: null,
+    validation_handler: null
+  };
+
+  this.ajaxDefaults = {
+    url: "#",
+    method: "POST",
+    success: function(data, textStatus, jqXHR){
+      var validation_handler = callbacks.validation_handler || default_validation_handler;
+      // call custom callback
+      if( callbacks.success !== null ){
+        callbacks.success(data, validation_handler, $form, textStatus, jqXHR);
+      }else{
+        default_success_callback(data, validation_handler, textStatus, jqXHR);
+      }
+    },
+    fail: function(e){console.log('No fail handler...', e)}
+  };
+
+  // extract success callback
+  if(options.success){
+    // attach to callbacks object
+    callbacks.success = options.success;
+    // remove from options
+    delete options.success;
+  }
+
+  // extract validation handler
+  if(options.validation_handler){
+    callbacks.validation_handler = options.validation_handler;
+    delete options.validation_handler;
+  }
+
+  // merge defaults with options
+  ajaxOptions = $.extend({}, this.ajaxDefaults, options);
+
+  // add extra params to data
+  options.data = extraParams;
+
+  return this.each(function(){
+    init($(this), ajaxOptions);
+  });
+
+};
+
+/**
+ * Function to be called after succesful ajax call and response
+ * @param  {[Object]} data Data send back, usually a ajaxResponse object
+ * @param  {[Function]} validation_handler Validation error callbacks
+ * @param  {[jQuery Object]} form The form that was passed
+ * @param  {[type]} textStatus
+ * @param  {[type]} jqXHR
+ * @return {[void]}
+ */
+function default_success_callback(data, validation_handler, form, textStatus, jqXHR){
+  console.log('default success handler called');
+}
+
+/**
+ * Validation handler to be called when one is not
+ * passed in with options
+ * @param  {[Array]} errors Array of errors, [name: "error message"]
+ * @return {void}
+ */
+function default_validation_handler(errors, form){
+  console.log('default validation handler called', errors);
+}
+
+/**
+ * Initialation Function
+ * @param  {[jQuery Object]} form The DOM Element passed in
+ * @param  {[type]} options Filtered jQuery Ajax options
+ * @return {[void]}
+ */
+function init(form, options){
+
+  form.submit(function(e){
+    // stop page reload
+    e.preventDefault();
+    // collect data
+    var formData = form2js(this, null, false);
+    // merge form data to data in options
+    // WARNING: formData will override duplicate keys that
+    // were passed in as extra params
+    options.data = $.extend({}, options.data, formData);
+    $.ajax(options);
+  });
+}
+
+module.exports = AjaxForm;
+
+},{"../../vendor/form2js":11,"jquery":7}],3:[function(require,module,exports){
+var $ = require('jquery');
+
+var DisableInputs = function(querySelector, toggle){
+
+  var $wrapper = this;
+
+  var $inputElements = $wrapper.find(querySelector || 'input, select, textarea');
+  $inputElements.each(disable);
+
+};
+
+/**
+ * Add disable
+ * @param  {jQuery Object} $inputElement JQuery input element
+ * @return {void}
+ */
+function disable(){
+  var $this = $(this);
+  $this.prop('disabled', function(i, val){
+    return !val;
+  });
+
+}
+
+module.exports = DisableInputs;
+
+},{"jquery":7}],4:[function(require,module,exports){
+var $ = require('jquery');
+
+var PopulateFragments = function(){
+
+  var $selector = this;
+
+  $.ajax({
+    url: '/ajax/territory/get-fragments',
+    method: 'GET',
+    success: populateFragments
+  })
+
+  function populateFragments (response){
+    if(response.error){
+      return console.log('HANDLE THIS ERROR');
+    }
+    var fragments = response.data;
+    fragments.forEach(function(fragment){
+      var number = fragment.number;
+      // create option
+      var option = $(document.createElement('option')).val(number).text(number);
+      $selector.append(option);
+    });
+  }
+
+};
+
+module.exports = PopulateFragments;
+
+},{"jquery":7}],5:[function(require,module,exports){
+var $ = require('jquery');
+
+var PopulateStreetNames = function(){
+
+  $selector = this;
+
+  $.ajax({
+    url: '/ajax/territory/get-streets',
+    method: 'POST',
+    success: populateStreetNames
+  })
+
+  function populateStreetNames(response){
+    if(response.error){
+      return console.log('HANDLE THIS ERROR', response.error);
+    }
+    var streets = response.data;
+    streets.forEach(function(street){
+      var id = street._id;
+      var name = street.name;
+      // create option
+      var option = $(document.createElement('option'))
+        .val(name)
+        .attr('id', id)
+        .text(name);
+      $selector.append(option);
+    });
+
+  };
+  
+}
+
+module.exports = PopulateStreetNames;
+
+},{"jquery":7}],6:[function(require,module,exports){
+/**
+ * Populate Select elements users by congregation
+ */
+var $ = require('jquery');
+
+var PopulateUsers = function(){
+
+  var $selector = this;
+
+  $.ajax({
+    url: '/ajax/user/get-list',
+    method: 'GET',
+    success: populateUsers
+  })
+
+  function populateUsers (response){
+    if(response.error){
+      return console.log('HANDLE THIS ERROR');
+    }
+    var users = response.data;
+    users.forEach(function(user){
+      // create option
+      var option = $(document.createElement('option'))
+        .val(user._id)
+        .text(user.first_name + " " + user.last_name);
+      $selector.append(option);
+    });
+  }
+
+};
+
+module.exports = PopulateUsers;
+
+},{"jquery":7}],7:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -10364,7 +10617,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],2:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /**
  * Text Input
  * Handle label animation on focus
@@ -10409,11 +10662,101 @@ $inputContainers.each(function(){attachEvents(this)});
 
 module.exports = {attachEvents};
 
-},{"../../utils.js":4,"jquery":1}],3:[function(require,module,exports){
-// text input animation
+},{"../../utils.js":10,"jquery":7}],9:[function(require,module,exports){
+const $ = require('../../jquery/jquery');
 require('../modules/text-input');
 
-},{"../modules/text-input":2}],4:[function(require,module,exports){
+var fragment = {};
+
+/**
+ * Cache Prominent DOM Elements
+ */
+var DOM = {
+  $fragment_assignment_selector: $('select[name=assignment]'),
+  $street_selector: $('select[name=current_street_selection]'),
+  $fragment_display: $('.fragment-display-wrapper')
+};
+
+/**
+ * Populate Select Element w/ users
+ */
+(function($selector){
+
+  $selector.populateusers();
+
+}(DOM.$fragment_assignment_selector));
+
+/**
+ * Populate select elemts w/ streets
+ */
+(function($selector){
+
+  $selector.populatestreetnames();
+
+}(DOM.$street_selector));
+
+/**
+ * Update Fragment Data
+ */
+(function(g){
+
+  /**
+   * Cache DOM Elements
+   */
+  var $table = $('table.select-blocks');
+  var $blocks = $table.find('tr:not(:first-of-type)');
+
+  /**
+   * Bind events using event delegation
+   */
+
+    // Row click
+    $table.on('click', 'tr:not(:first-of-type)', rowClick);
+
+
+  function rowClick(e){
+    // Add selected class
+      $row = $(this);
+      $row.addClass('selected');
+    // Extract data
+      var block = $row.data('details');
+      g.updateFragment(block)
+  }
+
+}(window));
+
+/**
+ * Expose fragment functions to window
+ */
+(function(g, data, $street_selector, $fragment_display){
+
+  Fragment = {
+
+    display: $fragment_display,
+
+    updateFragment : function(blockData){
+      // get textual value of street
+      var streetName = $street_selector.find('option:selected').text();
+      // enter block data into array
+      if(data[streetName] === undefined){
+        data[streetName] = [];
+      }
+      data[streetName].push(blockData);
+      console.log(this.display);
+      this.refreshFragmentDisplay();
+    },
+
+    refreshFragmentDisplay : function(){
+      console.log('refreshing display...');
+    }
+
+  };
+
+  g.Fragment = Fragment;
+
+}(window, fragment, DOM.$street_selector, DOM.$fragment_display));
+
+},{"../../jquery/jquery":1,"../modules/text-input":8}],10:[function(require,module,exports){
 /**
  * Utility Functions
  */
@@ -10432,4 +10775,355 @@ module.exports = {
   isEmptyString: isEmptyString
 };
 
-},{}]},{},[3]);
+},{}],11:[function(require,module,exports){
+/**
+ * Copyright (c) 2010 Maxim Vasiliev
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author Maxim Vasiliev
+ * Date: 09.09.2010
+ * Time: 19:02:33
+ */
+
+
+(function (root, factory)
+{
+	if (typeof exports !== 'undefined' && typeof module !== 'undefined' && module.exports) {
+		// NodeJS
+		module.exports = factory();
+	}
+	else if (typeof define === 'function' && define.amd)
+	{
+		// AMD. Register as an anonymous module.
+		define(factory);
+	}
+	else
+	{
+		// Browser globals
+		root.form2js = factory();
+	}
+}(this, function ()
+{
+	"use strict";
+
+	/**
+	 * Returns form values represented as Javascript object
+	 * "name" attribute defines structure of resulting object
+	 *
+	 * @param rootNode {Element|String} root form element (or it's id) or array of root elements
+	 * @param delimiter {String} structure parts delimiter defaults to '.'
+	 * @param skipEmpty {Boolean} should skip empty text values, defaults to true
+	 * @param nodeCallback {Function} custom function to get node value
+	 * @param useIdIfEmptyName {Boolean} if true value of id attribute of field will be used if name of field is empty
+	 */
+	function form2js(rootNode, delimiter, skipEmpty, nodeCallback, useIdIfEmptyName, getDisabled)
+	{
+		getDisabled = getDisabled ? true : false;
+		if (typeof skipEmpty == 'undefined' || skipEmpty == null) skipEmpty = true;
+		if (typeof delimiter == 'undefined' || delimiter == null) delimiter = '.';
+		if (arguments.length < 5) useIdIfEmptyName = false;
+
+		rootNode = typeof rootNode == 'string' ? document.getElementById(rootNode) : rootNode;
+
+		var formValues = [],
+			currNode,
+			i = 0;
+
+		/* If rootNode is array - combine values */
+		if (rootNode.constructor == Array || (typeof NodeList != "undefined" && rootNode.constructor == NodeList))
+		{
+			while(currNode = rootNode[i++])
+			{
+				formValues = formValues.concat(getFormValues(currNode, nodeCallback, useIdIfEmptyName, getDisabled));
+			}
+		}
+		else
+		{
+			formValues = getFormValues(rootNode, nodeCallback, useIdIfEmptyName, getDisabled);
+		}
+
+		return processNameValues(formValues, skipEmpty, delimiter);
+	}
+
+	/**
+	 * Processes collection of { name: 'name', value: 'value' } objects.
+	 * @param nameValues
+	 * @param skipEmpty if true skips elements with value == '' or value == null
+	 * @param delimiter
+	 */
+	function processNameValues(nameValues, skipEmpty, delimiter)
+	{
+		var result = {},
+			arrays = {},
+			i, j, k, l,
+			value,
+			nameParts,
+			currResult,
+			arrNameFull,
+			arrName,
+			arrIdx,
+			namePart,
+			name,
+			_nameParts;
+
+		for (i = 0; i < nameValues.length; i++)
+		{
+			value = nameValues[i].value;
+
+			if (skipEmpty && (value === '' || value === null)) continue;
+
+			name = nameValues[i].name;
+			_nameParts = name.split(delimiter);
+			nameParts = [];
+			currResult = result;
+			arrNameFull = '';
+
+			for(j = 0; j < _nameParts.length; j++)
+			{
+				namePart = _nameParts[j].split('][');
+				if (namePart.length > 1)
+				{
+					for(k = 0; k < namePart.length; k++)
+					{
+						if (k == 0)
+						{
+							namePart[k] = namePart[k] + ']';
+						}
+						else if (k == namePart.length - 1)
+						{
+							namePart[k] = '[' + namePart[k];
+						}
+						else
+						{
+							namePart[k] = '[' + namePart[k] + ']';
+						}
+
+						arrIdx = namePart[k].match(/([a-z_]+)?\[([a-z_][a-z0-9_]+?)\]/i);
+						if (arrIdx)
+						{
+							for(l = 1; l < arrIdx.length; l++)
+							{
+								if (arrIdx[l]) nameParts.push(arrIdx[l]);
+							}
+						}
+						else{
+							nameParts.push(namePart[k]);
+						}
+					}
+				}
+				else
+					nameParts = nameParts.concat(namePart);
+			}
+
+			for (j = 0; j < nameParts.length; j++)
+			{
+				namePart = nameParts[j];
+
+				if (namePart.indexOf('[]') > -1 && j == nameParts.length - 1)
+				{
+					arrName = namePart.substr(0, namePart.indexOf('['));
+					arrNameFull += arrName;
+
+					if (!currResult[arrName]) currResult[arrName] = [];
+					currResult[arrName].push(value);
+				}
+				else if (namePart.indexOf('[') > -1)
+				{
+					arrName = namePart.substr(0, namePart.indexOf('['));
+					arrIdx = namePart.replace(/(^([a-z_]+)?\[)|(\]$)/gi, '');
+
+					/* Unique array name */
+					arrNameFull += '_' + arrName + '_' + arrIdx;
+
+					/*
+					 * Because arrIdx in field name can be not zero-based and step can be
+					 * other than 1, we can't use them in target array directly.
+					 * Instead we're making a hash where key is arrIdx and value is a reference to
+					 * added array element
+					 */
+
+					if (!arrays[arrNameFull]) arrays[arrNameFull] = {};
+					if (arrName != '' && !currResult[arrName]) currResult[arrName] = [];
+
+					if (j == nameParts.length - 1)
+					{
+						if (arrName == '')
+						{
+							currResult.push(value);
+							arrays[arrNameFull][arrIdx] = currResult[currResult.length - 1];
+						}
+						else
+						{
+							currResult[arrName].push(value);
+							arrays[arrNameFull][arrIdx] = currResult[arrName][currResult[arrName].length - 1];
+						}
+					}
+					else
+					{
+						if (!arrays[arrNameFull][arrIdx])
+						{
+							if ((/^[0-9a-z_]+\[?/i).test(nameParts[j+1])) currResult[arrName].push({});
+							else currResult[arrName].push([]);
+
+							arrays[arrNameFull][arrIdx] = currResult[arrName][currResult[arrName].length - 1];
+						}
+					}
+
+					currResult = arrays[arrNameFull][arrIdx];
+				}
+				else
+				{
+					arrNameFull += namePart;
+
+					if (j < nameParts.length - 1) /* Not the last part of name - means object */
+					{
+						if (!currResult[namePart]) currResult[namePart] = {};
+						currResult = currResult[namePart];
+					}
+					else
+					{
+						currResult[namePart] = value;
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+    function getFormValues(rootNode, nodeCallback, useIdIfEmptyName, getDisabled)
+    {
+        var result = extractNodeValues(rootNode, nodeCallback, useIdIfEmptyName, getDisabled);
+        return result.length > 0 ? result : getSubFormValues(rootNode, nodeCallback, useIdIfEmptyName, getDisabled);
+    }
+
+    function getSubFormValues(rootNode, nodeCallback, useIdIfEmptyName, getDisabled)
+	{
+		var result = [],
+			currentNode = rootNode.firstChild;
+		
+		while (currentNode)
+		{
+			result = result.concat(extractNodeValues(currentNode, nodeCallback, useIdIfEmptyName, getDisabled));
+			currentNode = currentNode.nextSibling;
+		}
+
+		return result;
+	}
+
+    function extractNodeValues(node, nodeCallback, useIdIfEmptyName, getDisabled) {
+        if (node.disabled && !getDisabled) return [];
+
+        var callbackResult, fieldValue, result, fieldName = getFieldName(node, useIdIfEmptyName);
+
+        callbackResult = nodeCallback && nodeCallback(node);
+
+        if (callbackResult && callbackResult.name) {
+            result = [callbackResult];
+        }
+        else if (fieldName != '' && node.nodeName.match(/INPUT|TEXTAREA/i)) {
+            fieldValue = getFieldValue(node, getDisabled);
+            if (null === fieldValue) {
+                result = [];
+            } else {
+                result = [ { name: fieldName, value: fieldValue} ];
+            }
+        }
+        else if (fieldName != '' && node.nodeName.match(/SELECT/i)) {
+	        fieldValue = getFieldValue(node, getDisabled);
+	        result = [ { name: fieldName.replace(/\[\]$/, ''), value: fieldValue } ];
+        }
+        else {
+            result = getSubFormValues(node, nodeCallback, useIdIfEmptyName, getDisabled);
+        }
+
+        return result;
+    }
+
+	function getFieldName(node, useIdIfEmptyName)
+	{
+		if (node.name && node.name != '') return node.name;
+		else if (useIdIfEmptyName && node.id && node.id != '') return node.id;
+		else return '';
+	}
+
+
+	function getFieldValue(fieldNode, getDisabled)
+	{
+		if (fieldNode.disabled && !getDisabled) return null;
+		
+		switch (fieldNode.nodeName) {
+			case 'INPUT':
+			case 'TEXTAREA':
+				switch (fieldNode.type.toLowerCase()) {
+					case 'radio':
+			if (fieldNode.checked && fieldNode.value === "false") return false;
+					case 'checkbox':
+                        if (fieldNode.checked && fieldNode.value === "true") return true;
+                        if (!fieldNode.checked && fieldNode.value === "true") return false;
+			if (fieldNode.checked) return fieldNode.value;
+						break;
+
+					case 'button':
+					case 'reset':
+					case 'submit':
+					case 'image':
+						return '';
+						break;
+
+					default:
+						return fieldNode.value;
+						break;
+				}
+				break;
+
+			case 'SELECT':
+				return getSelectedOptionValue(fieldNode);
+				break;
+
+			default:
+				break;
+		}
+
+		return null;
+	}
+
+	function getSelectedOptionValue(selectNode)
+	{
+		var multiple = selectNode.multiple,
+			result = [],
+			options,
+			i, l;
+
+		if (!multiple) return selectNode.value;
+
+		for (options = selectNode.getElementsByTagName("option"), i = 0, l = options.length; i < l; i++)
+		{
+			if (options[i].selected) result.push(options[i].value);
+		}
+
+		return result;
+	}
+
+	return form2js;
+
+}));
+
+},{}]},{},[9]);
