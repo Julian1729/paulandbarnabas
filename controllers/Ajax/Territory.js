@@ -5,6 +5,7 @@ const {ObjectId} = require('mongodb');
 
 const {CongregationNotFound, FragmentNotFound, FormValidationError} = require('../../errors');
 const CreateTerritoryValidator = require('../../validators/CreateTerritory');
+const CreateFragmentValidator = require('../../validators/CreateFragment');
 const TerritoryModel = require('../../models/Territory');
 const {UserSession} = require('../../session/session');
 const UserModel = require('../../models/User');
@@ -263,9 +264,18 @@ var getStreets = (req, res, next) => {
 
 };
 
+var saveFragment = (req, res, next) => {
+
+  var fragmentData = req.body;
+  // validate fragment
+  var validation = CreateFragmentValidator(fragmentData);
+
+};
+
 module.exports = {
   saveTerritory,
   getBlocks,
   getStreets,
-  getFragments
+  getFragments,
+  saveFragment
 };

@@ -6,66 +6,44 @@ prepend GLOBAL_PUG
 append scripts
   script(src=constants.base_url + "/assets/js/dist/ap-createfragment.bundle.js", type="text/javascript")
 
+append templates
+  script(type="x-tmpl-mustache", id="temp-block-group")
+    .block-group
+      p.street {{street}}
+      .blocks
+  
+  script(type="x-tmpl-mustache", id="temp-block-row")
+    .block
+      p.details #[span(class="hundred") {{hundred}}] #[span(class="even") {{odd_even}}]
+          
+
 block panel
   //- Fragment Details Pane
   .pane.fragment-details
     +section_header('fragment details')
     form#fragment-form
       .fields
-        +text_input('fragment number')(name="number", type="number" class="dark fragment-number")
+        +text_input('fragment number')(name="fragment.number", type="number" class="dark fragment-number")
       .fields
         h6 assign to
-        +select_input()(name="assignment")
+        +select_input()(name="fragment.assignment")
           option(value="") leave unassigned
           option(value="", disabled)
           
-    +section_header('select territory')
-    small select a street to begin assigning blocks to this fragment
-    .fields
-      h6 street
-      +select_input()(name="current_street_selection")
-    .fields
-      h6 blocks
-      table.select-blocks
-        tr
-          th Hundred
-          th Odd/Even
-          th Units
-
-        tr(data-details=
-          `{
-            "hundred": 4600,
-            "odd_even": "even",
-            "units": 16,
-            "id": "1231243"
-          }`)
-          td 4600
-          td Even
-          td 15
-
-        tr(data-details=
-          `{
-            "hundred": 4600,
-            "odd_even": "odd",
-            "units": 24,
-            "id": "123123"
-          }`)
-          td 4600
-          td Odd
-          td 24
-
-        tr(data-details=
-          `{
-            "hundred": 4700,
-            "odd_even": "even",
-            "units": 8,
-            "id": "89889"
-          }`)
-          td 4700
-          td Even
-          td 8
-
-          
+      +section_header('select territory')
+      small select a street to begin assigning blocks to this fragment
+      .fields
+        h6 street
+        +select_input()(name="current_street_selection")
+      .fields
+        h6 blocks
+        table.select-blocks#block-table
+          tr
+            th Hundred
+            th Odd/Even
+            th Units
+    
+      button(id="save-fragment") save fragment
         
   
   //- Fragment Graphic
@@ -73,24 +51,8 @@ block panel
     .fragment-display-wrapper
       .inner
         .header
-          p.fragment-number Fragment ##[span(id="fragment-number") 23]
-          p.fragment-stats #[span(id="fragment-block-count") 8] Blocks / #[span(id="fragment-unit-count") 100] Units
+          p.fragment-number Fragment ##[span(id="fragment-number") --- ]
+          p.fragment-stats #[span(id="fragment-block-count") 0] Blocks / #[span(id="fragment-unit-count") 0] Units
         .container
           p.empty-message Please select a street to begin assigning blocks to this fragment
-          
-          .block-group
-            p.street Oakland
-            .blocks
-              .block
-                p.details #[span(class="hundred") 4500] #[span(class="odd") odd]
-              .block
-                p.details #[span(class="hundred") 4500] #[span(class="even") even]
-                
-          .block-group
-            p.street Wakeling
-            .blocks
-              .block
-                p.details #[span(class="hundred") 4500] #[span(class="odd") odd]
-              .block
-                p.details #[span(class="hundred") 4500] #[span(class="even") even]
   

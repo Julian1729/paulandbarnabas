@@ -20,14 +20,13 @@ var PopulateStreetNames = function(){
       var name = street.name;
       // create option
       var option = $(document.createElement('option'))
-        .val(name)
-        .attr('id', id)
+        .val(id)
         .text(name);
       $selector.append(option);
     });
 
   };
-  
+
 }
 
 module.exports = PopulateStreetNames;
