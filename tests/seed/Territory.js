@@ -88,6 +88,18 @@ var notes =  {
 
 };
 
+var fragments = {
+
+  valid: {
+    number: 1
+  },
+
+  invalid: {
+
+  }
+
+};
+
 // territory.populated = _.extend({}, territory.valid);
 // // insert street
 // territory.populated.streets.push(streets.valid);
@@ -105,8 +117,8 @@ var notes =  {
 territory.completed = {
   congregation: new ObjectId(),
   fragments: [{
-    number: 1
-  }],
+      number: 1
+    }],
   streets: [{
       name: 'Oakland',
       odd: [],
@@ -145,5 +157,6 @@ module.exports = {
   units,
   visits,
   householders,
-  notes
+  notes,
+  fragments
 };

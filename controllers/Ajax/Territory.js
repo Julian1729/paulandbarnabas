@@ -50,6 +50,7 @@ var saveTerritory = (req, res, next) => {
       // search for street name within array
       // check for street existence
       var foundStreet = null;
+      // FIXME: use findStreet method here
       for (var i = 0; i < territory.streets.length; i++) {
         var streetObj = territory.streets[i];
         if(streetObj.name === territoryData.street_name){
@@ -65,6 +66,7 @@ var saveTerritory = (req, res, next) => {
 
       logger.debug(`${territoryData.street_name} needs to be created`);
       // street doesn't exist...create it
+      // FIXME: use new addStreet method here
       var newStreet = {
         name: territoryData.street_name
       };
@@ -75,6 +77,7 @@ var saveTerritory = (req, res, next) => {
           var street = _.find(territory.streets, function(streetObj){
             return streetObj.name === newStreet.name;
           });
+          // FIXME: is this check really needed?
           if(!street) throw new Error('New street not found back in returned object from database.')
           logger.debug(`${street.name} street created`);
           return {
@@ -89,7 +92,9 @@ var saveTerritory = (req, res, next) => {
 
     // SEARCH FOR BLOCK, CREATE IT IF IT DOESN'T EXIST
     .then(infoObj => {
+      // FIXME: use find street method here?
       var streetSide = infoObj.territory.streets.id(infoObj.street._id)[territoryData.odd_even];
+      // FIXME: use find block method here
       var block = _.find(streetSide, function(blockObj){
         return blockObj.hundred == territoryData.block_hundred;
       });
@@ -101,6 +106,7 @@ var saveTerritory = (req, res, next) => {
         return infoObj;
       }
       logger.debug(`${territoryData.block_hundred} of ${infoObj.street.name} needs to be created`);
+      // FIXME: use addBlock on street document
       // block must be created
       var newBlockId = new ObjectId();
       var newBlock = {
@@ -128,6 +134,7 @@ var saveTerritory = (req, res, next) => {
       while(units.length > 0) {
           units.pop();
       }
+      // FIXME: use addUnits method
       // loop through units, create base unit object, and insert into array
       territoryData.units.forEach(unitObj => {
         var unitBase = {};
@@ -158,6 +165,7 @@ var saveTerritory = (req, res, next) => {
     .then(infoObj => {
       if(territoryData.fragment_unassigned !== null) return;
       var fragmentNumber = territoryData.fragment_assignment;
+      // FIXME: depricate assignBlockToFragment and utilize findFragment().addBlocks()
       infoObj.territory
         .assignBlockToFragment(fragmentNumber, infoObj.block._id)
         .then(territory => {
@@ -269,6 +277,13 @@ var saveFragment = (req, res, next) => {
   var fragmentData = req.body;
   // validate fragment
   var validation = CreateFragmentValidator(fragmentData);
+  if(validation){
+    return ajaxResponse(res, {
+      error: new FormValidationError(validation)
+    });
+  }
+
+  // create fragement
 
 };
 

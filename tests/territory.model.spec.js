@@ -1,6 +1,7 @@
 const {expect} = require('chai');
 const _ = require('lodash');
 const {ObjectId} = require('mongodb');
+const mongoose = require('mongoose');
 
 const Territory = require('../models/Territory');
 const User = require('../models/User');
@@ -315,5 +316,179 @@ describe('Territory Model', () => {
 
     });
 
+    describe('Fragment Methods', () => {
+
+      it('should find correct fragment', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var fragment = territory.findFragment(1);
+            expect(fragment).to.exist;
+            expect(fragment).to.have.property('number');
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should remove fragment', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+
+            var ogFragment = territory.findFragment(seed.territory.completed.fragments[0].number);
+            expect(ogFragment).to.exist;
+            //territory.saveFragment(seed.fragments.valid, {overwriteFragment: true});
+            var remove = territory.removeFragment(seed.territory.completed.fragments[0].number);
+            expect(remove).to.be.true;
+            expect(territory.fragments).to.have.lengthOf(0);
+            done();
+
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should return a fragment map', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+
+            territory.fragments.push({
+              number: 2,
+              blocks: [territory.findStreet('Oakland').findBlock(4500)]
+            })
+            return territory.save();
+          })
+          .then(territory => {
+
+            expect(territory.findFragment(2)).to.exist;
+            var map = territory.blockMap();
+            expect(map).to.exist;
+            // look fro this block
+            expect(map).to.have.property(territory.findFragment(2).blocks[0]._id.toString());
+            done();
+
+          })
+          .catch(e => done(e));
+
+      });
+
+      // test areBlocksAssigned
+      it('should return aray with 1 block that is assigned', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          // assign block to fragment
+          .then(territory => {
+
+            territory.fragments.push({
+              number: 2,
+              blocks: [territory.findStreet('Oakland').findBlock(4500)]
+            })
+            return territory.save();
+          })
+          // assure that we can verify block has been assigned
+          .then(territory => {
+
+            var testBlock = territory.findStreet('Oakland').findBlock(4500);
+            var result = territory.areBlocksAssigned([testBlock]);
+            console.log(result);
+            expect(result).to.have.lengthOf(1);
+            done();
+
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should add one block to fragment 1', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          // assign block to fragment
+          .then(territory => {
+
+            var blockToAdd = territory.findStreet('Oakland').findBlock(4500);
+            territory.findFragment(1).addBlocks([blockToAdd]);
+            return territory.save();
+          })
+          // assure that we can verify block has been assigned
+          .then(territory => {
+
+            var fragment = territory.findFragment(1);
+            expect(fragment.blocks).to.have.lengthOf(1);
+            done();
+
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should remove one block from fragment 1', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          // assign block to fragment
+          .then(territory => {
+            var blockToAdd = territory.findStreet('Oakland').findBlock(4500);
+            territory.findFragment(1).addBlocks([blockToAdd]);
+            return territory.save();
+          })
+          .then(territory => {
+
+            var blockToAdd = territory.findStreet('Oakland').findBlock(4500)._id;
+            var removedCount = territory.findFragment(1).removeBlocks([blockToAdd]);
+            expect(removedCount).to.equal(1);
+            return territory.save();
+          })
+          .then(territory => {
+
+            var fragment = territory.findFragment(1);
+            expect(fragment.blocks).to.have.lengthOf(0);
+            done();
+
+          })
+          .catch(e => done(e));
+
+      });
+
+
+      it('should remove blocks from corresponding fragments', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          // assign block to fragment
+          .then(territory => {
+
+            var blockToAdd = territory.findStreet('Oakland').findBlock(4500);
+            var fragment = territory.findFragment(1);
+            expect(fragment.blocks.length).to.equal(0);
+            fragment.addBlocks([blockToAdd]);
+            return territory.save();
+
+          })
+          // assure that we can verify block has been assigned
+          .then(territory => {
+
+            var testBlock = territory.findStreet('Oakland').findBlock(4500);
+            var result = territory.areBlocksAssigned([testBlock]);
+            expect(result).to.have.lengthOf(1);
+
+            // remove all assigned blocks
+            var removedCount = territory.removeBlocksFromFragments(result);
+            expect(removedCount).to.equal(1);
+            expect(territory.findFragment(1).blocks.length).to.equal(0);
+            done();
+
+          })
+          .catch(e => done(e));
+
+      });
+
+    });
 
 });

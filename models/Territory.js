@@ -162,6 +162,7 @@ var streets_schema = new Schema({
   };
 
   streets_schema.methods.findBlock = function(hundred){
+    hundred = parseInt(hundred);
     if(Utils.isOdd(hundred)){
       return this.odd.find(block => block.hundred === hundred);
     }
@@ -173,7 +174,7 @@ var streets_schema = new Schema({
 var fragment_schema = new Schema({
   number: {
     type: Number,
-    required: true
+    required: true,
   },
   current_holder: [current_holder_schema],
   blocks: {
@@ -184,6 +185,32 @@ var fragment_schema = new Schema({
   worked: [worked_schema]
 });
 
+  /**
+   * Methods
+   */
+
+  /**
+   * Add blocks to fragment
+   * @param  {Array} blocks Array of blocks to add
+   * @return {void}
+   */
+  fragment_schema.methods.addBlocks = function(blocks){
+    blocks.forEach(b => {
+      this.blocks.push(b._id);
+    });
+  };
+
+  /**
+   * Remove specified blocks from array. This method
+   * casts the string id
+   * @param  {Array} blocks Array of block ids to remove
+   * @return {Number} Count of blocks removed
+   */
+  fragment_schema.methods.removeBlocks = function(blocks){
+    return _.remove(this.blocks, b => {
+      if (blocks.indexOf(b) !== -1) return true;
+    }).length;
+  };
 
 
 // Parent Document Schema
@@ -264,12 +291,41 @@ var TerritorySchema = new Schema({
 
   };
 
+  /**
+   * Find a fragment by its number.
+   * @param  {Number} number Fragment's unique number;
+   * @return {Object} Fragment sub document
+   */
   TerritorySchema.methods.findFragment = function(number){
 
     var fragment = this.fragments.find(f => f.number === parseInt(number));
     if(!fragment) throw new errors.FragmentNotFound(`"${number}" not found in Territory with congregation id ${this.congregation}`);
     return fragment;
 
+  };
+
+  /**
+   * Search through territory fragments
+   * and see if number already exists
+   * @param {Number} Number Fragment number
+   * @return {Boolean} True if exists false if not
+   */
+  TerritorySchema.methods.fragmentNumberExists = function(number){
+    var fragment = this.fragments.find(f => f.number === parseInt(number));
+    return (fragment) ? true : false;
+  };
+
+  /**
+   * Remove a fragment from territory
+   * array by number
+   * @param  {Number} number
+   * @return {Boolean} True on at least one fragment removed. False on 0
+   */
+  TerritorySchema.methods.removeFragment = function(number){
+    var removed = _.remove(this.fragments, f => {
+      return f.number === number;
+    });
+    return (removed.length > 0) ? true : false;
   };
 
   /**
@@ -288,6 +344,122 @@ var TerritorySchema = new Schema({
     return this.save();
 
   }
+
+  /**
+   * Loop through all fragments
+   * and assure that blocks have already been
+   * assigned to other fragments.
+   * @param  {Array} blocksArray Array of blocks to check against blocks
+   * @return {mixed} Return Array of already assigned blocks and the fragment they belong to or null
+   */
+  TerritorySchema.methods.areBlocksAssigned = function(blocksArray){
+
+    var map = this.blockMap();
+
+    var alreadyAssignedBlocks = [];
+
+    // loop through all fragments
+    this.fragments.forEach(f => {
+      // loop through blocks
+      f.blocks.forEach(b => {
+        // search for block id in blockMap and cache in var
+        var result = map[b._id.toString()] || null;
+        if(result !== null){
+          // create info object
+          var info = _.merge({block: b._id}, result);
+          alreadyAssignedBlocks.push(info);
+        }
+      });
+    });
+
+    return alreadyAssignedBlocks;
+
+  };
+
+  /**
+   * create map of blockIds to the fragment they belong to
+   * to be easily accessed
+   * @return {Object} e.g. { '123ObjectId12424' : 2 } (objectId : FragmentNumber)
+   */
+  TerritorySchema.methods.blockMap = function(){
+
+    var map = {};
+    this.fragments.forEach(f => {
+      f.blocks.forEach(b => {
+        map[b._id] = {fragment_number: f.number, fragment_id: f._id};
+      });
+    });
+    return map;
+
+  };
+
+  /**
+   * Enter a new fragment into
+   * @param  {Object} fragmentObj Fragment data object
+   * @param  {Object} options Options object. (overwriteFragment, overwriteBlocks)
+   * @return {Promise}
+   */
+  TerritorySchema.methods.saveFragment = function(fragmentObj, options){
+    options = options || {};
+    if(fragmentObj.number === undefined){
+      throw new Error('Fragment number must be defined');
+    }
+    // assure that fragment number doesn't already exist
+    if (this.fragmentNumberExists(fragmentObj.number)){
+      // should fragment be overwritten?
+      if(!options.overwriteFragment){
+        throw new errors.FragmentNumberAlreadyExists(fragmentObj.number);
+      }
+      // overwrite old fragment => delete old fragment
+      this.removeFragment(fragmentObj.number)
+    }
+    // assure that blocks do not belong to other fragments
+    var assignedBlocks = this.areBlocksAssigned(fragmentObj.blocks);
+    if(assignedBlocks.length > 0){
+      // this is only allowed if overwriteFragment or overwriteBlocks
+      // options are passed in
+      if(!options.overwriteFragment || !options.overwriteBlocks){
+        throw new errors.BlocksAlreadyAssignedToFragment(assignedBlocks);
+      }
+      // remove blocks from other fragments
+      this.removeBlocksFromFragments(assignedBlocks);
+    }
+    // push into fragments array
+    this.fragments.push(fragmentObj);
+  };
+
+  /**
+   * Remove unassign specified blocks from their
+   * assigned fragments
+   * @param  {Object} blockMap Results from are blocks assigned e.g. {block: 'asdfasd', fragment_id: 'asdfasdf', fragment_number: 'sdfsdf'}
+   * @return {Number} Count of blocks removed
+   */
+  TerritorySchema.methods.removeBlocksFromFragments = function(blockMap){
+    var fragmentMap = {};
+    var removedCount = 0;
+    // create fragment map
+    blockMap.forEach(map => {
+      if(!fragmentMap[map.fragment_number]){
+        fragmentMap[map.fragment_number] = [];
+      }
+      fragmentMap[map.fragment_number].push(map.block);
+    });
+    // loop through fragments and find in territory
+    for (var number in fragmentMap) {
+      if (fragmentMap.hasOwnProperty(number)) {
+        // pick fragment by number and pass in blocks to remove
+        // removedCount += this
+        //   .findFragment(number)
+        //   .removeBlocks(fragmentMap[number]);
+          var fragment = this.findFragment(number);
+          console.log('fragment', fragment);
+          console.log('to remove', fragmentMap[number]);
+          removedCount += fragment.removeBlocks(fragmentMap[number]);
+      }
+    }
+    return removedCount;
+  };
+
 
 
 /**

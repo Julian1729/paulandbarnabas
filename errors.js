@@ -124,6 +124,22 @@ class FragmentNotFound extends Error {
   }
 }
 
+class FragmentNumberAlreadyExists extends Error {
+  constructor(number){
+    super();
+    this.name = 'FragmentNumberAlreadyExists';
+    this.number = number;
+  }
+}
+
+class BlocksAlreadyAssignedToFragment extends Error {
+  constructor(blocks){
+    super();
+    this.name = 'BlocksAlreadyAssignedToFragment';
+    this.blocks = blocks;
+  }
+}
+
  module.exports = {
    UserNotFound,
    FormValidationError,
@@ -135,5 +151,7 @@ class FragmentNotFound extends Error {
    TerritoryNotFound,
    FragmentNotFound,
    SessionUninitialized,
-   SessionUnauthenticated
+   SessionUnauthenticated,
+   FragmentNumberAlreadyExists,
+   BlocksAlreadyAssignedToFragment
  };
