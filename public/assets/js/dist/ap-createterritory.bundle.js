@@ -185,7 +185,7 @@ module.exports = PopulateFragments;
 },{"jquery":7}],5:[function(require,module,exports){
 var $ = require('jquery');
 
-var PopulateStreetNames = function(){
+var PopulateStreetNames = function(useNames){
 
   $selector = this;
 
@@ -204,9 +204,13 @@ var PopulateStreetNames = function(){
       var id = street._id;
       var name = street.name;
       // create option
-      var option = $(document.createElement('option'))
-        .val(id)
-        .text(name);
+      var option = $(document.createElement('option'));
+      if(useNames === true){
+        option.val(name);
+      }else{
+        option.val(id);
+      }
+      option.text(name);
       $selector.append(option);
     });
 
@@ -29416,7 +29420,7 @@ function collectUnitData(){
 (function(pane){
 
   var $selector = pane.find('select[name=street]');
-  $selector.populatestreetnames();
+  $selector.populatestreetnames(true);
 
 }(panes.streetselect));
 

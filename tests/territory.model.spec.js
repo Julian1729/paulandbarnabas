@@ -477,7 +477,6 @@ describe('Territory Model', () => {
             var testBlock = territory.findStreet('Oakland').findBlock(4500);
             var result = territory.areBlocksAssigned([testBlock]);
             expect(result).to.have.lengthOf(1);
-
             // remove all assigned blocks
             var removedCount = territory.removeBlocksFromFragments(result);
             expect(removedCount).to.equal(1);
@@ -488,6 +487,46 @@ describe('Territory Model', () => {
           .catch(e => done(e));
 
       });
+
+      // it('should save fragment 2', (done) => {
+      //
+      //   var testTerritory = Territory(seed.territory.completed);
+      //   testTerritory.save()
+      //     // add some more blocks to Oakland street
+      //
+      //     // assign block to fragment
+      //     .then(territory => {
+      //       var blockToAdd = territory.findStreet('Oakland').findBlock(4500);
+      //       territory.findFragment(1).addBlocks([blockToAdd]);
+      //       return territory.save();
+      //     })
+      //     // assure that we can verify block has been assigned
+      //     .then(territory => {
+      //
+      //       var fragment = territory.findFragment(1);
+      //       expect(fragment.blocks).to.have.lengthOf(1);
+      //       done();
+      //
+      //     })
+      //     .catch(e => done(e));
+      //
+      // });
+
+      // it('should throw error for trying to overwrite fragment one', (done) => {
+      //
+      // });
+      //
+      // it('should throw error for trying to use an already assigned block', (done) => {
+      //
+      // });
+      //
+      // it('should overwrite fragment 1', (done) => {
+      //
+      // });
+      //
+      // it('should overwrite fragment 1s blocks and enter into 2', (done) => {
+      //
+      // });
 
     });
 

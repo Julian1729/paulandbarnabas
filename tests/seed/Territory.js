@@ -35,7 +35,30 @@ var blocks = {
     hundred: 4500,
     units: [],
     worked: []
-  }
+  },
+
+  sample: [
+    {
+      hundred: 100,
+      units: [],
+      worked: []
+    },
+    {
+      hundred: 200,
+      units: [],
+      worked: []
+    },
+    {
+      hundred: 300,
+      units: [],
+      worked: []
+    },
+    {
+      hundred: 400,
+      units: [],
+      worked: []
+    },
+  ]
 
 };
 

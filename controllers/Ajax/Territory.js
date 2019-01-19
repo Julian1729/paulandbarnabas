@@ -29,6 +29,8 @@ var saveTerritory = (req, res, next) => {
     'fragment_unassigned'
   ], req);
 
+  console.log(territoryData);
+
   // consolidate street name
   territoryData.street_name = territoryData.street || territoryData.new_street_name;
 

@@ -344,6 +344,6 @@ function collectUnitData(){
 (function(pane){
 
   var $selector = pane.find('select[name=street]');
-  $selector.populatestreetnames();
+  $selector.populatestreetnames(true);
 
 }(panes.streetselect));
