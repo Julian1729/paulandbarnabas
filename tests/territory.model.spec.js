@@ -314,6 +314,48 @@ describe('Territory Model', () => {
 
         });
 
+        it('should return true that Oakland St. exists', (done) => {
+
+          var testTerritory = Territory(seed.territory.completed);
+          testTerritory.save()
+            .then(territory => {
+              var result = territory.streetExists('Oakland');
+              expect(result).to.be.true;
+              done();
+            })
+            .catch(e => done(e));
+
+        });
+
+        it('should return false that Oakland St. exists', (done) => {
+
+          var testTerritory = Territory(seed.territory.completed);
+          testTerritory.save()
+            .then(territory => {
+              var result = territory.streetExists('Wakeling');
+              expect(result).to.be.false;
+              done();
+            })
+            .catch(e => done(e));
+
+        });
+
+        it('should enter a streeet into array and check for existence', (done) => {
+
+          var testTerritory = Territory(seed.territory.completed);
+          testTerritory.save()
+            .then(territory => {
+              var newStreet = territory.addStreet('Wakeling');
+              expect(territory.streetExists('Wakeling')).to.be.true;
+              expect(newStreet).to.have.property('_id');
+              expect(newStreet.name).to.equal('Wakeling');
+              expect(typeof newStreet.findBlock).to.equal('function');
+              done();
+            })
+            .catch(e => done(e));
+
+        });
+
     });
 
     describe('Fragment Methods', () => {

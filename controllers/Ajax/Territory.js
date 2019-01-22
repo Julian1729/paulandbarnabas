@@ -1,6 +1,7 @@
 /**
  * Create Territory Ajax Controller
  */
+const HttpStatus = require('http-status-codes');
 const {ObjectId} = require('mongodb');
 
 const {CongregationNotFound, FragmentNotFound, FormValidationError} = require('../../errors');
@@ -17,7 +18,12 @@ const errors = require('../../errors');
 
 var saveTerritory = (req, res, next) => {
 
-  var congregationId = req.session.congregation;
+  var congregationId = req.session.congregation || null;
+
+  if(congregationId === null) return ajaxResponse(res, {
+    status: HttpStatus.UNAUTHORIZED,
+    error: new errors.SessionUnauthenticated()
+  }, HttpStatus.UNAUTHORIZED);
 
   var territoryData = Utils.collectFormData([
     'block_hundred',
@@ -28,8 +34,6 @@ var saveTerritory = (req, res, next) => {
     'fragment_assignment',
     'fragment_unassigned'
   ], req);
-
-  console.log(territoryData);
 
   // consolidate street name
   territoryData.street_name = territoryData.street || territoryData.new_street_name;
@@ -172,6 +176,9 @@ var saveTerritory = (req, res, next) => {
         .assignBlockToFragment(fragmentNumber, infoObj.block._id)
         .then(territory => {
           logger.debug(`block saved into fragment ${fragmentNumber}`);
+          return ajaxResponse(res, {
+            territorySaved: true
+          });
         })
         .catch(e => {throw e});
     })

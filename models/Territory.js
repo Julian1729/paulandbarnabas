@@ -161,6 +161,8 @@ var streets_schema = new Schema({
     return blocks;
   };
 
+  // FIXME: this is wrong, it doesn't matter whether
+  // the hundred is odd or even, it will have both sides
   streets_schema.methods.findBlock = function(hundred){
     hundred = parseInt(hundred);
     if(Utils.isOdd(hundred)){
@@ -290,6 +292,44 @@ var TerritorySchema = new Schema({
     return street;
 
   };
+
+  /**
+   * Check whether a street already exists
+   * @return {mixed} True if street exists, or false if not
+   */
+  TerritorySchema.methods.streetExists = function(streetName){
+    var street = this.streets.find(s => s.name === streetName);
+    return street ? true : false;
+  }
+
+  /**
+   * Append a new street into territory street array
+   * @param  {String} streetName Street name
+   * @param  {Object} options    Optional options object. skipExistenceCheck will skip
+   * checking if the street already exists.
+   * @return {Object} Return newly casted subdocument
+   */
+  TerritorySchema.methods.addStreet = function(streetName, options){
+
+    options = options || {};
+
+    // only check if street exists if skip option isn't passed in
+    if(!options.skipExistenceCheck || options.skipExistenceCheck === false){
+      if (this.streetExists(streetName)){
+        throw new errors.StreetAlreadyExists(streetName);
+      }
+    }
+
+    var newStreet = {
+      name: streetName
+    };
+
+    this.streets.push(newStreet);
+
+    // return the new street
+    return this.streets[(this.streets.length - 1)];
+
+  }
 
   /**
    * Find a fragment by its number.

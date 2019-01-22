@@ -108,6 +108,14 @@ class StreetNotFound extends Error {
   }
 }
 
+class StreetAlreadyExists extends Error {
+  constructor(streetName){
+    super();
+    this.name = 'StreetAlreadyExists';
+    this.streetName = streetName;
+  }
+}
+
 class TerritoryNotFound extends Error {
   constructor(message){
     super();
@@ -148,6 +156,7 @@ class BlocksAlreadyAssignedToFragment extends Error {
    NonExistentController,
    NonExistentAction,
    StreetNotFound,
+   StreetAlreadyExists,
    TerritoryNotFound,
    FragmentNotFound,
    SessionUninitialized,
