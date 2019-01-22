@@ -123,12 +123,13 @@ var worked_schema = new Schema({
   }
 });
 
-var block_schema = new Schema({
+var hundred_schema = new Schema({
   hundred: {
     type: Number,
     required: true
   },
-  units: [unit_schema],
+  odd: [unit_schema],
+  even: [unit_schema]
   worked: [Date]
 });
 
@@ -138,8 +139,7 @@ var streets_schema = new Schema({
     type: String,
     required: true
   },
-  odd: [block_schema],
-  even: [block_schema],
+  blocks: [hundred_schema],
   tags: [String]
 });
 
@@ -161,11 +161,9 @@ var streets_schema = new Schema({
     return blocks;
   };
 
-  streets_schema.methods.findBlock = function(hundred){
-    hundred = parseInt(hundred);
-    if(Utils.isOdd(hundred)){
-      return this.odd.find(block => block.hundred === hundred);
-    }
+  // FIXME: this is wrong, it doesn't matter whether
+  // the hundred is odd or even, it will have both sides
+  streets_schema.methods.findHundred = function(hundred){
     return this.even.find(block => block.hundred === hundred);
   };
 
@@ -290,6 +288,44 @@ var TerritorySchema = new Schema({
     return street;
 
   };
+
+  /**
+   * Check whether a street already exists
+   * @return {mixed} True if street exists, or false if not
+   */
+  TerritorySchema.methods.streetExists = function(streetName){
+    var street = this.streets.find(s => s.name === streetName);
+    return street ? true : false;
+  }
+
+  /**
+   * Append a new street into territory street array
+   * @param  {String} streetName Street name
+   * @param  {Object} options    Optional options object. skipExistenceCheck will skip
+   * checking if the street already exists.
+   * @return {Object} Return newly casted subdocument
+   */
+  TerritorySchema.methods.addStreet = function(streetName, options){
+
+    options = options || {};
+
+    // only check if street exists if skip option isn't passed in
+    if(!options.skipExistenceCheck || options.skipExistenceCheck === false){
+      if (this.streetExists(streetName)){
+        throw new errors.StreetAlreadyExists(streetName);
+      }
+    }
+
+    var newStreet = {
+      name: streetName
+    };
+
+    this.streets.push(newStreet);
+
+    // return the new street
+    return this.streets[(this.streets.length - 1)];
+
+  }
 
   /**
    * Find a fragment by its number.
