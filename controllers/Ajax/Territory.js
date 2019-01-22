@@ -50,55 +50,29 @@ var saveTerritory = (req, res, next) => {
   TerritoryModel.findByCongregation(congregationId)
     // SEARCH FOR STREET IN DB, CREATE IT IF IT DOESN'T EXIST
     .then(territory => {
+
+      // preserve references to prominent
+      // documents within territory
       var infoObj = {
         territory
       };
-      // search for street name within array
-      // check for street existence
-      var foundStreet = null;
-      // FIXME: use findStreet method here
-      for (var i = 0; i < territory.streets.length; i++) {
-        var streetObj = territory.streets[i];
-        if(streetObj.name === territoryData.street_name){
-          foundStreet = streetObj;
-          break;
+
+      try {
+        infoObj.street = territory.addStreet(territoryData.street_name);
+        logger.debug(`${territoryData.street_name} created`);
+      } catch (e) {
+        if(e instanceof errors.StreetAlreadyExists){
+          logger.debug(`${territoryData.street_name} street already exists`);
+          infoObj.street = foundStreet;
+          return infoObj;
         }
       }
-      if(foundStreet){
-        logger.debug(`${territoryData.street_name} street already exists`);
-        infoObj.street = foundStreet;
-        return infoObj;
-      }
 
-      logger.debug(`${territoryData.street_name} needs to be created`);
-      // street doesn't exist...create it
-      // FIXME: use new addStreet method here
-      var newStreet = {
-        name: territoryData.street_name
-      };
-      territory.streets.push(newStreet);
-      return territory.save()
-        .then(territory => {
-          // return street
-          var street = _.find(territory.streets, function(streetObj){
-            return streetObj.name === newStreet.name;
-          });
-          // FIXME: is this check really needed?
-          if(!street) throw new Error('New street not found back in returned object from database.')
-          logger.debug(`${street.name} street created`);
-          return {
-            territory,
-            street
-          };
-
-        })
-        // delegate to main catch
-        .catch(e => { throw e; });
+      return infoObj;
     })
 
     // SEARCH FOR BLOCK, CREATE IT IF IT DOESN'T EXIST
     .then(infoObj => {
-      // FIXME: use find street method here?
       var streetSide = infoObj.territory.streets.id(infoObj.street._id)[territoryData.odd_even];
       // FIXME: use find block method here
       var block = _.find(streetSide, function(blockObj){

@@ -128,7 +128,8 @@ var block_schema = new Schema({
     type: Number,
     required: true
   },
-  units: [unit_schema],
+  odd: [unit_schema],
+  even: [unit_schema],
   worked: [Date]
 });
 
@@ -138,8 +139,7 @@ var streets_schema = new Schema({
     type: String,
     required: true
   },
-  odd: [block_schema],
-  even: [block_schema],
+  blocks: [block_schema],
   tags: [String]
 });
 
