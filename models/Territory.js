@@ -123,15 +123,135 @@ var worked_schema = new Schema({
   }
 });
 
+// OPTIMIZE: should units only be the number without the hundred and prefix the hundred later?
+// e.g. "4524" => "24"
+// this may be accomplished with mongoose schema getters and regex
+var block_schema = new Schema({
+  worked: [Date],
+  units: [unit_schema],
+  tags: [String]
+});
+
+// HUNDRED
 var hundred_schema = new Schema({
   hundred: {
     type: Number,
     required: true
   },
-  odd: [unit_schema],
-  even: [unit_schema]
-  worked: [Date]
+  odd: block_schema,
+  even: block_schema
 });
+
+  /**
+   * Methods
+   */
+
+   /**
+    * Get side of street (block) hundred
+    * that corresponds to unit number
+    * being even or odd. This does actually
+    * search for the unit within the block.
+    * @param  {mixed} number Strings will be parsed to Number
+    * @return {Object} Unit's
+    */
+  hundred_schema.methods.getUnitBlock = function(number){
+    number = parseInt(number);
+    if(Utils.isOdd(number)){
+      return this.odd;
+    }else{
+      return this.even;
+    }
+  };
+
+  /**
+   * Check whether a unit exists by unit number
+   * @param  {Number} number Unit number
+   * @return {Boolean} True if unit exists
+   */
+  hundred_schema.methods.unitExists = function(number){
+    number = parseInt(number);
+    var block = this.getUnitBlock(number);
+    // loop through corresponding block's units for number and return boolean
+    return ( _.findIndex(block.units, ['number', number]) > -1 ) ? true : false;
+  };
+
+  /**
+   * Find and return a unit by number without
+   * having to specify whether to look in odd or even,
+   * throw error if not found.
+   * @param  {mixed} number Strings will be parsed into number
+   * @return {Object} Unit object
+   */
+  hundred_schema.methods.findUnit = function(number){
+    number = parseInt(number);
+    // determine whether odd or even
+    var block = this.getUnitBlock(number);
+    var foundUnit = _.find(block.units, ['number', number]);
+    if(!foundUnit) throw new errors.UnitNotFound(number);
+    return foundUnit;
+  };
+
+  /**
+   * Loop through an array of unit numbers and remove them from hundred
+   * @param  {Array} unitNumbers Array of unit numbers to search for and delete
+   * @return {Array} Array of unit numbers that were succesfully removed
+   */
+  hundred_schema.methods.removeUnits = function(unitNumbers){
+    var removed = [];
+    unitNumbers.forEach(number => {
+      var block = this.getUnitBlock(number);
+      var deleted = _.remove(block.units, ['number', number]);
+      removed.push(deleted.number);
+    });
+    return removed;
+  };
+
+  /**
+   * Add an array of units to a hundred, and allocate units
+   * depending on whether unit number is odd or even
+   * @param  {Array} unitArray Array of unit numbers to create
+   * @param  {Array} options   Object of options
+   * @return {Number} Count of succesfully added units
+   */
+  hundred_schema.methods.addUnits = function(unitArray, options){
+    options = options || {};
+    // default options
+    _.defaults(options, {
+      overwriteDuplicates: false,
+      skipDuplicates: false
+    });
+    // store existing units here
+    var existingUnits = [];
+    // store count of succesfully added units
+    var addedUnits = 0;
+    // loop through units
+    unitArray.forEach(unitNumber => {
+     var block = this.getUnitBlock(unitNumber);
+     // determine whether unit exists already
+     if(this.unitExists(unitNumber)){
+       if(options.overwriteDuplicates === true){
+         // overwrite duplicate
+         this.removeUnits([unitNumber])
+       }else if (options.skipDuplicates === true) {
+         // if skipDuplicates option is true skip iteration
+         return;
+       } else{
+        // add to existing units array to be thrown with error later and end iteration
+        return existingUnits.push(unitNumber);
+       }
+     }
+     // push unit object into units array
+     block.units.push({
+       number: unitNumber
+     });
+     // increment success count
+     addedUnits++;
+    });
+    // if overwrite option and skip duplicates is false throw UnitsAlreadyExist error w/ existing units
+    if(existingUnits.length && options.overwriteDuplicates === false ) throw new errors.UnitsAlreadyExist(existingUnits, addedUnits);
+    // return number of added units
+    return addedUnits;
+  }
 
 // STREET
 var streets_schema = new Schema({
@@ -139,35 +259,71 @@ var streets_schema = new Schema({
     type: String,
     required: true
   },
-  blocks: [hundred_schema],
+  hundreds: [hundred_schema],
   tags: [String]
 });
 
   /**
-   * Get all blocks from a street
-   * @param  {String} oddOrEven 'odd' or 'even'
-   * @return {Mixed} Object if includes both blocks, array if only one
+   * Methods
    */
-  streets_schema.methods.getBlocks = function(oddOrEven){
-    // get blocks
-    var blocks = null;
-    if(oddOrEven){
-      blocks = this[oddOrEven];
-    }else{
-      blocks = {};
-      blocks.odd = this.odd;
-      blocks.even = this.even;
+
+    /**
+     * Get all hundreds from a street
+     * @return
+     */
+    streets_schema.methods.getHundreds = function(){
+      return this.hundreds;
+    };
+
+    /**
+     * Search for a hundred by hundred, will throw error if not found.
+     * @param  {mixed} hundred Hundred to search for, can be number or string
+     * @return {mixed}
+     */
+    streets_schema.methods.findHundred = function(hundred){
+      hundred = parseInt(hundred);
+      var found = this.hundreds.find(hundredObj => hundredObj.hundred === hundred);
+      if (!found){
+        throw new errors.HundredNotFound(hundred);
+      }
+      return found;
+    };
+
+    /**
+     *
+     * @param  {mixed} hundred Strings will be parsed to Number
+     * @return {Boolean} True if exists, false if not
+     */
+    streets_schema.methods.hundredExists = function(hundred){
+      hundred = parseInt(hundred);
+      return (_.findIndex(this.hundreds, ['hundred', hundred]) > -1 ) ? true : false;
+    };
+
+    /**
+     * Add a hundred to street.
+     * @param  {mixed} hundred Strings will be parsed into Number
+     * @return {Object} New Hundred
+     */
+    streets_schema.methods.addHundred = function(hundred){
+      hundred = parseInt(hundred);
+      if(this.hundredExists(hundred)){
+        throw new errors.HundredAlreadyExists(hundred);
+      }
+      var newLength = this.hundreds.push({
+        hundred: hundred
+      });
+      return _.last(this.hundreds);
+    };
+
+    /**
+     * Remove hundred from street.
+     * @param  {mixed} hundred Strings will be parsed to Number;
+     * @return {Boolean} True on succesful removal
+     */
+    streets_schema.methods.removeHundred = function(hundred){
+      hundred = parseInt(hundred);
+      return (_.remove(this.hundreds, ['hundred', hundred])) ? true : false;
     }
-    return blocks;
-  };
-
-  // FIXME: this is wrong, it doesn't matter whether
-  // the hundred is odd or even, it will have both sides
-  streets_schema.methods.findHundred = function(hundred){
-    return this.even.find(block => block.hundred === hundred);
-  };
-
-
 
 var fragment_schema = new Schema({
   number: {
@@ -188,13 +344,32 @@ var fragment_schema = new Schema({
    */
 
   /**
-   * Add blocks to fragment
+   * Add blocks to fragment after checking that
+   * they do not belong to other fragments
    * @param  {Array} blocks Array of blocks to add
    * @return {void}
+   * OPTIMIZE: check if ids are instances of ObjectId and
+   * if not convert to ObjectId instance before pushing to array
    */
-  fragment_schema.methods.addBlocks = function(blocks){
+  fragment_schema.methods.assignBlocks = function(blocks, territory, options){
+    options = options || {};
+    _.defaults(options, {
+      overwriteAssignments: false
+    });
+    // assure that blocks do not belong to other fragments
+    var assignedBlocks = territory.areBlocksAssigned(blocks);
+    if(assignedBlocks.length > 0){
+      // this is only allowed if overwriteAssigments
+      // option is true
+      if( !options.overwriteAssignments ){
+        throw new errors.BlocksAlreadyAssignedToFragment(assignedBlocks);
+      }
+      // remove blocks from other fragments
+      this.removeBlocksFromFragments(assignedBlocks);
+    }
+    // push into fragments array
     blocks.forEach(b => {
-      this.blocks.push(b._id);
+      this.blocks.push(b);
     });
   };
 
@@ -209,6 +384,18 @@ var fragment_schema = new Schema({
       if (blocks.indexOf(b) !== -1) return true;
     }).length;
   };
+
+  /**
+   * Check if a fragment contains a block
+   * @param  {mixed} blockId Block's ObjectId
+   * @return {Boolean} True if block assigned
+   */
+  fragment_schema.methods.hasBlock = function(blockId){
+    if(!blockId instanceof ObjectId && typeof blockId === 'string'){
+      blockId = new ObjectId(blockId);
+    }
+    return ( _.findIndex(this.blocks, id => blockId.equals(id)) > -1 ) ? true : false;
+  }
 
 
 // Parent Document Schema
@@ -251,30 +438,6 @@ var TerritorySchema = new Schema({
  * Methods
  */
 
-  TerritorySchema.methods.findBlocks = function(streetName, oddOrEven){
-    // loop streets and find by name
-    var streets = this.streets;
-    var theStreet = null;
-    for(i = 0; i < streets.length; i++){
-      var street = streets[i];
-      if(street.name === streetName){
-        theStreet = street;
-      }
-      break;
-    }
-    if (theStreet === null) return null;
-    // get blocks
-    var blocks = null;
-    if(oddOrEven){
-      blocks = theStreet[oddOrEven];
-    }else{
-      blocks = {};
-      blocks.odd = theStreet.odd;
-      blocks.even = theStreet.even;
-    }
-    return blocks;
-  };
-
   /**
    * Find street by name inside territory.
    * If street is not found, StreetNotFound will be thrown.
@@ -306,25 +469,34 @@ var TerritorySchema = new Schema({
    * @return {Object} Return newly casted subdocument
    */
   TerritorySchema.methods.addStreet = function(streetName, options){
-
     options = options || {};
-
     // only check if street exists if skip option isn't passed in
     if(!options.skipExistenceCheck || options.skipExistenceCheck === false){
       if (this.streetExists(streetName)){
         throw new errors.StreetAlreadyExists(streetName);
       }
     }
-
     var newStreet = {
       name: streetName
     };
-
     this.streets.push(newStreet);
+    // return the new street (last in array)
+    return _.last(this.streets);
+  }
 
-    // return the new street
-    return this.streets[(this.streets.length - 1)];
 
+  /**
+   * Remove and entire street from territory
+   * @param  {String} streetName Street name to remove.
+   * @return {boolean} False if street unable to be removed
+   */
+  TerritorySchema.methods.removeStreet = function(streetName){
+    var removed = _.remove(this.streets, s => s.name === streetName);
+    if(removed.length){
+      return true;
+    }else{
+      return false;
+    }
   }
 
   /**
@@ -365,35 +537,16 @@ var TerritorySchema = new Schema({
   };
 
   /**
-   * Assign a block to a congregation fragment
-   * @param  {mixed} fragmentNumber Unique fragment number (e.g 15)
-   * @param  {mixed} blockId Block ObjectId
-   * @return {Promise}
-   */
-  TerritorySchema.methods.assignBlockToFragment = function(fragmentNumber, blockId){
-
-    var fragment = this.findFragment(fragmentNumber);
-    // assure block isnt' already inside fragment
-    var alreadyExists = fragment.blocks.find(block => block.equals(blockId));
-    if(alreadyExists) return this;
-    fragment.blocks.push(blockId);
-    return this.save();
-
-  }
-
-  /**
    * Loop through all fragments
-   * and assure that blocks have already been
+   * and assure discern whether blocks
+   * have already been
    * assigned to other fragments.
    * @param  {Array} blocksArray Array of blocks to check against blocks
    * @return {mixed} Return Array of already assigned blocks and the fragment they belong to or null
    */
   TerritorySchema.methods.areBlocksAssigned = function(blocksArray){
-
     var map = this.blockMap();
-
     var alreadyAssignedBlocks = [];
-
     // loop through all fragments
     this.fragments.forEach(f => {
       // loop through blocks
@@ -407,9 +560,7 @@ var TerritorySchema = new Schema({
         }
       });
     });
-
     return alreadyAssignedBlocks;
-
   };
 
   /**
@@ -418,7 +569,6 @@ var TerritorySchema = new Schema({
    * @return {Object} e.g. { '123ObjectId12424' : 2 } (objectId : FragmentNumber)
    */
   TerritorySchema.methods.blockMap = function(){
-
     var map = {};
     this.fragments.forEach(f => {
       f.blocks.forEach(b => {
@@ -426,43 +576,80 @@ var TerritorySchema = new Schema({
       });
     });
     return map;
-
   };
 
-  /**
-   * Enter a new fragment into
-   * @param  {Object} fragmentObj Fragment data object
-   * @param  {Object} options Options object. (overwriteFragment, overwriteBlocks)
-   * @return {Promise}
-   */
-  TerritorySchema.methods.saveFragment = function(fragmentObj, options){
-    options = options || {};
-    if(fragmentObj.number === undefined){
-      throw new Error('Fragment number must be defined');
-    }
-    // assure that fragment number doesn't already exist
-    if (this.fragmentNumberExists(fragmentObj.number)){
-      // should fragment be overwritten?
-      if(!options.overwriteFragment){
-        throw new errors.FragmentNumberAlreadyExists(fragmentObj.number);
+  // /**
+  //  * Enter a new fragment into
+  //  * @param  {Object} fragmentObj Fragment data object
+  //  * @param  {Object} options Options object. (overwriteFragment, overwriteBlocks)
+  //  * @return {Promise}
+  //  */
+  // TerritorySchema.methods.addFragment = function(fragmentObj, options){
+  //   options = options || {};
+  //   _.defaults(options, {
+  //     overwriteFragment: false,
+  //     overwriteBlocks: false
+  //   });
+  //   if(fragmentObj.number === undefined){
+  //     throw new Error('Fragment number must be defined');
+  //   }
+  //   // assure that fragment number doesn't already exist
+  //   if (this.fragmentNumberExists(fragmentObj.number)){
+  //     // should fragment be overwritten?
+  //     if(!options.overwriteFragment){
+  //       throw new errors.FragmentNumberAlreadyExists(fragmentObj.number);
+  //     }
+  //     // overwrite old fragment => delete old fragment
+  //     this.removeFragment(fragmentObj.number)
+  //   }
+  //   // assure that blocks do not belong to other fragments
+  //   var assignedBlocks = this.areBlocksAssigned(fragmentObj.blocks);
+  //   if(assignedBlocks.length > 0){
+  //     // this is only allowed if overwriteFragment or overwriteBlocks
+  //     // options are passed in
+  //     if(!options.overwriteFragment || !options.overwriteBlocks){
+  //       throw new errors.BlocksAlreadyAssignedToFragment(assignedBlocks);
+  //     }
+  //     // remove blocks from other fragments
+  //     this.removeBlocksFromFragments(assignedBlocks);
+  //   }
+  //   // push into fragments array
+  //   this.fragments.push(fragmentObj);
+  // };
+
+    /**
+     * Enter a new fragment into territory. Throw
+     * error if fragment number already exists
+     * @param  {Object} fragmentObj Fragment data object
+     * @param  {Object} options Options object. (overwriteFragment, overwriteBlocks)
+     * @return {Object} The newly entered fragment
+     * OPTIMIZE: when fragments are overwritten all info is overwritten.
+     * it may make sense to add an option to ONLY overwrite the fragments blocks
+     * so as to keep the other data...does this make sense?
+     */
+    TerritorySchema.methods.addFragment = function(fragmentNumber, options){
+      options = options || {};
+      _.defaults(options, {
+        overwriteFragment: false,
+      });
+      if(fragmentNumber === undefined){
+        throw new Error('Fragment number must be defined');
       }
-      // overwrite old fragment => delete old fragment
-      this.removeFragment(fragmentObj.number)
-    }
-    // assure that blocks do not belong to other fragments
-    var assignedBlocks = this.areBlocksAssigned(fragmentObj.blocks);
-    if(assignedBlocks.length > 0){
-      // this is only allowed if overwriteFragment or overwriteBlocks
-      // options are passed in
-      if(!options.overwriteFragment || !options.overwriteBlocks){
-        throw new errors.BlocksAlreadyAssignedToFragment(assignedBlocks);
+      // assure that fragment number doesn't already exist
+      if (this.fragmentNumberExists(fragmentNumber)){
+        // should fragment be overwritten?
+        if(!options.overwriteFragment){
+          throw new errors.FragmentNumberAlreadyExists(fragmentObj.number);
+        }
+        // overwrite old fragment => delete old fragment
+        this.removeFragment(fragmentNumber)
       }
-      // remove blocks from other fragments
-      this.removeBlocksFromFragments(assignedBlocks);
-    }
-    // push into fragments array
-    this.fragments.push(fragmentObj);
-  };
+      // push into fragments array
+      this.fragments.push({
+        number: fragmentNumber
+      });
+      return _.last(this.fragments);
+    };
 
   /**
    * Remove unassign specified blocks from their
@@ -488,8 +675,6 @@ var TerritorySchema = new Schema({
         //   .findFragment(number)
         //   .removeBlocks(fragmentMap[number]);
           var fragment = this.findFragment(number);
-          console.log('fragment', fragment);
-          console.log('to remove', fragmentMap[number]);
           removedCount += fragment.removeBlocks(fragmentMap[number]);
       }
     }
