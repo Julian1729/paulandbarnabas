@@ -533,7 +533,7 @@ describe('Territory Model', () => {
 
         });
 
-        it('should add 2 units to 4500 Oakland but throw UnitsAlreadyExist error with 2 units', (done) => {
+        it('should not add 2 units to 4500 Oakland but throw UnitsAlreadyExist error with 2 other units', (done) => {
 
           var unitNumbers = [4504, 4506];
           var testTerritory = Territory(seed.territory.completed);
@@ -552,10 +552,9 @@ describe('Territory Model', () => {
                 throw new errors.TestFailed('the above function should have thrown UnitsAlreadyExist');
               }catch(e){
                 expect(e instanceof errors.UnitsAlreadyExist).to.be.true;
-                expect(e).to.have.property('duplicateNumbers');
                 expect(e).to.have.property('addedCount');
                 expect(e.duplicateNumbers).to.have.lengthOf(2);
-                expect(e.addedCount).to.equal(2);
+                expect(hundred.units).to.have.lengthOf(2);
               } finally {
                 return done();
               }
@@ -823,7 +822,6 @@ describe('Territory Model', () => {
             return territory.save();
           })
           .then(territory => {
-
             blockToRemove = territory.findStreet('Oakland').findHundred(4500).even._id;
             var removedCount = territory.findFragment(1).removeBlocks([blockToRemove]);
             expect(removedCount).to.equal(1);

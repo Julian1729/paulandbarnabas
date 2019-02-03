@@ -187,11 +187,10 @@ class UnitNotFound extends Error {
 }
 
 class UnitsAlreadyExist extends Error {
-  constructor(duplicateNumbers, addedCount){
+  constructor(duplicateNumbers){
     super();
     this.name = 'UnitsAlreadyExist';
     this.duplicateNumbers = duplicateNumbers;
-    this.addedCount = addedCount;
   }
 }
 

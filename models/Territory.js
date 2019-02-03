@@ -222,36 +222,89 @@ var hundred_schema = new Schema({
     });
     // store existing units here
     var existingUnits = [];
-    // store count of succesfully added units
-    var addedUnits = 0;
+    // store units to be entered
+    var unitsToAdd = [];
     // loop through units
     unitArray.forEach(unitNumber => {
-     var block = this.getUnitBlock(unitNumber);
      // determine whether unit exists already
      if(this.unitExists(unitNumber)){
+
        if(options.overwriteDuplicates === true){
          // overwrite duplicate
          this.removeUnits([unitNumber])
-       }else if (options.skipDuplicates === true) {
-         // if skipDuplicates option is true skip iteration
+       }else if(options.skipDuplicates === true) {
+         // skip iteration
          return;
-       } else{
-        // add to existing units array to be thrown with error later and end iteration
+       }else{
+        // default add to existingUnits to be thrown w/ error
         return existingUnits.push(unitNumber);
        }
-     }
-     // push unit object into units array
-     block.units.push({
-       number: unitNumber
-     });
-     // increment success count
-     addedUnits++;
+
+      }
+      // dont bother adding to unitsToAdd array if existingUnits
+      // because an error will be thrown before they are even entered
+      if(!existingUnits.length){
+       // push unit object into units array
+       unitsToAdd.push(unitNumber);
+      }
     });
     // if overwrite option and skip duplicates is false throw UnitsAlreadyExist error w/ existing units
-    if(existingUnits.length && options.overwriteDuplicates === false ) throw new errors.UnitsAlreadyExist(existingUnits, addedUnits);
+    if(existingUnits.length) throw new errors.UnitsAlreadyExist(existingUnits);
+    // add new units to units array
+    unitsToAdd.forEach(unitNumber => {
+     this.getUnitBlock(unitNumber).units.push({
+       number: unitNumber
+     });
+    });
     // return number of added units
-    return addedUnits;
+    return unitsToAdd.length;
   }
+  // /**
+  //  * Add an array of units to a hundred, and allocate units
+  //  * depending on whether unit number is odd or even
+  //  * @param  {Array} unitArray Array of unit numbers to create
+  //  * @param  {Array} options   Object of options
+  //  * @return {Number} Count of succesfully added units
+  //  */
+  // hundred_schema.methods.addUnits = function(unitArray, options){
+  //   options = options || {};
+  //   // default options
+  //   _.defaults(options, {
+  //     overwriteDuplicates: false,
+  //     skipDuplicates: false
+  //   });
+  //   // store existing units here
+  //   var existingUnits = [];
+  //   // store count of succesfully added units
+  //   var addedUnits = 0;
+  //   // loop through units
+  //   unitArray.forEach(unitNumber => {
+  //    var block = this.getUnitBlock(unitNumber);
+  //    // determine whether unit exists already
+  //    if(this.unitExists(unitNumber)){
+  //      if(options.overwriteDuplicates === true){
+  //        // overwrite duplicate
+  //        this.removeUnits([unitNumber])
+  //      }else if (options.skipDuplicates === true) {
+  //        // if skipDuplicates option is true skip iteration
+  //        return;
+  //      } else{
+  //       // add to existing units array to be thrown with error later and end iteration
+  //       return existingUnits.push(unitNumber);
+  //      }
+  //    }
+  //    // push unit object into units array
+  //    block.units.push({
+  //      number: unitNumber
+  //    });
+  //    // increment success count
+  //    addedUnits++;
+  //   });
+  //   // if overwrite option and skip duplicates is false throw UnitsAlreadyExist error w/ existing units
+  //   if(existingUnits.length && options.overwriteDuplicates === false ) throw new errors.UnitsAlreadyExist(existingUnits, addedUnits);
+  //   // return number of added units
+  //   return addedUnits;
+  // }
 
 // STREET
 var streets_schema = new Schema({
