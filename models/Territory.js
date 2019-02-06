@@ -259,52 +259,6 @@ var hundred_schema = new Schema({
     // return number of added units
     return unitsToAdd.length;
   }
-  // /**
-  //  * Add an array of units to a hundred, and allocate units
-  //  * depending on whether unit number is odd or even
-  //  * @param  {Array} unitArray Array of unit numbers to create
-  //  * @param  {Array} options   Object of options
-  //  * @return {Number} Count of succesfully added units
-  //  */
-  // hundred_schema.methods.addUnits = function(unitArray, options){
-  //   options = options || {};
-  //   // default options
-  //   _.defaults(options, {
-  //     overwriteDuplicates: false,
-  //     skipDuplicates: false
-  //   });
-  //   // store existing units here
-  //   var existingUnits = [];
-  //   // store count of succesfully added units
-  //   var addedUnits = 0;
-  //   // loop through units
-  //   unitArray.forEach(unitNumber => {
-  //    var block = this.getUnitBlock(unitNumber);
-  //    // determine whether unit exists already
-  //    if(this.unitExists(unitNumber)){
-  //      if(options.overwriteDuplicates === true){
-  //        // overwrite duplicate
-  //        this.removeUnits([unitNumber])
-  //      }else if (options.skipDuplicates === true) {
-  //        // if skipDuplicates option is true skip iteration
-  //        return;
-  //      } else{
-  //       // add to existing units array to be thrown with error later and end iteration
-  //       return existingUnits.push(unitNumber);
-  //      }
-  //    }
-  //    // push unit object into units array
-  //    block.units.push({
-  //      number: unitNumber
-  //    });
-  //    // increment success count
-  //    addedUnits++;
-  //   });
-  //   // if overwrite option and skip duplicates is false throw UnitsAlreadyExist error w/ existing units
-  //   if(existingUnits.length && options.overwriteDuplicates === false ) throw new errors.UnitsAlreadyExist(existingUnits, addedUnits);
-  //   // return number of added units
-  //   return addedUnits;
-  // }
 
 // STREET
 var streets_schema = new Schema({
@@ -383,9 +337,9 @@ var fragment_schema = new Schema({
     type: Number,
     required: true,
   },
-  current_holder: [current_holder_schema],
   blocks: {
     type: [Schema.Types.ObjectId],
+    // FIXME: not right
     ref: 'Territory.streets'
   },
   assignment_history: [Object],
@@ -434,7 +388,7 @@ var fragment_schema = new Schema({
    */
   fragment_schema.methods.removeBlocks = function(blocks){
     return _.remove(this.blocks, b => {
-      if (blocks.indexOf(b) !== -1) return true;
+      if (_.findIndex(blocks, bc => b.equals(bc)) > -1) return true;
     }).length;
   };
 
@@ -600,18 +554,17 @@ var TerritorySchema = new Schema({
   TerritorySchema.methods.areBlocksAssigned = function(blocksArray){
     var map = this.blockMap();
     var alreadyAssignedBlocks = [];
-    // loop through all fragments
-    this.fragments.forEach(f => {
-      // loop through blocks
-      f.blocks.forEach(b => {
-        // search for block id in blockMap and cache in var
-        var result = map[b._id.toString()] || null;
-        if(result !== null){
-          // create info object
-          var info = _.merge({block: b._id}, result);
-          alreadyAssignedBlocks.push(info);
-        }
-      });
+    // loop through array of blocks
+    blocksArray.forEach(b => {
+      if(b instanceof ObjectId){
+        b = b.toString();
+      }
+      var result = map[b] || null;
+      if(result !== null){
+        // create info object
+        var info = _.merge({block: b}, result);
+        alreadyAssignedBlocks.push(info);
+      }
     });
     return alreadyAssignedBlocks;
   };
@@ -625,84 +578,45 @@ var TerritorySchema = new Schema({
     var map = {};
     this.fragments.forEach(f => {
       f.blocks.forEach(b => {
-        map[b._id] = {fragment_number: f.number, fragment_id: f._id};
+        map[b._id.toString()] = {fragment_number: f.number, fragment_id: f._id};
       });
     });
     return map;
   };
 
-  // /**
-  //  * Enter a new fragment into
-  //  * @param  {Object} fragmentObj Fragment data object
-  //  * @param  {Object} options Options object. (overwriteFragment, overwriteBlocks)
-  //  * @return {Promise}
-  //  */
-  // TerritorySchema.methods.addFragment = function(fragmentObj, options){
-  //   options = options || {};
-  //   _.defaults(options, {
-  //     overwriteFragment: false,
-  //     overwriteBlocks: false
-  //   });
-  //   if(fragmentObj.number === undefined){
-  //     throw new Error('Fragment number must be defined');
-  //   }
-  //   // assure that fragment number doesn't already exist
-  //   if (this.fragmentNumberExists(fragmentObj.number)){
-  //     // should fragment be overwritten?
-  //     if(!options.overwriteFragment){
-  //       throw new errors.FragmentNumberAlreadyExists(fragmentObj.number);
-  //     }
-  //     // overwrite old fragment => delete old fragment
-  //     this.removeFragment(fragmentObj.number)
-  //   }
-  //   // assure that blocks do not belong to other fragments
-  //   var assignedBlocks = this.areBlocksAssigned(fragmentObj.blocks);
-  //   if(assignedBlocks.length > 0){
-  //     // this is only allowed if overwriteFragment or overwriteBlocks
-  //     // options are passed in
-  //     if(!options.overwriteFragment || !options.overwriteBlocks){
-  //       throw new errors.BlocksAlreadyAssignedToFragment(assignedBlocks);
-  //     }
-  //     // remove blocks from other fragments
-  //     this.removeBlocksFromFragments(assignedBlocks);
-  //   }
-  //   // push into fragments array
-  //   this.fragments.push(fragmentObj);
-  // };
-
-    /**
-     * Enter a new fragment into territory. Throw
-     * error if fragment number already exists
-     * @param  {Object} fragmentObj Fragment data object
-     * @param  {Object} options Options object. (overwriteFragment, overwriteBlocks)
-     * @return {Object} The newly entered fragment
-     * OPTIMIZE: when fragments are overwritten all info is overwritten.
-     * it may make sense to add an option to ONLY overwrite the fragments blocks
-     * so as to keep the other data...does this make sense?
-     */
-    TerritorySchema.methods.addFragment = function(fragmentNumber, options){
-      options = options || {};
-      _.defaults(options, {
-        overwriteFragment: false,
-      });
-      if(fragmentNumber === undefined){
-        throw new Error('Fragment number must be defined');
+  /**
+   * Enter a new fragment into territory. Throw
+   * error if fragment number already exists
+   * @param  {Object} fragmentObj Fragment data object
+   * @param  {Object} options Options object. (overwriteFragment, overwriteBlocks)
+   * @return {Object} The newly entered fragment
+   * OPTIMIZE: when fragments are overwritten all info is overwritten.
+   * it may make sense to add an option to ONLY overwrite the fragments blocks
+   * so as to keep the other data...does this make sense?
+   */
+  TerritorySchema.methods.addFragment = function(fragmentNumber, options){
+    options = options || {};
+    _.defaults(options, {
+      overwriteFragment: false,
+    });
+    if(fragmentNumber === undefined){
+      throw new Error('Fragment number must be defined');
+    }
+    // assure that fragment number doesn't already exist
+    if (this.fragmentNumberExists(fragmentNumber)){
+      // should fragment be overwritten?
+      if(!options.overwriteFragment){
+        throw new errors.FragmentNumberAlreadyExists(fragmentObj.number);
       }
-      // assure that fragment number doesn't already exist
-      if (this.fragmentNumberExists(fragmentNumber)){
-        // should fragment be overwritten?
-        if(!options.overwriteFragment){
-          throw new errors.FragmentNumberAlreadyExists(fragmentObj.number);
-        }
-        // overwrite old fragment => delete old fragment
-        this.removeFragment(fragmentNumber)
-      }
-      // push into fragments array
-      this.fragments.push({
-        number: fragmentNumber
-      });
-      return _.last(this.fragments);
-    };
+      // overwrite old fragment => delete old fragment
+      this.removeFragment(fragmentNumber)
+    }
+    // push into fragments array
+    this.fragments.push({
+      number: fragmentNumber
+    });
+    return _.last(this.fragments);
+  };
 
   /**
    * Remove unassign specified blocks from their
@@ -720,15 +634,12 @@ var TerritorySchema = new Schema({
       }
       fragmentMap[map.fragment_number].push(map.block);
     });
+    console.log(JSON.stringify(fragmentMap, null, 2));
     // loop through fragments and find in territory
     for (var number in fragmentMap) {
       if (fragmentMap.hasOwnProperty(number)) {
-        // pick fragment by number and pass in blocks to remove
-        // removedCount += this
-        //   .findFragment(number)
-        //   .removeBlocks(fragmentMap[number]);
           var fragment = this.findFragment(number);
-          removedCount += fragment.removeBlocks(fragmentMap[number]);
+          var removed = fragment.removeBlocks(fragmentMap[number]);
       }
     }
     return removedCount;

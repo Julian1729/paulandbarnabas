@@ -1,6 +1,8 @@
 /**
  * Populate data file with seed data.
  */
+const yargs = require('yargs');
+
 const CongregationModel = require('../../models/Congregation');
 const UserModel = require('../../models/User');
 const TerritoryModel = require('../../models/Territory');
@@ -11,6 +13,18 @@ const UserSeed = require('./User');
 const TerritorySeed = require('./Territory');
 
 var seededData = require('./data');
+
+/**
+ * Parse command line arguemnts with yargs
+ */
+yargs
+  .option('seed', {
+    alias: 's',
+    describe: 'Wipe and seed database with data defined in dev/seed'
+  })
+  .help();
+// Arguments
+var argv = yargs.argv;
 
 var retrieveData = async () => {
 
@@ -67,16 +81,38 @@ var insertData = async () => {
       logger.debug(`${users.length} users entered into db`)
       seededData.users = users;
       // Add congregation to territory obj
-      TerritorySeed.forEach(territory => {
-        territory.congregation = seededData.congregations[0]._id;
-      });
-      return TerritoryModel.create(TerritorySeed);
+      var seedTerritory = TerritorySeed.territory;
+      seedTerritory.congregation = seededData.congregations[0]._id;
+      return TerritoryModel.create(seedTerritory);
     })
-    // Save Territory
-    .then(territories => {
-      logger.debug(`${territories.length} territories entered into db`);
-      seededData.territories = territories;
-      return true;
+    // Add blocks to territory fragment
+    .then(territory => {
+      logger.debug(`Territory entered into db`);
+      // add 4500 odd + even, and 4600 odd + even to fragmnent 1
+        // get block ids
+        var oakland = territory.findStreet('Oakland');
+        var oakland4500 = oakland.findHundred(4500);
+        var oakland4600 = oakland.findHundred(4600);
+        var blocks = territory.findFragment(1).assignBlocks([
+          oakland4500.odd._id,
+          oakland4500.even._id,
+          oakland4600.odd._id,
+          oakland4600.even._id
+        ], territory);
+      // add 1500 Overington odd + even to fragment 2
+        // get block ids
+        var overington = territory.findStreet('Overington');
+        var overington1500 = overington.findHundred(1500);
+        territory.findFragment(2).assignBlocks(
+          [
+            overington1500.odd._id,
+            overington1500.even._id,
+          ], territory );
+      return territory.save();
+    })
+    // Save modified territory to data
+    .then(territory => {
+      seededData.territories = territory;
     })
     .catch(e => {
       logger.debug(e.stack);
@@ -86,6 +122,7 @@ var insertData = async () => {
 };
 
 var dispatch = async (seed) => {
+
   if(seed){
     logger.debug('inserting data into db...')
     await insertData();
@@ -93,6 +130,7 @@ var dispatch = async (seed) => {
     logger.debug('caching seed data from db...');
     await retrieveData();
   }
+
   populate();
 };
 
