@@ -185,7 +185,7 @@ module.exports = PopulateFragments;
 },{"jquery":7}],5:[function(require,module,exports){
 var $ = require('jquery');
 
-var PopulateStreetNames = function(){
+var PopulateStreetNames = function(useNames){
 
   $selector = this;
 
@@ -204,9 +204,13 @@ var PopulateStreetNames = function(){
       var id = street._id;
       var name = street.name;
       // create option
-      var option = $(document.createElement('option'))
-        .val(id)
-        .text(name);
+      var option = $(document.createElement('option'));
+      if(useNames === true){
+        option.val(name);
+      }else{
+        option.val(id);
+      }
+      option.text(name);
       $selector.append(option);
     });
 
@@ -29106,7 +29110,6 @@ var unitContainer = panes.units.find('.units-container');
    */
   $streetSelect.change(refreshTable);
 
-
   function refreshTable(streetName){
     var $this = $(this);
     var $selectElement = $this.find('select');
@@ -29116,7 +29119,7 @@ var unitContainer = panes.units.find('.units-container');
     // change street label
     $('.street-label').text(street);
     $.ajax({
-      url: '/ajax/territory/get-blocks',
+      url: '/ajax/territory/get-street-stats',
       method: 'post',
       data: {
         street: street
@@ -29125,40 +29128,20 @@ var unitContainer = panes.units.find('.units-container');
     });
   }
 
-
-  /**
-   * Sort array of blocks to reveal
-   * missing odds or evens.
-   * @return {Object} Odd and even of each hundred
-   */
-  function extractData(evenBlocks, oddBlocks){
-    // objects of hundreds
-    var sorted = {};
-    evenBlocks.forEach(function(block){
-      sorted[block.hundred] = {};
-      sorted[block.hundred].even = true;
-    });
-    oddBlocks.forEach(function(block){
-      if( !sorted[block.hundred] ) sorted[block.hundred] = {};
-      sorted[block.hundred].odd = true;
-    });
-    return sorted;
-  }
-
-
   function morphTable(ajaxResponse){
+    console.log(ajaxResponse);
     if(ajaxResponse.error){
+      // FIXME: pop error modal
       return console.log('HANDLE THIS ERROR!', ajaxResponse.error);
     }
     // clear out old rows
     $table.find('tr.existing-block-tr').remove();
     // re-hide message
     $('#no-blocks-found').addClass('hide');
-    var {even, odd} = ajaxResponse.data;
-    var extractedHundreds = extractData(even, odd);
-    if(!extractedHundreds){
+    var streetData = JSON.parse( ajaxResponse.data );
+    if(!streetData){
       return $('#no-blocks-found').removeClass('hide');
-    };
+    }
     var rowElements = generateRows(extractedHundreds);
     rowElements.forEach(function(row){
       $table.append(row);
@@ -29192,72 +29175,72 @@ var unitContainer = panes.units.find('.units-container');
 
 }(panes.streetselect));
 
-
+/**
+ * Form Submission and data collection
+ */
 (function(form){
-
-/**
- * Attach handlers
- */
- form.submit(function(e){
-   e.preventDefault();
-   var $form = $(this); // cast form element to jquery object
-   var formData = collectData(this);
-   // send to backend
-   formData = JSON.stringify(formData);
-   $.ajax({
-     url: '/ajax/territory/save-territory',
-     method: 'POST',
-     contentType: 'application/json',
-     dataType: 'json',
-     data: formData,
-     success: function(response){
-       console.log(response);
-     }
+  /**
+   * Attach handlers
+   */
+   form.submit(function(e){
+     e.preventDefault();
+     var $form = $(this); // cast form element to jquery object
+     var formData = collectData(this);
+     // send to backend
+     formData = JSON.stringify(formData);
+     $.ajax({
+       url: '/ajax/territory/save-territory',
+       method: 'POST',
+       contentType: 'application/json',
+       dataType: 'json',
+       data: formData,
+       success: function(response){
+         console.log(response);
+       }
+     });
    });
- });
 
-/**
- * Collect form data, along with unit data
- * @param  {HTMLElement} form Node to collect data from
- * @return {Object}
- */
-function collectData(form){
-  // WARNING: form cannot be a jquery object
-  var formData = form2js(form);
-  // append unit data
-  formData.units = collectUnitData();
-  // convert to json to send
-  return formData;
-}
+  /**
+   * Collect form data, along with unit data
+   * @param  {HTMLElement} form Node to collect data from
+   * @return {Object}
+   */
+  function collectData(form){
+    // WARNING: form cannot be a jquery object
+    var formData = form2js(form);
+    // append unit data
+    formData.units = collectUnitData();
+    // convert to json to send
+    return formData;
+  }
 
-/**
- * Extract all data from generated units
- * @return {Array} Unit data array
- */
-function collectUnitData(){
+  /**
+   * Extract all data from generated units
+   * @return {Array} Unit data array
+   */
+  function collectUnitData(){
 
-  // collect all units inside unit container
-  var units = unitContainer.find('.unit');
-  var collectedUnits = [];
-  units.each(function(){
-    var dataObj = {};
-    // convert to jquery object
-    var $this = $(this);
-    // retrieve number
-    dataObj.number = $this.data('number');
-    // collect all subunit data
-    var subunitData = form2js($this.find('.subunit-container')[0], '.', false);
-    // merge into data obj
-    dataObj = _.merge(dataObj, subunitData);
-    // push into collectedUnits
-    collectedUnits.push(dataObj);
-  });
-  return collectedUnits;
+    // collect all units inside unit container
+    var units = unitContainer.find('.unit');
+    var collectedUnits = [];
+    units.each(function(){
+      var dataObj = {};
+      // convert to jquery object
+      var $this = $(this);
+      // retrieve number
+      dataObj.number = $this.data('number');
+      // collect all subunit data
+      var subunitData = form2js($this.find('.subunit-container')[0], '.', false);
+      // merge into data obj
+      dataObj = _.merge(dataObj, subunitData);
+      // push into collectedUnits
+      collectedUnits.push(dataObj);
+    });
+    return collectedUnits;
 
-}
+  }
 
 }(form, unitContainer));
-
 
 /**
  * Unit UI
@@ -29416,7 +29399,7 @@ function collectUnitData(){
 (function(pane){
 
   var $selector = pane.find('select[name=street]');
-  $selector.populatestreetnames();
+  $selector.populatestreetnames(true);
 
 }(panes.streetselect));
 

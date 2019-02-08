@@ -1,6 +1,6 @@
 var $ = require('jquery');
 
-var PopulateStreetNames = function(){
+var PopulateStreetNames = function(useNames){
 
   $selector = this;
 
@@ -19,9 +19,13 @@ var PopulateStreetNames = function(){
       var id = street._id;
       var name = street.name;
       // create option
-      var option = $(document.createElement('option'))
-        .val(id)
-        .text(name);
+      var option = $(document.createElement('option'));
+      if(useNames === true){
+        option.val(name);
+      }else{
+        option.val(id);
+      }
+      option.text(name);
       $selector.append(option);
     });
 
