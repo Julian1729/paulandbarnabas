@@ -29098,11 +29098,86 @@ var panes = {
 var unitContainer = panes.units.find('.units-container');
 
 /**
+ * Street Statistics Table Module
+ */
+(function(g){
+
+  var StreetStatsTable = {
+
+    $table: $('#existing-blocks-table'),
+
+    $empty_message: $('#no-blocks-found'),
+
+    clear: clear,
+
+    empty_message: {
+      hide: function(){
+        StreetStatsTable.$empty_message.addClass('hide');
+      },
+      show: function(){
+        StreetStatsTable.$empty_message.removeClass('hide');
+      }
+    },
+
+    populate: populate
+
+  };
+
+  /**
+   * Populate table with rows
+   * @param {Object} streetData Response from ajax call
+   * @return {void}
+   */
+  function populate(streetData){
+    var rowElements = generateRows(streetData);
+    rowElements.forEach(function(row){
+      console.log(this);
+      this.$table.append(row);
+    }, this);
+  }
+
+  /**
+   * Copy row template and add appropriate classes
+   * @param  {Object} hundreds
+   * @return {Array} Array of generated row elements
+   * OPTIMIZE: add unit counts to table if > 0
+   */
+  function generateRows(streetData){
+    var elements = [];
+    streetData.forEach(function(hundred){
+      var $row = $('#existing-row-template').clone();
+      // remove default hide class
+      $row.removeClass('hide');
+      $row.addClass('existing-block-tr');
+      $row.find('.hundred').text(hundred.hundred);
+      if(hundred.unit_counts.odd > 0){
+        $row.find('td.odd').addClass('filled');
+      }
+      if(hundred.unit_counts.even > 0){
+        $row.find('td.even').addClass('filled');
+      }
+      elements.push($row);
+    });
+    return elements;
+  }
+
+  /**
+   * Clear table of all rows
+   * @return {void}
+   */
+  function clear(){
+    this.$table.find('tr.existing-block-tr').remove();
+  }
+
+  g.StreetStatsTable = StreetStatsTable;
+
+}(window));
+
+/**
  * Existing Blocks Loader
  */
-(function(pane){
+(function(table){
 
-  var $table = $('#existing-blocks-table');
   var $streetSelect = $('#street_selector');
 
   /**
@@ -29129,51 +29204,24 @@ var unitContainer = panes.units.find('.units-container');
   }
 
   function morphTable(ajaxResponse){
-    console.log(ajaxResponse);
     if(ajaxResponse.error){
       // FIXME: pop error modal
       return console.log('HANDLE THIS ERROR!', ajaxResponse.error);
     }
     // clear out old rows
-    $table.find('tr.existing-block-tr').remove();
+    table.clear();
     // re-hide message
-    $('#no-blocks-found').addClass('hide');
-    var streetData = JSON.parse( ajaxResponse.data );
+    table.empty_message.hide();
+    var streetData = ajaxResponse.data
     if(!streetData){
-      return $('#no-blocks-found').removeClass('hide');
+      return table.empty_message.show();
     }
-    var rowElements = generateRows(extractedHundreds);
-    rowElements.forEach(function(row){
-      $table.append(row);
-    });
+    table.populate(streetData);
   }
 
-  /**
-   * Copy row template and add appropriate classes
-   * @param  {Object} hundreds
-   * @return {Array} Array of templates
-   */
-  function generateRows(hundreds){
-    var elements = [];
-    for (var hundred in hundreds) {
-      if (hundreds.hasOwnProperty(hundred)) {
-        var $row = $('#existing-row-template').clone();
-        $row.removeClass('hide');
-        $row.addClass('existing-block-tr');
-        $row.find('.hundred').text(hundred);
-        if(hundreds[hundred].odd){
-          $row.find('td.odd').addClass('filled');
-        }
-        if(hundreds[hundred].even){
-          $row.find('td.even').addClass('filled');
-        }
-        elements.push($row);
-      }
-    }
-    return elements;
-  }
 
-}(panes.streetselect));
+
+}(window.StreetStatsTable));
 
 /**
  * Form Submission and data collection
