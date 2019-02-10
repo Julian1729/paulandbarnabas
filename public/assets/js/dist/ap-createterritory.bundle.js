@@ -29131,7 +29131,6 @@ var unitContainer = panes.units.find('.units-container');
   function populate(streetData){
     var rowElements = generateRows(streetData);
     rowElements.forEach(function(row){
-      console.log(this);
       this.$table.append(row);
     }, this);
   }
@@ -29363,7 +29362,6 @@ var unitContainer = panes.units.find('.units-container');
   }
 
   function changePaneDetails(hundred){
-    console.log('hundred', hundred);
     unitPaneHundred.text(hundred);
   }
 

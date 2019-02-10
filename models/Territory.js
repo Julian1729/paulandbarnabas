@@ -138,9 +138,15 @@ var hundred_schema = new Schema({
     type: Number,
     required: true
   },
-  odd: block_schema,
-  even: block_schema
-});
+  odd: {
+    type: block_schema,
+    default: () => ({})
+  },
+  even: {
+    type: block_schema,
+    default: () => ({})
+  }
+}, {minimize: false});
 
   /**
    * Methods
@@ -368,18 +374,21 @@ var fragment_schema = new Schema({
   fragment_schema.methods.assignBlocks = function(blocks, territory, options){
     options = options || {};
     _.defaults(options, {
-      overwriteAssignments: false
+      overwriteAssignments: false,
+      skipDuplicatesCheck: false
     });
-    // assure that blocks do not belong to other fragments
-    var assignedBlocks = territory.areBlocksAssigned(blocks);
-    if(assignedBlocks.length > 0){
-      // this is only allowed if overwriteAssigments
-      // option is true
-      if( !options.overwriteAssignments ){
-        throw new errors.BlocksAlreadyAssignedToFragment(assignedBlocks);
+    if(options.skipDuplicatesCheck === false){
+      // assure that blocks do not belong to other fragments
+      var assignedBlocks = territory.areBlocksAssigned(blocks);
+      if(assignedBlocks.length > 0){
+        // this is only allowed if overwriteAssigments
+        // option is true
+        if( !options.overwriteAssignments ){
+          throw new errors.BlocksAlreadyAssignedToFragment(assignedBlocks);
+        }
+        // remove blocks from other fragments
+        this.removeBlocksFromFragments(assignedBlocks);
       }
-      // remove blocks from other fragments
-      this.removeBlocksFromFragments(assignedBlocks);
     }
     // push into fragments array
     blocks.forEach(b => {
@@ -641,7 +650,6 @@ var TerritorySchema = new Schema({
       }
       fragmentMap[map.fragment_number].push(map.block);
     });
-    console.log(JSON.stringify(fragmentMap, null, 2));
     // loop through fragments and find in territory
     for (var number in fragmentMap) {
       if (fragmentMap.hasOwnProperty(number)) {

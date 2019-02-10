@@ -860,7 +860,33 @@ describe('Territory Model', () => {
 
       });
 
-      // write this test
+      it('should skip existence check and add one block', (done) => {
+
+        var duplicateBlock = null;
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          // assign block to fragment
+          .then(territory => {
+            duplicateBlock = territory.findStreet('Oakland').findHundred(4500).odd._id;
+            territory.findFragment(1).assignBlocks([duplicateBlock], territory);
+            return territory.save();
+          })
+          .then(territory => {
+            territory.findFragment(1).assignBlocks([duplicateBlock], null, {skipDuplicatesCheck: true});
+            return territory.save();
+          })
+          // assure that we can verify block has been assigned
+          .then(territory => {
+            var fragment = territory.findFragment(1);
+            expect(fragment.blocks).to.have.lengthOf(2);
+            done();
+
+          })
+          .catch(e => done(e));
+
+      });
+
+
       it('should not add any block to fragment and throw BlocksAlreadyAssignedToFragment error', (done) => {
 
         var testTerritory = Territory(seed.territory.completed);
