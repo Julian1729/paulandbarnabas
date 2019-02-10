@@ -209,7 +209,7 @@ var hundred_schema = new Schema({
   /**
    * Add an array of units to a hundred, and allocate units
    * depending on whether unit number is odd or even
-   * @param  {Array} unitArray Array of unit numbers to create
+   * @param  {Array} unitArray Array of unit objects to create w numbers and subunits e.g {number: 4500, subunits: ['Apt 1', 'Apt 2']}
    * @param  {Array} options   Object of options
    * @return {Number} Count of succesfully added units
    */
@@ -225,19 +225,19 @@ var hundred_schema = new Schema({
     // store units to be entered
     var unitsToAdd = [];
     // loop through units
-    unitArray.forEach(unitNumber => {
+    unitArray.forEach(unitObj => {
      // determine whether unit exists already
-     if(this.unitExists(unitNumber)){
+     if(this.unitExists(unitObj.number)){
 
        if(options.overwriteDuplicates === true){
          // overwrite duplicate
-         this.removeUnits([unitNumber])
+         this.removeUnits([unitObj.number])
        }else if(options.skipDuplicates === true) {
          // skip iteration
          return;
        }else{
         // default add to existingUnits to be thrown w/ error
-        return existingUnits.push(unitNumber);
+        return existingUnits.push(unitObj.number);
        }
 
       }
@@ -245,16 +245,23 @@ var hundred_schema = new Schema({
       // because an error will be thrown before they are even entered
       if(!existingUnits.length){
        // push unit object into units array
-       unitsToAdd.push(unitNumber);
+       unitsToAdd.push(unitObj);
       }
     });
     // if overwrite option and skip duplicates is false throw UnitsAlreadyExist error w/ existing units
     if(existingUnits.length) throw new errors.UnitsAlreadyExist(existingUnits);
     // add new units to units array
-    unitsToAdd.forEach(unitNumber => {
-     this.getUnitBlock(unitNumber).units.push({
-       number: unitNumber
-     });
+    unitsToAdd.forEach(unitObj => {
+      var unit = {number: null, subunits: []};
+      unit.number = unitObj.number;
+      if(unitObj.subunits){
+        unitObj.subunits.forEach(su => {
+          unit.subunits.push({
+            name: su
+          });
+        });
+      }
+      this.getUnitBlock(unitObj.number).units.push(unit);
     });
     // return number of added units
     return unitsToAdd.length;

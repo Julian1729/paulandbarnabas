@@ -522,8 +522,15 @@ describe('Territory Model', () => {
             .then(territory => {
               var street = territory.findStreet('Oakland');
               var hundred = street.findHundred(4500);
-              var unitNumbers = [4504, 4506];
-              var addedUnits = hundred.addUnits(unitNumbers);
+              var units = [
+                {
+                  number: 4504
+                },
+                {
+                  number: 4506
+                }
+              ];
+              var addedUnits = hundred.addUnits(units);
               expect(addedUnits).to.equal(2);
               expect(hundred.unitExists(4504)).to.be.true;
               expect(hundred.unitExists(4506)).to.be.true;
@@ -533,22 +540,56 @@ describe('Territory Model', () => {
 
         });
 
-        it('should not add 2 units to 4500 Oakland but throw UnitsAlreadyExist error with 2 other units', (done) => {
+        it('should add 2 units with subunits to 4500 Oakland', (done) => {
 
-          var unitNumbers = [4504, 4506];
           var testTerritory = Territory(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
               var hundred = street.findHundred(4500);
-              var addedUnits = hundred.addUnits(unitNumbers);
+              var units = [
+                {
+                  number: 4504,
+                  subunits: ['Floor 1', 'Floor 2']
+                },
+                {
+                  number: 4506
+                }
+              ];
+              var addedUnits = hundred.addUnits(units);
+              expect(addedUnits).to.equal(2);
+              expect(hundred.unitExists(4504)).to.be.true;
+              expect(hundred.unitExists(4506)).to.be.true;
+              expect(hundred.findUnit(4504).subunits).to.have.lengthOf(2);
+              done();
+            })
+            .catch(e => done(e));
+
+        });
+
+        it('should not add 2 units to 4500 Oakland but throw UnitsAlreadyExist error with 2 other units', (done) => {
+
+          var units = [
+            {
+              number: 4504
+            },
+            {
+              number: 4506
+            }
+          ];
+          var testTerritory = Territory(seed.territory.completed);
+          testTerritory.save()
+            .then(territory => {
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var addedUnits = hundred.addUnits(units);
               expect(addedUnits).to.equal(2);
               return territory.save();
             })
             .then(territory => {
               var hundred = territory.findStreet('Oakland').findHundred(4500);
               try{
-                hundred.addUnits(unitNumbers.concat([4508, 4510]));
+                hundred.addUnits(units.concat([{number: 4508}, {number: 4510}]));
                 throw new errors.TestFailed('the above function should have thrown UnitsAlreadyExist');
               }catch(e){
                 expect(e instanceof errors.UnitsAlreadyExist).to.be.true;
@@ -565,19 +606,26 @@ describe('Territory Model', () => {
 
         it('should add 2 and then overwrite 2 units in 4500 Oakland', (done) => {
 
-          var unitNumbers = [4504, 4506];
+          var units = [
+            {
+              number: 4504
+            },
+            {
+              number: 4506
+            }
+          ];
           var testTerritory = Territory(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
               var hundred = street.findHundred(4500);
-              var addedUnits = hundred.addUnits(unitNumbers);
+              var addedUnits = hundred.addUnits(units);
               expect(addedUnits).to.equal(2);
               return territory.save();
             })
             .then(territory => {
               var hundred = territory.findStreet('Oakland').findHundred(4500);
-              var addedUnits = hundred.addUnits(unitNumbers.concat([4508, 4510]), {overwriteDuplicates: true});
+              var addedUnits = hundred.addUnits(units.concat([{number: 4508}, {number: 4510}]), {overwriteDuplicates: true});
               expect(addedUnits).to.equal(4);
               return done();
             })
@@ -585,21 +633,28 @@ describe('Territory Model', () => {
 
         });
 
-        it('should add 2 and then skip 2 units in 4500 Oakland', (done) => {
+        it('should skip 2 units in 4500 Oakland', (done) => {
 
-          var unitNumbers = [4504, 4506];
+          var units = [
+            {
+              number: 4504
+            },
+            {
+              number: 4506
+            }
+          ];
           var testTerritory = Territory(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
               var hundred = street.findHundred(4500);
-              var addedUnits = hundred.addUnits(unitNumbers);
+              var addedUnits = hundred.addUnits(units);
               expect(addedUnits).to.equal(2);
               return territory.save();
             })
             .then(territory => {
               var hundred = territory.findStreet('Oakland').findHundred(4500);
-              var addedUnits = hundred.addUnits(unitNumbers, {skipDuplicates: true});
+              var addedUnits = hundred.addUnits(units, {skipDuplicates: true});
               // all units should exist and no units should be entered here
               expect( addedUnits ).to.equal(0);
               return done();
@@ -610,20 +665,27 @@ describe('Territory Model', () => {
 
         it('should remove more than one unit from 4500 Oakland', (done) => {
 
-          var unitNumbers = [4504, 4506];
+          var units = [
+            {
+              number: 4504
+            },
+            {
+              number: 4506
+            }
+          ];
           var testTerritory = Territory(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
               var hundred = street.findHundred(4500);
-              var addedUnits = hundred.addUnits(unitNumbers);
+              var addedUnits = hundred.addUnits(units);
               expect(addedUnits).to.equal(2);
               return territory.save();
             })
             .then(territory => {
               var street = territory.findStreet('Oakland');
               var hundred = street.findHundred(4500);
-              var removed = hundred.removeUnits(unitNumbers);
+              var removed = hundred.removeUnits([4504, 4506]);
               expect(removed.length).to.equal(2);
               expect(hundred.unitExists(4504)).to.be.false;
               expect(hundred.unitExists(4506)).to.be.false;
