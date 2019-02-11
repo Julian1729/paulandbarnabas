@@ -125,7 +125,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":16,"jquery":7}],3:[function(require,module,exports){
+},{"../../vendor/form2js":17,"jquery":7}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -28920,6 +28920,50 @@ return jQuery;
         typeof define !== 'undefined' ? /* istanbul ignore next */ define : null);
 
 },{}],10:[function(require,module,exports){
+/**
+ * Modal API
+ */
+
+const $ = require('jquery');
+
+var activeModal = null;
+
+var Modal = {
+
+  $overlay: $('#modal-overlay'),
+
+  show: show,
+
+  close: close
+
+};
+
+function show(id){
+  var modal = $(id);
+  if(!modal.length){
+    throw new Error('Modal with id ' + id + ' not found');
+  }
+  activeModal = modal;
+  showOverlay();
+  activeModal.addClass('show');
+}
+
+function close(){
+  activeModal.removeClass('show');
+  setTimeout(hideOverlay, 400);
+}
+
+function showOverlay(){
+  Modal.$overlay.addClass('show');
+}
+
+function hideOverlay(){
+  Modal.$overlay.removeClass('show');
+}
+
+module.exports = Modal;
+
+},{"jquery":7}],11:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 
 var templates = $('#templates');
@@ -28957,7 +29001,7 @@ module.exports = {
   getTextTemplate
 };
 
-},{"../../jquery/jquery.js":1}],11:[function(require,module,exports){
+},{"../../jquery/jquery.js":1}],12:[function(require,module,exports){
 /**
  * Text Input
  * Handle label animation on focus
@@ -29002,7 +29046,7 @@ $inputContainers.each(function(){attachEvents(this)});
 
 module.exports = {attachEvents};
 
-},{"../../utils.js":15,"jquery":7}],12:[function(require,module,exports){
+},{"../../utils.js":16,"jquery":7}],13:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 
 // FIXME: THE WAY CONTIAINERS ARE FOIND NEEDS TO BE CHANGED TO WORK WITH ALL INPUT ELEMETNS
@@ -29073,7 +29117,7 @@ module.exports = {
   clearErrors
 };
 
-},{"../../jquery/jquery.js":1}],13:[function(require,module,exports){
+},{"../../jquery/jquery.js":1}],14:[function(require,module,exports){
 const _ = require('lodash');
 
 const $ = require('../../jquery/jquery');
@@ -29084,6 +29128,9 @@ const Utils = require('../../utils');
 const {getTemplate, getTextTemplate} = require('../modules/template.js');
 const GenerateUnitsValidation = require('../validators/GenerateUnits');
 const {simpleHandler, clearErrors} = require('../modules/validationHandler.js');
+const Modal = require('../modules/modal');
+
+window.Modal = Modal;
 
 /**
  * DOM Elements
@@ -29449,7 +29496,7 @@ var unitContainer = panes.units.find('.units-container');
 
 }(panes.streetselect));
 
-},{"../../jquery/jquery":1,"../../utils":15,"../../vendor/form2js":16,"../modules/template.js":10,"../modules/text-input.js":11,"../modules/validationHandler.js":12,"../validators/GenerateUnits":14,"lodash":8,"validate.js":9}],14:[function(require,module,exports){
+},{"../../jquery/jquery":1,"../../utils":16,"../../vendor/form2js":17,"../modules/modal":10,"../modules/template.js":11,"../modules/text-input.js":12,"../modules/validationHandler.js":13,"../validators/GenerateUnits":15,"lodash":8,"validate.js":9}],15:[function(require,module,exports){
 var validate = require('validate.js');
 const _ = require('lodash');
 
@@ -29519,7 +29566,7 @@ module.exports = (formValues) => {
   return validate(formValues, c);
 };
 
-},{"lodash":8,"validate.js":9}],15:[function(require,module,exports){
+},{"lodash":8,"validate.js":9}],16:[function(require,module,exports){
 /**
  * Utility Functions
  */
@@ -29538,7 +29585,7 @@ module.exports = {
   isEmptyString: isEmptyString
 };
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *
@@ -29889,4 +29936,4 @@ module.exports = {
 
 }));
 
-},{}]},{},[13]);
+},{}]},{},[14]);

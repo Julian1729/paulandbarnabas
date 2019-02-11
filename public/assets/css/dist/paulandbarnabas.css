@@ -91,6 +91,9 @@ small {
   font-size: 0.6em;
   color: #4E4E4E; }
 
+p {
+  line-height: 20px; }
+
 body > .wrapper {
   height: 100%;
   min-height: 100%;
@@ -117,7 +120,7 @@ body > .wrapper {
  * General Styles that can be added to any element
  */
 .hide {
-  display: none; }
+  display: none !important; }
 
 .disabled {
   opacity: 0.7; }
@@ -263,9 +266,11 @@ body > .wrapper {
     font-size: 0.8em; }
 
 .button-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px; }
+  margin-top: 15px; }
+  .button-row.stretch {
+    display: flex; }
+  .button-row.mini button {
+    padding: 8px 35px !important; }
   .button-row button {
     -webkit-appearance: none;
        -moz-appearance: none;
@@ -284,20 +289,65 @@ body > .wrapper {
     background: #979797;
     margin: 0 3px;
     transition: background 0.3s; }
+    .button-row button.prominent {
+      flex-grow: 1; }
     .button-row button:first-child {
       margin-left: 0; }
     .button-row button:last-child {
       margin-right: 0; }
-    .button-row button.prominent {
-      flex-grow: 1; }
-    .button-row button.primary {
+    .button-row button.cyan {
       background: #7CC8C2; }
-      .button-row button.primary:hover {
+      .button-row button.cyan:hover {
         background: #68AFA9; }
-    .button-row button.secondary {
+    .button-row button.purple {
       background: #A2BAF3; }
-      .button-row button.secondary:hover {
+      .button-row button.purple:hover {
         background: #FF55F7; }
+    .button-row button.orange {
+      background: #FF7029; }
+      .button-row button.orange:hover {
+        background: #FE994D; }
+
+/**
+ * Modal
+ */
+.modal-overlay {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background: transparent;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden; }
+  .modal-overlay.show {
+    display: flex; }
+
+.modal {
+  -webkit-transform: translateY(100vh);
+          transform: translateY(100vh);
+  transition: -webkit-transform 0.3s;
+  transition: transform 0.3s;
+  transition: transform 0.3s, -webkit-transform 0.3s;
+  background: #6A6A6A;
+  padding: 25px;
+  width: 320px;
+  border-radius: 3px;
+  box-shadow: 0 0 7px 2px rgba(0, 0, 0, 0.4);
+  -webkit-font-smoothing: antialiased;
+  font-smooth: always;
+  -moz-osx-font-smoothing: grayscale; }
+  .modal p {
+    color: #FFF;
+    font-size: 0.7em;
+    font-family: 'Lato', serif; }
+  .modal.show {
+    -webkit-transform: none;
+            transform: none; }
 
 /**
  * Section Header
@@ -389,6 +439,10 @@ body.landing .content {
     body.landing .content .inner form {
       width: 300px;
       margin: 0 auto; }
+  body.landing .content .button-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px; }
 
 /**
  * Create Account (signup page)

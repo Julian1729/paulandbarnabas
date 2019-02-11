@@ -1,7 +1,13 @@
 .button-row
-  display: flex
-  justify-content: space-between
-  margin-bottom: 15px
+  margin-top: 15px
+
+  &.stretch
+    display: flex
+
+
+  &.mini
+    button
+      padding: 8px 35px !important
 
   button
     @include button-reset
@@ -16,21 +22,25 @@
     margin: 0 3px
     transition: background 0.3s
 
+    // to be used on stretched button row so stretch button biggest
+    &.prominent
+      flex-grow: 1
+
     &:first-child
       margin-left: 0
     &:last-child
       margin-right: 0
 
-    // Size
-    &.prominent
-      flex-grow: 1
-
     // Color
-    &.primary
+    &.cyan
       background: $light_cyan
       &:hover
         background: $dark_cyan
-    &.secondary
+    &.purple
       background: $light_purple
       &:hover
         background: $dark_purple
+    &.orange
+      background: $primary_orange
+      &:hover
+        background: $secondary_orange

@@ -8,6 +8,9 @@ const Utils = require('../../utils');
 const {getTemplate, getTextTemplate} = require('../modules/template.js');
 const GenerateUnitsValidation = require('../validators/GenerateUnits');
 const {simpleHandler, clearErrors} = require('../modules/validationHandler.js');
+const Modal = require('../modules/modal');
+
+window.Modal = Modal;
 
 /**
  * DOM Elements
