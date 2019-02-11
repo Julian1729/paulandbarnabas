@@ -73,122 +73,6 @@ describe('Territory Model', () => {
     .catch(e => done(e))
   });
 
-
-  it('should store 2 even blocks into street', (done) => {
-    var buildTerritory = _.extend({}, seed.territory.valid);
-    buildTerritory.streets.push(seed.streets.valid);
-    var validTerritory = new Territory(buildTerritory);
-    validTerritory.save().then(doc => {
-      expect(doc).to.have.property('streets').with.lengthOf(1);
-
-      Territory.findByIdAndUpdate(doc._id, {
-        $push: {
-          "streets.0.even": seed.blocks.valid
-        }
-      } ,{new: true, runValidators: true})
-        .then(doc => {
-          expect(doc.streets[0].even).to.have.lengthOf(1);
-
-          Territory.findByIdAndUpdate(doc._id, {
-            $push: {
-              "streets.0.even": seed.blocks.valid
-            }
-          }, {new: true, runValidators: true})
-            .then(doc => {
-              expect(doc.streets[0].even).to.have.lengthOf(2);
-              done();
-            })
-            .catch(e => done(e));
-
-        })
-        .catch(e => done(e));
-
-    })
-    .catch(e => done(e));
-  });
-
-  it('should store 2 units into one block', (done) => {
-    var buildTerritory = _.cloneDeep(seed.territory.valid);
-    buildTerritory.streets.push(seed.streets.valid);
-    buildTerritory.streets[0].even.push(seed.blocks.valid);
-    var validTerritory = new Territory(buildTerritory);
-    validTerritory.save()
-      .then(territory => {
-        expect(territory.streets[0].even).to.have.lengthOf(1);
-        territory.streets[0].even[0].units.push(seed.units.valid);
-        territory.save()
-          .then(terr => {
-            expect(terr.streets[0].even[0].units).to.have.lengthOf(1);
-            done();
-          })
-          .catch(e => done(e))
-      })
-      .catch(e => done(e));
-  });
-
-  describe('Units', () => {
-
-    it('should store 1 visit into unit', (done) => {
-      var buildTerritory = _.cloneDeep(seed.territory.valid);
-      buildTerritory.streets.push(seed.streets.valid);
-      buildTerritory.streets[0].even.push(seed.blocks.valid);
-      buildTerritory.streets[0].even[0].units.push(seed.units.valid);
-      var validTerritory = new Territory(buildTerritory);
-      validTerritory.save()
-        .then(t => {
-          Territory.findByIdAndUpdate(t._id, {
-            $push: {
-              "streets.0.even.0.units.0.visits": seed.visits.valid
-            }
-          }, {new: true, runValidators: true})
-            .then(t => {
-              expect(t.streets[0].even[0].units[0].visits).to.have.lengthOf(1);
-              done();
-            })
-            .catch(e => done(e));
-        })
-        .catch(e => done(e));
-    });
-
-    it('should insert one householder into unit', (done) => {
-      var terr = _.cloneDeep(seed.territory.valid);
-      terr.streets.push(seed.streets.valid);
-      terr.streets[0].even.push(seed.blocks.valid);
-      terr.streets[0].even[0].units.push(seed.units.valid);
-      var validTerritory = new Territory(terr);
-      validTerritory.save()
-        .then(t => {
-          t.streets[0].even[0].units[0].householders.push(seed.householders.valid);
-          t.save()
-            .then(t => {
-              expect(t.streets[0].even[0].units[0].householders).to.have.lengthOf(1);
-              done();
-            })
-            .catch(e => done(e));
-        })
-        .catch(e => done(e));
-    });
-
-    it('should insert note into visit', (done) => {
-      var terr = _.cloneDeep(seed.territory.valid);
-      terr.streets.push(seed.streets.valid);
-      terr.streets[0].even.push(seed.blocks.valid);
-      var validTerritory = new Territory(terr);
-      validTerritory.save()
-        .then(t => {
-          t.streets[0].even[0].units[0].notes.push(seed.notes.valid);
-          t.save()
-            .then(t => {
-              expect(t.streets[0].even[0].units[0].notes).to.have.lengthOf(1);
-              done();
-            })
-            .catch(e => done(e));
-        })
-        .catch(e => done(e));
-    });
-
-  });
-
     describe('Territory Methods', () => {
 
       it('should find Oakland street in territory', (done) => {
@@ -239,122 +123,579 @@ describe('Territory Model', () => {
 
       });
 
-      it('should save block into fragment', (done) => {
-
-        var targetFragmentNumber = seed.territory.completed.fragments[0].number;
-        var targetBlockId = null;
+      it('should find Oakland street', (done) => {
         var testTerritory = Territory(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
-            targetBlockId = territory
-              .findStreet('Oakland')
-              .findBlock(4500)._id;
-
-            expect(targetBlockId).to.exist;
-            return territory.assignBlockToFragment(targetFragmentNumber, targetBlockId)
+            var street = territory.findStreet('Oakland');
+            expect(street).to.exist;
+            expect(street).to.have.property('_id');
+            done();
           })
+          .catch(e => done(e));
+      });
+
+      it('should not find Okland street and return StreetNotFound error', (done) => {
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
           .then(territory => {
-            var fragment = territory.findFragment(targetFragmentNumber);
-            expect(fragment).to.exist;
-            var findBlock = fragment.blocks.find(id => id === targetBlockId);
-            expect(findBlock).to.exist;
+            try {
+              var street = territory.findStreet('Wakeling');
+              throw new errors.TestFailed(`this street should not have been found \n${street}`);
+            } catch (e) {
+              expect(e).to.exist;
+              expect(e instanceof errors.StreetNotFound).to.be.true;
+              done();
+            }
+          })
+          .catch(e => done(e));
+      });
+
+      it('should add a street into territory', (done) => {
+
+        var newStreet = null;
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            newStreet = territory.addStreet('Wakeling');
+            expect(newStreet).to.exist;
+            expect(newStreet).to.have.property('_id');
+            return territory.save();
+          })
+          // assure new street saved
+          .then(territory => {
+            expect(territory.streets.id(newStreet._id)).to.exist;
             done();
           })
           .catch(e => done(e));
 
+      });
+
+      it('should not add duplicate street into territory and throw error', (done) => {
+
+        var existingStreetName = null;
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            try{
+              // get existing street name
+              existingStreetName = territory.streets[0].name;
+              expect(existingStreetName).to.equal('Oakland');
+              newStreet = territory.addStreet(existingStreetName);
+              throw new Error('Oakland street should not have been added');
+            }catch(e){
+              expect(e).to.exist;
+              expect(e instanceof errors.StreetAlreadyExists).to.be.true;
+            }
+            return territory.save();
+          })
+          // assure new street not saved
+          .then(territory => {
+            var oaklandStreets = _.filter(territory.streets, ['name', existingStreetName]);
+            expect(oaklandStreets).to.have.lengthOf(1);
+            done();
+          })
+          .catch(e => done(e));
 
       });
+
+      it('should return true that Oakland Street exists', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var result = territory.streetExists('Oakland');
+            expect(result).to.be.true;
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should return false that Wakeling street exists', (done) => {
+
+      var testTerritory = Territory(seed.territory.completed);
+      testTerritory.save()
+        .then(territory => {
+          var result = territory.streetExists('Wakeling');
+          expect(result).to.be.false;
+          done();
+        })
+        .catch(e => done(e));
+
+      });
+
+      it('should find and return Oakland street', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var oakland = territory.findStreet('Oakland');
+            expect(oakland).to.exist;
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should not find Wakeling street and throw error', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var nonExistentStreet = territory.findStreet('Wakeling');
+            throw new errors.TestFailed('This error should not have been thrown');
+            done();
+          })
+          .catch(e => {
+            if(e instanceof errors.StreetNotFound){
+              return done();
+            }
+            return done(e);
+          });
+
+      });
+
+      it('should remove Oakland street', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var remove = territory.removeStreet('Oakland');
+            expect(remove).to.be.true;
+            // check if exists
+            expect(territory.streetExists('Oakland')).to.be.false;
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
+      // it('should save block into fragment', (done) => {
+      //
+      //   var targetFragmentNumber = seed.territory.completed.fragments[0].number;
+      //   var targetBlockId = null;
+      //   var testTerritory = Territory(seed.territory.completed);
+      //   testTerritory.save()
+      //     .then(territory => {
+      //       targetBlockId = territory
+      //         .findStreet('Oakland')
+      //         .findHundred(4500)._id;
+      //
+      //       expect(targetBlockId).to.exist;
+      //       return territory.assignBlockToFragment(targetFragmentNumber, targetBlockId)
+      //     })
+      //     .then(territory => {
+      //       var fragment = territory.findFragment(targetFragmentNumber);
+      //       expect(fragment).to.exist;
+      //       var findBlock = fragment.blocks.find(id => id === targetBlockId);
+      //       expect(findBlock).to.exist;
+      //       done();
+      //     })
+      //     .catch(e => done(e));
+      //
+      //
+      // });
 
     });
 
     describe('Street methods', () => {
 
-      it('should return all blocks', (done) => {
+      it('should return true that 4500 Oakland exists', (done) => {
 
         var testTerritory = Territory(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
-            var blocks = territory
-              .findStreet('Oakland')
-              .getBlocks('even');
-            expect(blocks).to.be.an('array').but.have.lengthOf(1);
+            var oakland = territory.findStreet('Oakland');
+            expect(oakland.hundredExists(4500)).to.be.true;
             done();
           })
           .catch(e => done(e));
 
       });
 
-      it('should find the 4500 block of Oakland St.', (done) => {
+      it('should return false that 4600 Oakland exists', (done) => {
 
         var testTerritory = Territory(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
-            var block = territory
-              .findStreet('Oakland')
-              .findBlock(4500);
-            expect(block).to.exist;
+            var oakland = territory.findStreet('Oakland');
+            expect(oakland.hundredExists(4600)).to.be.false;
             done();
           })
           .catch(e => done(e));
 
       });
 
-        it('should not find the 4600 block of Oakland St.', (done) => {
+      it('should find 4500 hundred of Oakland', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var oakland = territory.findStreet('Oakland');
+            oakland.findHundred(4500);
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should find 4500 hundred of Oakland when hundred passed as string', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var oakland = territory.findStreet('Oakland');
+            oakland.findHundred('4500');
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should not find 4600 of Oakland and throw error', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var oakland = territory.findStreet('Oakland');
+            oakland.findHundred(4600);
+            done();
+          })
+          .catch(e => {
+            expect(e instanceof errors.HundredNotFound).to.be.true;
+            expect(e.hundred).to.equal(4600);
+            done();
+          });
+
+      });
+
+      it('should add 4600 hundred of Oakland', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var oakland = territory.findStreet('Oakland');
+            expect(oakland).to.exist;
+            var newHundred = oakland.addHundred(4600);
+            expect(newHundred).to.have.property('_id');
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should not add 4500 hundred of Oakland', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var oakland = territory.findStreet('Oakland');
+            expect(oakland).to.exist;
+            try {
+              expect( oakland.addHundred(4500) ).to.throw( errors.HundredAlreadyExists );
+              throw new errors.TestFailed('4600 block of Oakland should not have been added');
+            } catch (e) {
+              expect(e instanceof errors.HundredAlreadyExists);
+              done();
+            }
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should remove 4500 Oakland', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var oakland = territory.findStreet('Oakland');
+            expect(oakland).to.exist;
+            var removed = oakland.removeHundred(4500);
+            expect( removed ).to.be.true;
+            var exists = oakland.hundredExists(4500);
+            expect(exists).to.be.false;
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
+      // it('should return all hundreds', (done) => {
+      //
+      //   var testTerritory = Territory(seed.territory.completed);
+      //   testTerritory.save()
+      //     .then(territory => {
+      //       var hundreds = territory
+      //         .findStreet('Oakland')
+      //         .getHundreds();
+      //       expect(hundreds).to.be.an('array').but.have.lengthOf(1);
+      //       done();
+      //     })
+      //     .catch(e => done(e));
+      //
+      // });
+
+      describe('Hundred Methods', () => {
+
+        it('should return true that 4502 Oakland exist', (done) => {
 
           var testTerritory = Territory(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
-              var block = territory
-                .findStreet('Oakland')
-                .findBlock(4600);
-              expect(block).to.not.exist;
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              expect( hundred.unitExists(4502) ).to.equal(true);
               done();
             })
             .catch(e => done(e));
 
         });
 
-        it('should return true that Oakland St. exists', (done) => {
+        it('should return false that 4504 exists', (done) => {
+          var testTerritory = Territory(seed.territory.completed);
+          testTerritory.save()
+            .then(territory => {
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              expect( hundred.unitExists(4504) ).to.equal(false);
+              done();
+            })
+            .catch(e => done(e));
+        });
+
+        it('should find unit 4502', (done) => {
+          var testTerritory = Territory(seed.territory.completed);
+          testTerritory.save()
+            .then(territory => {
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var unit = hundred.findUnit(4502)
+              expect(unit).to.exist;
+              expect(unit).to.have.property('_id');
+              done();
+            })
+            .catch(e => done(e));
+        });
+
+        it('should not find unit 4504 and throw UnitNotFound error', (done) => {
+          var testTerritory = Territory(seed.territory.completed);
+          testTerritory.save()
+            .then(territory => {
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              try {
+                hundred.findUnit(4504)
+                throw new errors.TestFailed('unit 4504 should not have been found');
+              } catch (e) {
+                expect(e instanceof errors.UnitNotFound).to.be.true;
+                expect(e).to.have.property('number');
+                expect(e.number).to.equal(4504);
+              } finally {
+                done();
+              }
+            })
+            .catch(e => done(e));
+        });
+
+        it('should remove 4502 from Oakland', (done) => {
 
           var testTerritory = Territory(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
-              var result = territory.streetExists('Oakland');
-              expect(result).to.be.true;
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              hundred.removeUnits([4502]);
+              expect(hundred.unitExists(4502)).to.be.false;
               done();
             })
             .catch(e => done(e));
 
         });
 
-        it('should return false that Oakland St. exists', (done) => {
+        it('should add 2 units to 4500 Oakland', (done) => {
 
           var testTerritory = Territory(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
-              var result = territory.streetExists('Wakeling');
-              expect(result).to.be.false;
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var units = [
+                {
+                  number: 4504
+                },
+                {
+                  number: 4506
+                }
+              ];
+              var addedUnits = hundred.addUnits(units);
+              expect(addedUnits).to.equal(2);
+              expect(hundred.unitExists(4504)).to.be.true;
+              expect(hundred.unitExists(4506)).to.be.true;
               done();
             })
             .catch(e => done(e));
 
         });
 
-        it('should enter a streeet into array and check for existence', (done) => {
+        it('should add 2 units with subunits to 4500 Oakland', (done) => {
 
           var testTerritory = Territory(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
-              var newStreet = territory.addStreet('Wakeling');
-              expect(territory.streetExists('Wakeling')).to.be.true;
-              expect(newStreet).to.have.property('_id');
-              expect(newStreet.name).to.equal('Wakeling');
-              expect(typeof newStreet.findBlock).to.equal('function');
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var units = [
+                {
+                  number: 4504,
+                  subunits: ['Floor 1', 'Floor 2']
+                },
+                {
+                  number: 4506
+                }
+              ];
+              var addedUnits = hundred.addUnits(units);
+              expect(addedUnits).to.equal(2);
+              expect(hundred.unitExists(4504)).to.be.true;
+              expect(hundred.unitExists(4506)).to.be.true;
+              expect(hundred.findUnit(4504).subunits).to.have.lengthOf(2);
               done();
             })
             .catch(e => done(e));
 
         });
+
+        it('should not add 2 units to 4500 Oakland but throw UnitsAlreadyExist error with 2 other units', (done) => {
+
+          var units = [
+            {
+              number: 4504
+            },
+            {
+              number: 4506
+            }
+          ];
+          var testTerritory = Territory(seed.territory.completed);
+          testTerritory.save()
+            .then(territory => {
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var addedUnits = hundred.addUnits(units);
+              expect(addedUnits).to.equal(2);
+              return territory.save();
+            })
+            .then(territory => {
+              var hundred = territory.findStreet('Oakland').findHundred(4500);
+              try{
+                hundred.addUnits(units.concat([{number: 4508}, {number: 4510}]));
+                throw new errors.TestFailed('the above function should have thrown UnitsAlreadyExist');
+              }catch(e){
+                expect(e instanceof errors.UnitsAlreadyExist).to.be.true;
+                expect(e).to.have.property('addedCount');
+                expect(e.duplicateNumbers).to.have.lengthOf(2);
+                expect(hundred.units).to.have.lengthOf(2);
+              } finally {
+                return done();
+              }
+            })
+            .catch(e => done(e));
+
+        });
+
+        it('should add 2 and then overwrite 2 units in 4500 Oakland', (done) => {
+
+          var units = [
+            {
+              number: 4504
+            },
+            {
+              number: 4506
+            }
+          ];
+          var testTerritory = Territory(seed.territory.completed);
+          testTerritory.save()
+            .then(territory => {
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var addedUnits = hundred.addUnits(units);
+              expect(addedUnits).to.equal(2);
+              return territory.save();
+            })
+            .then(territory => {
+              var hundred = territory.findStreet('Oakland').findHundred(4500);
+              var addedUnits = hundred.addUnits(units.concat([{number: 4508}, {number: 4510}]), {overwriteDuplicates: true});
+              expect(addedUnits).to.equal(4);
+              return done();
+            })
+            .catch(e => done(e));
+
+        });
+
+        it('should skip 2 units in 4500 Oakland', (done) => {
+
+          var units = [
+            {
+              number: 4504
+            },
+            {
+              number: 4506
+            }
+          ];
+          var testTerritory = Territory(seed.territory.completed);
+          testTerritory.save()
+            .then(territory => {
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var addedUnits = hundred.addUnits(units);
+              expect(addedUnits).to.equal(2);
+              return territory.save();
+            })
+            .then(territory => {
+              var hundred = territory.findStreet('Oakland').findHundred(4500);
+              var addedUnits = hundred.addUnits(units, {skipDuplicates: true});
+              // all units should exist and no units should be entered here
+              expect( addedUnits ).to.equal(0);
+              return done();
+            })
+            .catch(e => done(e));
+
+        });
+
+        it('should remove more than one unit from 4500 Oakland', (done) => {
+
+          var units = [
+            {
+              number: 4504
+            },
+            {
+              number: 4506
+            }
+          ];
+          var testTerritory = Territory(seed.territory.completed);
+          testTerritory.save()
+            .then(territory => {
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var addedUnits = hundred.addUnits(units);
+              expect(addedUnits).to.equal(2);
+              return territory.save();
+            })
+            .then(territory => {
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var removed = hundred.removeUnits([4504, 4506]);
+              expect(removed.length).to.equal(2);
+              expect(hundred.unitExists(4504)).to.be.false;
+              expect(hundred.unitExists(4506)).to.be.false;
+              done();
+            })
+            .catch(e => done(e));
+
+        });
+
+      });
 
     });
 
@@ -393,7 +734,31 @@ describe('Territory Model', () => {
 
       });
 
-      it('should return a fragment map', (done) => {
+      it('should return true that fragment number 1 exists', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            expect(territory.fragmentNumberExists(1)).to.be.true;
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should return false that fragment number 25 exists', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            expect(territory.fragmentNumberExists(25)).to.be.false;
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should return a block map', (done) => {
 
         var testTerritory = Territory(seed.territory.completed);
         testTerritory.save()
@@ -401,7 +766,7 @@ describe('Territory Model', () => {
 
             territory.fragments.push({
               number: 2,
-              blocks: [territory.findStreet('Oakland').findBlock(4500)]
+              blocks: [territory.findStreet('Oakland').findHundred(4500).odd]
             })
             return territory.save();
           })
@@ -410,7 +775,7 @@ describe('Territory Model', () => {
             expect(territory.findFragment(2)).to.exist;
             var map = territory.blockMap();
             expect(map).to.exist;
-            // look fro this block
+            // look for this block
             expect(map).to.have.property(territory.findFragment(2).blocks[0]._id.toString());
             done();
 
@@ -419,33 +784,60 @@ describe('Territory Model', () => {
 
       });
 
-      // test areBlocksAssigned
       it('should return aray with 1 block that is assigned', (done) => {
 
+        var duplicateBlockId = null;
+        var singleBlockId = null;
         var testTerritory = Territory(seed.territory.completed);
         testTerritory.save()
           // assign block to fragment
           .then(territory => {
-
+            duplicateBlockId = territory.findStreet('Oakland').findHundred(4500).odd._id;
+            singleBlockId = territory.findStreet('Oakland').findHundred(4500).even._id;
             territory.fragments.push({
               number: 2,
-              blocks: [territory.findStreet('Oakland').findBlock(4500)]
-            })
+              blocks: [duplicateBlockId]
+            });
             return territory.save();
           })
           // assure that we can verify block has been assigned
           .then(territory => {
-
-            var testBlock = territory.findStreet('Oakland').findBlock(4500);
-            var result = territory.areBlocksAssigned([testBlock]);
-            console.log(result);
+            var testBlock = territory.findStreet('Oakland').findHundred(4500).odd._id;
+            var result = territory.areBlocksAssigned([testBlock, singleBlockId]);
             expect(result).to.have.lengthOf(1);
             done();
-
           })
           .catch(e => done(e));
 
       });
+
+      it('should return aray with 0 blocks that are assigned', (done) => {
+
+        var duplicateBlockId = null;
+        var singleBlockId = null;
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          // assign block to fragment
+          .then(territory => {
+            duplicateBlockId = territory.findStreet('Oakland').findHundred(4500).odd._id;
+            singleBlockId = territory.findStreet('Oakland').findHundred(4500).even._id;
+            territory.fragments.push({
+              number: 2,
+              blocks: [new ObjectId(), new ObjectId()]
+            });
+            return territory.save();
+          })
+          // assure that we can verify block has not been assigned
+          .then(territory => {
+            var testBlock = territory.findStreet('Oakland').findHundred(4500).odd._id;
+            var result = territory.areBlocksAssigned([testBlock, singleBlockId]);
+            expect(result).to.have.lengthOf(0);
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
 
       it('should add one block to fragment 1', (done) => {
 
@@ -453,14 +845,12 @@ describe('Territory Model', () => {
         testTerritory.save()
           // assign block to fragment
           .then(territory => {
-
-            var blockToAdd = territory.findStreet('Oakland').findBlock(4500);
-            territory.findFragment(1).addBlocks([blockToAdd]);
+            var blockToAdd = territory.findStreet('Oakland').findHundred(4500).odd._id;
+            territory.findFragment(1).assignBlocks([blockToAdd], territory);
             return territory.save();
           })
           // assure that we can verify block has been assigned
           .then(territory => {
-
             var fragment = territory.findFragment(1);
             expect(fragment.blocks).to.have.lengthOf(1);
             done();
@@ -470,29 +860,97 @@ describe('Territory Model', () => {
 
       });
 
-      it('should remove one block from fragment 1', (done) => {
+      it('should skip existence check and add one block', (done) => {
+
+        var duplicateBlock = null;
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          // assign block to fragment
+          .then(territory => {
+            duplicateBlock = territory.findStreet('Oakland').findHundred(4500).odd._id;
+            territory.findFragment(1).assignBlocks([duplicateBlock], territory);
+            return territory.save();
+          })
+          .then(territory => {
+            territory.findFragment(1).assignBlocks([duplicateBlock], null, {skipDuplicatesCheck: true});
+            return territory.save();
+          })
+          // assure that we can verify block has been assigned
+          .then(territory => {
+            var fragment = territory.findFragment(1);
+            expect(fragment.blocks).to.have.lengthOf(2);
+            done();
+
+          })
+          .catch(e => done(e));
+
+      });
+
+
+      it('should not add any block to fragment and throw BlocksAlreadyAssignedToFragment error', (done) => {
 
         var testTerritory = Territory(seed.territory.completed);
         testTerritory.save()
           // assign block to fragment
           .then(territory => {
-            var blockToAdd = territory.findStreet('Oakland').findBlock(4500);
-            territory.findFragment(1).addBlocks([blockToAdd]);
+            var blockToAdd = territory.findStreet('Oakland').findHundred(4500).odd._id;
+            territory.findFragment(1).assignBlocks([blockToAdd], territory);
+            return territory.save();
+          })
+          // assure that we can verify block has been assigned
+          .then(territory => {
+            var fragment = territory.findFragment(1);
+            expect(fragment.blocks).to.have.lengthOf(1);
+            done();
+
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should return true that fragment one has block', (done) => {
+
+        var blockToFind = null;
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          // assign block to fragment
+          .then(territory => {
+            blockToFind = territory.findStreet('Oakland').findHundred(4500).odd._id;
+            territory.findFragment(1).assignBlocks([blockToFind], territory);
+            return territory.save();
+          })
+          // assure that we can verify block has been assigned
+          .then(territory => {
+            var fragment = territory.findFragment(1);
+            expect(fragment.hasBlock(blockToFind)).to.equal(true);
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
+
+      it('should remove one block from fragment 1', (done) => {
+
+        var blockToRemove = null;
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          // assign block to fragment
+          .then(territory => {
+            var blockToAdd = territory.findStreet('Oakland').findHundred(4500).even._id;
+            territory.findFragment(1).assignBlocks([blockToAdd], territory);
             return territory.save();
           })
           .then(territory => {
-
-            var blockToAdd = territory.findStreet('Oakland').findBlock(4500)._id;
-            var removedCount = territory.findFragment(1).removeBlocks([blockToAdd]);
+            blockToRemove = territory.findStreet('Oakland').findHundred(4500).even._id;
+            var removedCount = territory.findFragment(1).removeBlocks([blockToRemove]);
             expect(removedCount).to.equal(1);
             return territory.save();
           })
           .then(territory => {
-
             var fragment = territory.findFragment(1);
-            expect(fragment.blocks).to.have.lengthOf(0);
+            expect(fragment.hasBlock(blockToRemove)).to.equal(false);
             done();
-
           })
           .catch(e => done(e));
 
@@ -501,27 +959,26 @@ describe('Territory Model', () => {
 
       it('should remove blocks from corresponding fragments', (done) => {
 
+        var testBlock = null;
         var testTerritory = Territory(seed.territory.completed);
         testTerritory.save()
           // assign block to fragment
           .then(territory => {
-
-            var blockToAdd = territory.findStreet('Oakland').findBlock(4500);
+            testBlock = territory.findStreet('Oakland').findHundred(4500).odd._id;
             var fragment = territory.findFragment(1);
             expect(fragment.blocks.length).to.equal(0);
-            fragment.addBlocks([blockToAdd]);
+            fragment.assignBlocks([testBlock], territory);
             return territory.save();
 
           })
           // assure that we can verify block has been assigned
           .then(territory => {
-
-            var testBlock = territory.findStreet('Oakland').findBlock(4500);
             var result = territory.areBlocksAssigned([testBlock]);
+            console.log('res', JSON.stringify(result, null, 2));
             expect(result).to.have.lengthOf(1);
             // remove all assigned blocks
             var removedCount = territory.removeBlocksFromFragments(result);
-            expect(removedCount).to.equal(1);
+            //expect(removedCount).to.equal(1);
             expect(territory.findFragment(1).blocks.length).to.equal(0);
             done();
 
@@ -530,45 +987,24 @@ describe('Territory Model', () => {
 
       });
 
-      // it('should save fragment 2', (done) => {
-      //
-      //   var testTerritory = Territory(seed.territory.completed);
-      //   testTerritory.save()
-      //     // add some more blocks to Oakland street
-      //
-      //     // assign block to fragment
-      //     .then(territory => {
-      //       var blockToAdd = territory.findStreet('Oakland').findBlock(4500);
-      //       territory.findFragment(1).addBlocks([blockToAdd]);
-      //       return territory.save();
-      //     })
-      //     // assure that we can verify block has been assigned
-      //     .then(territory => {
-      //
-      //       var fragment = territory.findFragment(1);
-      //       expect(fragment.blocks).to.have.lengthOf(1);
-      //       done();
-      //
-      //     })
-      //     .catch(e => done(e));
-      //
-      // });
+      it('should normalize tags when saved', (done) => {
 
-      // it('should throw error for trying to overwrite fragment one', (done) => {
-      //
-      // });
-      //
-      // it('should throw error for trying to use an already assigned block', (done) => {
-      //
-      // });
-      //
-      // it('should overwrite fragment 1', (done) => {
-      //
-      // });
-      //
-      // it('should overwrite fragment 1s blocks and enter into 2', (done) => {
-      //
-      // });
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var block = territory.findStreet('Oakland').findHundred(4500).even;
+            block.tags.push('The  tag ');
+            return territory.save();
+          })
+          .then(territory => {
+            var block = territory.findStreet('Oakland').findHundred(4500).even;
+            console.log(JSON.stringify(block.tags, null, 2));
+            expect(block.tags).to.include('the tag');
+            done();
+          })
+          .catch(e => done(e));
+
+      });
 
     });
 

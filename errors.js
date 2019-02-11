@@ -2,6 +2,20 @@
  * Custom errors
  */
 
+/**
+ * Used in test cases to distinguish a manually thrown
+ * error from an organic one.
+ * @extends Error
+ */
+class TestFailed extends Error {
+
+ constructor(message){
+   super(message);
+   this.name = 'TestFailed';
+   this.msg = message;
+ }
+
+}
 
 /**
  * User not found in database
@@ -101,10 +115,18 @@ class SessionUnauthenticated extends Error {
  */
 
 class StreetNotFound extends Error {
-  constructor(message){
+  constructor(street){
     super();
     this.name = 'StreetNotFound';
-    this.msg = message;
+    this.street = street;
+  }
+}
+
+class StreetAlreadyExists extends Error {
+  constructor(street){
+    super();
+    this.name = 'StreetAlreadyExists';
+    this.street = street;
   }
 }
 
@@ -148,7 +170,41 @@ class BlocksAlreadyAssignedToFragment extends Error {
   }
 }
 
+class HundredNotFound extends Error {
+  constructor(hundred){
+    super();
+    this.name = 'HundredNotFound';
+    this.hundred = hundred;
+  }
+}
+
+class HundredAlreadyExists extends Error {
+  constructor(hundred){
+    super();
+    this.name = 'HundredAlreadyExists';
+    this.hundred = hundred;
+  }
+}
+
+class UnitNotFound extends Error {
+  constructor(number){
+    super();
+    this.name = 'UnitNotFound';
+    this.number = number;
+  }
+}
+
+class UnitsAlreadyExist extends Error {
+  constructor(duplicateNumbers){
+    super();
+    this.name = 'UnitsAlreadyExist';
+    this.duplicateNumbers = duplicateNumbers;
+  }
+}
+
+
  module.exports = {
+   TestFailed,
    UserNotFound,
    FormValidationError,
    InvalidCredentials,
@@ -162,5 +218,9 @@ class BlocksAlreadyAssignedToFragment extends Error {
    SessionUninitialized,
    SessionUnauthenticated,
    FragmentNumberAlreadyExists,
-   BlocksAlreadyAssignedToFragment
+   BlocksAlreadyAssignedToFragment,
+   HundredNotFound,
+   HundredAlreadyExists,
+   UnitNotFound,
+   UnitsAlreadyExist
  };

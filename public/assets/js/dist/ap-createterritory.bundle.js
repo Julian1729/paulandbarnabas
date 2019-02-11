@@ -125,7 +125,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":16,"jquery":7}],3:[function(require,module,exports){
+},{"../../vendor/form2js":17,"jquery":7}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -28920,6 +28920,50 @@ return jQuery;
         typeof define !== 'undefined' ? /* istanbul ignore next */ define : null);
 
 },{}],10:[function(require,module,exports){
+/**
+ * Modal API
+ */
+
+const $ = require('jquery');
+
+var activeModal = null;
+
+var Modal = {
+
+  $overlay: $('#modal-overlay'),
+
+  show: show,
+
+  close: close
+
+};
+
+function show(id){
+  var modal = $(id);
+  if(!modal.length){
+    throw new Error('Modal with id ' + id + ' not found');
+  }
+  activeModal = modal;
+  showOverlay();
+  activeModal.addClass('show');
+}
+
+function close(){
+  activeModal.removeClass('show');
+  setTimeout(hideOverlay, 400);
+}
+
+function showOverlay(){
+  Modal.$overlay.addClass('show');
+}
+
+function hideOverlay(){
+  Modal.$overlay.removeClass('show');
+}
+
+module.exports = Modal;
+
+},{"jquery":7}],11:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 
 var templates = $('#templates');
@@ -28957,7 +29001,7 @@ module.exports = {
   getTextTemplate
 };
 
-},{"../../jquery/jquery.js":1}],11:[function(require,module,exports){
+},{"../../jquery/jquery.js":1}],12:[function(require,module,exports){
 /**
  * Text Input
  * Handle label animation on focus
@@ -29002,7 +29046,7 @@ $inputContainers.each(function(){attachEvents(this)});
 
 module.exports = {attachEvents};
 
-},{"../../utils.js":15,"jquery":7}],12:[function(require,module,exports){
+},{"../../utils.js":16,"jquery":7}],13:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 
 // FIXME: THE WAY CONTIAINERS ARE FOIND NEEDS TO BE CHANGED TO WORK WITH ALL INPUT ELEMETNS
@@ -29073,7 +29117,7 @@ module.exports = {
   clearErrors
 };
 
-},{"../../jquery/jquery.js":1}],13:[function(require,module,exports){
+},{"../../jquery/jquery.js":1}],14:[function(require,module,exports){
 const _ = require('lodash');
 
 const $ = require('../../jquery/jquery');
@@ -29084,6 +29128,9 @@ const Utils = require('../../utils');
 const {getTemplate, getTextTemplate} = require('../modules/template.js');
 const GenerateUnitsValidation = require('../validators/GenerateUnits');
 const {simpleHandler, clearErrors} = require('../modules/validationHandler.js');
+const Modal = require('../modules/modal');
+
+window.Modal = Modal;
 
 /**
  * DOM Elements
@@ -29098,18 +29145,91 @@ var panes = {
 var unitContainer = panes.units.find('.units-container');
 
 /**
+ * Street Statistics Table Module
+ */
+(function(g){
+
+  var StreetStatsTable = {
+
+    $table: $('#existing-blocks-table'),
+
+    $empty_message: $('#no-blocks-found'),
+
+    clear: clear,
+
+    empty_message: {
+      hide: function(){
+        StreetStatsTable.$empty_message.addClass('hide');
+      },
+      show: function(){
+        StreetStatsTable.$empty_message.removeClass('hide');
+      }
+    },
+
+    populate: populate
+
+  };
+
+  /**
+   * Populate table with rows
+   * @param {Object} streetData Response from ajax call
+   * @return {void}
+   */
+  function populate(streetData){
+    var rowElements = generateRows(streetData);
+    rowElements.forEach(function(row){
+      this.$table.append(row);
+    }, this);
+  }
+
+  /**
+   * Copy row template and add appropriate classes
+   * @param  {Object} hundreds
+   * @return {Array} Array of generated row elements
+   * OPTIMIZE: add unit counts to table if > 0
+   */
+  function generateRows(streetData){
+    var elements = [];
+    streetData.forEach(function(hundred){
+      var $row = $('#existing-row-template').clone();
+      // remove default hide class
+      $row.removeClass('hide');
+      $row.addClass('existing-block-tr');
+      $row.find('.hundred').text(hundred.hundred);
+      if(hundred.unit_counts.odd > 0){
+        $row.find('td.odd').addClass('filled');
+      }
+      if(hundred.unit_counts.even > 0){
+        $row.find('td.even').addClass('filled');
+      }
+      elements.push($row);
+    });
+    return elements;
+  }
+
+  /**
+   * Clear table of all rows
+   * @return {void}
+   */
+  function clear(){
+    this.$table.find('tr.existing-block-tr').remove();
+  }
+
+  g.StreetStatsTable = StreetStatsTable;
+
+}(window));
+
+/**
  * Existing Blocks Loader
  */
-(function(pane){
+(function(table){
 
-  var $table = $('#existing-blocks-table');
   var $streetSelect = $('#street_selector');
 
   /**
    * Attach Handler
    */
   $streetSelect.change(refreshTable);
-
 
   function refreshTable(streetName){
     var $this = $(this);
@@ -29120,7 +29240,7 @@ var unitContainer = panes.units.find('.units-container');
     // change street label
     $('.street-label').text(street);
     $.ajax({
-      url: '/ajax/territory/get-blocks',
+      url: '/ajax/territory/get-street-stats',
       method: 'post',
       data: {
         street: street
@@ -29129,139 +29249,92 @@ var unitContainer = panes.units.find('.units-container');
     });
   }
 
-
-  /**
-   * Sort array of blocks to reveal
-   * missing odds or evens.
-   * @return {Object} Odd and even of each hundred
-   */
-  function extractData(evenBlocks, oddBlocks){
-    // objects of hundreds
-    var sorted = {};
-    evenBlocks.forEach(function(block){
-      sorted[block.hundred] = {};
-      sorted[block.hundred].even = true;
-    });
-    oddBlocks.forEach(function(block){
-      if( !sorted[block.hundred] ) sorted[block.hundred] = {};
-      sorted[block.hundred].odd = true;
-    });
-    return sorted;
-  }
-
-
   function morphTable(ajaxResponse){
     if(ajaxResponse.error){
+      // FIXME: pop error modal
       return console.log('HANDLE THIS ERROR!', ajaxResponse.error);
     }
     // clear out old rows
-    $table.find('tr.existing-block-tr').remove();
+    table.clear();
     // re-hide message
-    $('#no-blocks-found').addClass('hide');
-    var {even, odd} = ajaxResponse.data;
-    var extractedHundreds = extractData(even, odd);
-    if(!extractedHundreds){
-      return $('#no-blocks-found').removeClass('hide');
-    };
-    var rowElements = generateRows(extractedHundreds);
-    rowElements.forEach(function(row){
-      $table.append(row);
-    });
+    table.empty_message.hide();
+    var streetData = ajaxResponse.data
+    if(!streetData){
+      return table.empty_message.show();
+    }
+    table.populate(streetData);
+  }
+
+
+
+}(window.StreetStatsTable));
+
+/**
+ * Form Submission and data collection
+ */
+(function(form){
+  /**
+   * Attach handlers
+   */
+   form.submit(function(e){
+     e.preventDefault();
+     var $form = $(this); // cast form element to jquery object
+     var formData = collectData(this);
+     // send to backend
+     formData = JSON.stringify(formData);
+     $.ajax({
+       url: '/ajax/territory/save-territory',
+       method: 'POST',
+       contentType: 'application/json',
+       dataType: 'json',
+       data: formData,
+       success: function(response){
+         console.log(response);
+       }
+     });
+   });
+
+  /**
+   * Collect form data, along with unit data
+   * @param  {HTMLElement} form Node to collect data from
+   * @return {Object}
+   */
+  function collectData(form){
+    // WARNING: form cannot be a jquery object
+    var formData = form2js(form);
+    // append unit data
+    formData.units = collectUnitData();
+    // convert to json to send
+    return formData;
   }
 
   /**
-   * Copy row template and add appropriate classes
-   * @param  {Object} hundreds
-   * @return {Array} Array of templates
+   * Extract all data from generated units
+   * @return {Array} Unit data array
    */
-  function generateRows(hundreds){
-    var elements = [];
-    for (var hundred in hundreds) {
-      if (hundreds.hasOwnProperty(hundred)) {
-        var $row = $('#existing-row-template').clone();
-        $row.removeClass('hide');
-        $row.addClass('existing-block-tr');
-        $row.find('.hundred').text(hundred);
-        if(hundreds[hundred].odd){
-          $row.find('td.odd').addClass('filled');
-        }
-        if(hundreds[hundred].even){
-          $row.find('td.even').addClass('filled');
-        }
-        elements.push($row);
-      }
-    }
-    return elements;
+  function collectUnitData(){
+
+    // collect all units inside unit container
+    var units = unitContainer.find('.unit');
+    var collectedUnits = [];
+    units.each(function(){
+      var dataObj = {};
+      // convert to jquery object
+      var $this = $(this);
+      // retrieve number
+      dataObj.number = $this.data('number');
+      // collect all subunit data
+      var subunitData = form2js($this.find('.subunit-container')[0], '.', false);
+      // merge into data obj
+      dataObj = _.merge(dataObj, subunitData);
+      // push into collectedUnits
+      collectedUnits.push(dataObj);
+    });
+    return collectedUnits;
+
   }
 
-}(panes.streetselect));
-
-
-(function(form){
-
-/**
- * Attach handlers
- */
- form.submit(function(e){
-   e.preventDefault();
-   var $form = $(this); // cast form element to jquery object
-   var formData = collectData(this);
-   // send to backend
-   formData = JSON.stringify(formData);
-   $.ajax({
-     url: '/ajax/territory/save-territory',
-     method: 'POST',
-     contentType: 'application/json',
-     dataType: 'json',
-     data: formData,
-     success: function(response){
-       console.log(response);
-     }
-   });
- });
-
-/**
- * Collect form data, along with unit data
- * @param  {HTMLElement} form Node to collect data from
- * @return {Object}
- */
-function collectData(form){
-  // WARNING: form cannot be a jquery object
-  var formData = form2js(form);
-  // append unit data
-  formData.units = collectUnitData();
-  // convert to json to send
-  return formData;
-}
-
-/**
- * Extract all data from generated units
- * @return {Array} Unit data array
- */
-function collectUnitData(){
-
-  // collect all units inside unit container
-  var units = unitContainer.find('.unit');
-  var collectedUnits = [];
-  units.each(function(){
-    var dataObj = {};
-    // convert to jquery object
-    var $this = $(this);
-    // retrieve number
-    dataObj.number = $this.data('number');
-    // collect all subunit data
-    var subunitData = form2js($this.find('.subunit-container')[0], '.', false);
-    // merge into data obj
-    dataObj = _.merge(dataObj, subunitData);
-    // push into collectedUnits
-    collectedUnits.push(dataObj);
-  });
-  return collectedUnits;
-
-}
-
 }(form, unitContainer));
-
 
 /**
  * Unit UI
@@ -29336,7 +29409,6 @@ function collectUnitData(){
   }
 
   function changePaneDetails(hundred){
-    console.log('hundred', hundred);
     unitPaneHundred.text(hundred);
   }
 
@@ -29424,7 +29496,7 @@ function collectUnitData(){
 
 }(panes.streetselect));
 
-},{"../../jquery/jquery":1,"../../utils":15,"../../vendor/form2js":16,"../modules/template.js":10,"../modules/text-input.js":11,"../modules/validationHandler.js":12,"../validators/GenerateUnits":14,"lodash":8,"validate.js":9}],14:[function(require,module,exports){
+},{"../../jquery/jquery":1,"../../utils":16,"../../vendor/form2js":17,"../modules/modal":10,"../modules/template.js":11,"../modules/text-input.js":12,"../modules/validationHandler.js":13,"../validators/GenerateUnits":15,"lodash":8,"validate.js":9}],15:[function(require,module,exports){
 var validate = require('validate.js');
 const _ = require('lodash');
 
@@ -29494,7 +29566,7 @@ module.exports = (formValues) => {
   return validate(formValues, c);
 };
 
-},{"lodash":8,"validate.js":9}],15:[function(require,module,exports){
+},{"lodash":8,"validate.js":9}],16:[function(require,module,exports){
 /**
  * Utility Functions
  */
@@ -29513,7 +29585,7 @@ module.exports = {
   isEmptyString: isEmptyString
 };
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *
@@ -29864,4 +29936,4 @@ module.exports = {
 
 }));
 
-},{}]},{},[13]);
+},{}]},{},[14]);

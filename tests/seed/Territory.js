@@ -137,41 +137,82 @@ var fragments = {
 // // insert note
 // territory.populated.streets[0].even[0].push(notes.valid);
 
+// territory.completed = {
+//   congregation: new ObjectId(),
+//   fragments: [{
+//       number: 1
+//     }],
+//   streets: [{
+//       name: 'Oakland',
+//       odd: [],
+//       even: [{
+//         hundred: 4500,
+//         units: [{
+//           number: 4502,
+//           name: null,
+//           tags: [],
+//           householders: [{
+//             name: 'Carson Wentz',
+//             email: 'eaglesrock@gmail.com',
+//             phone_number: '2154000468',
+//             gender: 'male'
+//           }],
+//           visit: [],
+//           isdonotcall: false,
+//           language: 'en',
+//           notes: [{
+//             by: 'Julian Hernandez',
+//             note: 'This is the string that is the body of the note'
+//           }],
+//           iscalledon: false,
+//           subunits: []
+//         }],
+//         worked: []
+//       }],
+//       tags: ['low steps']
+//     }]
+// };
+
 territory.completed = {
   congregation: new ObjectId(),
   fragments: [{
       number: 1
     }],
-  streets: [{
+  streets: [
+    {
       name: 'Oakland',
-      odd: [],
-      even: [{
-        hundred: 4500,
-        units: [{
-          number: 4502,
-          name: null,
-          tags: [],
-          householders: [{
-            name: 'Carson Wentz',
-            email: 'eaglesrock@gmail.com',
-            phone_number: '2154000468',
-            gender: 'male'
-          }],
-          visit: [],
-          isdonotcall: false,
-          language: 'en',
-          notes: [{
-            by: 'Julian Hernandez',
-            note: 'This is the string that is the body of the note'
-          }],
-          iscalledon: false,
-          subunits: []
-        }],
-        worked: []
-      }],
-      tags: ['low steps']
-    }]
-}
+      hundreds: [
+        {
+          hundred: 4500,
+          odd: {},
+          even: {
+            worked: [new Date()],
+            units: [{
+              number: 4502,
+              tags: ['low steps', 'beware of dog'],
+              householders: [{
+                name: 'Carson Wentz',
+                email: 'eaglesrock@gmail.com',
+                phone_number: '2154000468',
+                gender: 'male'
+              }],
+              visit: [],
+              isdonotcall: false,
+              language: 'en',
+              notes: [{
+                by: 'Julian Hernandez',
+                note: 'This is the string that is the body of the note'
+              }],
+              iscalledon: false,
+              subunits: []
+            }]
+          }
+        }
+      ],
+      tags: []
+    }
+  ]
+};
 
 module.exports = {
   territory,
