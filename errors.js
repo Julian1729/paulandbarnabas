@@ -130,14 +130,6 @@ class StreetAlreadyExists extends Error {
   }
 }
 
-class StreetAlreadyExists extends Error {
-  constructor(streetName){
-    super();
-    this.name = 'StreetAlreadyExists';
-    this.streetName = streetName;
-  }
-}
-
 class TerritoryNotFound extends Error {
   constructor(message){
     super();
