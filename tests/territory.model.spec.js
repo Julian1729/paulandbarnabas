@@ -988,6 +988,25 @@ describe('Territory Model', () => {
 
       });
 
+      it('should normalize tags when saved', (done) => {
+
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          .then(territory => {
+            var block = territory.findStreet('Oakland').findHundred(4500).even;
+            block.tags.push('The  tag ');
+            return territory.save();
+          })
+          .then(territory => {
+            var block = territory.findStreet('Oakland').findHundred(4500).even;
+            console.log(JSON.stringify(block.tags, null, 2));
+            expect(block.tags).to.include('the tag');
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
     });
 
 });

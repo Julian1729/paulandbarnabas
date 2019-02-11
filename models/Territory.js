@@ -10,6 +10,19 @@ const errors = require('../errors');
 * Subdocument Schemas
 */
 
+  /**
+   * This object holds schema properties
+   * for tags without creating child schema
+   * @type {Object}
+   */
+  var tag_properties = [{
+    type: String,
+    required: true,
+    lowercase: true,
+    trim: true,
+    set: tag => tag.replace(/\s{2,}/g, ' ')
+  }];
+
   var note_schema = new Schema({
    by: {
      type: Schema.Types.Mixed,
@@ -59,7 +72,7 @@ const errors = require('../errors');
 
   var subunit_schema = new Schema({
     name: String,
-    tags: [String],
+    tags: tag_properties,
     householders: [householder_schema],
     visits: [visit_schema],
     isdonotcall: {
@@ -80,7 +93,7 @@ const errors = require('../errors');
       required: true
     },
     name: String,
-    tags: [String],
+    tags: tag_properties,
     householders: [householder_schema],
     visits: [visit_schema],
     subunits: [subunit_schema],
@@ -129,7 +142,7 @@ var worked_schema = new Schema({
 var block_schema = new Schema({
   worked: [Date],
   units: [unit_schema],
-  tags: [String]
+  tags: tag_properties,
 });
 
 // HUNDRED
@@ -279,8 +292,7 @@ var streets_schema = new Schema({
     type: String,
     required: true
   },
-  hundreds: [hundred_schema],
-  tags: [String]
+  hundreds: [hundred_schema]
 });
 
   /**
