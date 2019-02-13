@@ -122,43 +122,6 @@ var saveTerritory = (req, res, next) => {
 
 };
 
-var getBlocks = (req, res, next) => {
-
-
-  // var congregationId = dev.congregationId; // FIXME: this should come from session
-  var congregationId = req.session.congregation;
-  var street = req.body.street;
-  // find blocks
-  TerritoryModel.findByCongregation(congregationId)
-    .then(territory => {
-      // get block from street
-      var blocks = territory
-        .findStreet(street)
-        .getBlocks();
-
-      return ajaxResponse(res, {
-        data: blocks
-      });
-
-    })
-    .catch(e => {
-
-      if(e instanceof errors.StreetNotFound){
-        return ajaxResponse(res, {
-          status: 500,
-          error: e
-        });
-      }else{
-        return ajaxResponse(res, {
-          status: 500,
-          error: e
-        });
-      }
-
-    });
-
-};
-
 var getStreetStats = (req, res, next) => {
 
 
@@ -177,6 +140,8 @@ var getStreetStats = (req, res, next) => {
         statObj.hundred = h.hundred;
         statObj.unit_counts.odd = h.odd.units.length;
         statObj.unit_counts.even = h.even.units.length;
+        statObj.odd_id = h.odd._id;
+        statObj.even_id = h.even._id;
         stats.push(statObj);
       });
       return ajaxResponse(res, {
@@ -265,7 +230,6 @@ var saveFragment = (req, res, next) => {
 
 module.exports = {
   saveTerritory,
-  getBlocks,
   getStreetStats,
   getStreets,
   getFragments,

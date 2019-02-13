@@ -29014,9 +29014,9 @@ var DOM = {
    * Populate table with rows
    * @param  {Object} blocks Blocks response
    */
-  function populate(blocks){
+  function populate(stats){
     Table.clear();
-    var rows = generateRows(blocks.even, blocks.odd);
+    var rows = generateRows(stats);
     Table.$table.append(rows);
   }
 
@@ -29026,20 +29026,20 @@ var DOM = {
    * @param  {[type]} block    [description]
    * @return {[type]}          [description]
    */
-  function createRow(odd_even, block){
+  function createRow(odd_even, hundred, unitCount, blockId){
     var element = $('<tr>');
     var info = element.clone();
-    info.hundred = block.hundred;
+    info.hundred = hundred;
     info.odd_even = odd_even;
-    info.id = block._id;
-    info.units = block.units.length
+    info.id = blockId;
+    info.units = unitCount;
     element.data('details', info);
     // create tds
-    element.append( $('<td>').text(block.hundred) );
+    element.append( $('<td>').text(hundred) );
     element.append( $('<td>').text(_.capitalize(odd_even)) );
-    element.append( $('<td>').text(block.units.length) );
+    element.append( $('<td>').text(unitCount) );
     // check if block exists
-    if( g.Fragment.blockSelected(g.Table.current_street.name, block._id) ){
+    if( g.Fragment.blockSelected(g.Table.current_street.name, blockId) ){
       element.addClass('selected');
     }
     return element;
@@ -29052,7 +29052,7 @@ var DOM = {
    * @param  {Array} odd  Odd blocks array
    * @return {Array} Array of Jquery elements
    */
-  function generateRows(even, odd){
+  function generateRows(stats){
     var rows = [];
 
     var dataObj = {
@@ -29062,12 +29062,9 @@ var DOM = {
       id: null
     };
 
-    even.forEach(function(block){
-      rows.push(createRow('even', block));
-    });
-
-    odd.forEach(function(block){
-      rows.push(createRow('odd', block));
+    stats.forEach(function(hundred){
+      rows.push(createRow('odd', hundred.hundred, hundred.unit_counts.odd, hundred.odd_id));
+      rows.push(createRow('even', hundred.hundred, hundred.unit_counts.even, hundred.even_id));
     });
 
     return rows;
@@ -29117,7 +29114,7 @@ var DOM = {
     current_street.name = streetName;
     current_street.id = $selector.val();
     $.ajax({
-      url: '/ajax/territory/get-blocks',
+      url: '/ajax/territory/get-street-stats',
       method: 'post',
       data: {
         street: streetName
