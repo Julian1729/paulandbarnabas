@@ -21,13 +21,19 @@
 
 .modal
   // default behavior to hide
-  transform: translateY(100vh)
-  transition: transform 0.3s
+  // transform: translateY(100vh)
+  transition: all 0.3s
   background: $neutral_gray
   padding: 25px
   width: 320px
   border-radius: 3px
   box-shadow: 0 0 7px 2px rgba(0, 0, 0, 0.4)
+
+  position: absolute
+  top: 100%
+  left: 0
+  right: 0
+  margin: 0 auto
   @include font-smooth
   p
     color: $white
@@ -35,4 +41,5 @@
     font-family: 'Lato', serif
 
   &.show
-    transform: none
+    // transform: none
+    top: 20px

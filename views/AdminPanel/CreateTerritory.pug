@@ -17,17 +17,6 @@ block templates
       img.add(src=constants.base_url + "/assets/images/add.png", alt="Add subunit", title="Add subunit")
     .subunit-container
 
-block modals
-  .modal.standard#test
-    p Please provide the {{name}} of the publisher who is currently calling on this residence
-    +text_input('name')
-    .button-row.mini
-      button.orange(data-action="positive") save
-      button(data-action="close") cancel
-  +modal('another')
-      p this is test
-      button.orange save
-
 block panel
     
   form#create-territory-form

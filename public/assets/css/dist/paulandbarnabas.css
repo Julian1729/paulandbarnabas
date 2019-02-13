@@ -328,16 +328,17 @@ body > .wrapper {
     display: flex; }
 
 .modal {
-  -webkit-transform: translateY(100vh);
-          transform: translateY(100vh);
-  transition: -webkit-transform 0.3s;
-  transition: transform 0.3s;
-  transition: transform 0.3s, -webkit-transform 0.3s;
+  transition: all 0.3s;
   background: #6A6A6A;
   padding: 25px;
   width: 320px;
   border-radius: 3px;
   box-shadow: 0 0 7px 2px rgba(0, 0, 0, 0.4);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
   -webkit-font-smoothing: antialiased;
   font-smooth: always;
   -moz-osx-font-smoothing: grayscale; }
@@ -346,8 +347,7 @@ body > .wrapper {
     font-size: 0.7em;
     font-family: 'Lato', serif; }
   .modal.show {
-    -webkit-transform: none;
-            transform: none; }
+    top: 20px; }
 
 /**
  * Section Header

@@ -27,6 +27,12 @@ html
         
     .modal-overlay#modal-overlay
       block modals
+        +modal('page-error-modal')
+          p Sorry, something went wrong. The developer has been made aware, please try again later.
+          .button-row.mini
+            button(data-action="close") okay
+        
+        
     
     #templates
       block templates

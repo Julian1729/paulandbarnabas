@@ -28,10 +28,7 @@ var unitContainer = panes.units.find('.units-container');
  */
 (function(){
 
-  var testModal = $('#test').pbmodal({
-    vars: {
-      name: 'the name'
-    },
+  var testModal = $('#page-error-modal').pbmodal({
     positiveAction: function($modal){
       console.log('this it');
       testModal.close();
