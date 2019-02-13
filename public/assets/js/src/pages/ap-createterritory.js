@@ -29,8 +29,12 @@ var unitContainer = panes.units.find('.units-container');
 (function(){
 
   var testModal = $('#test').pbmodal({
+    vars: {
+      name: 'the name'
+    },
     positiveAction: function($modal){
       console.log('this it');
+      testModal.close();
     },
     onClose: function(){
       console.log('this on close');

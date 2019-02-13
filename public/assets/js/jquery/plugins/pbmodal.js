@@ -1,5 +1,6 @@
 var $ = require('jquery');
 const _ = require('lodash');
+const Mustache = require('mustache');
 
 $container = $('#modal-overlay');
 
@@ -16,7 +17,7 @@ Modal.init = function(modal, options){
   self.modal = modal;
 
   _.defaults(options, {
-    vars: {},
+    vars: null,
     positiveAction: defaultButtonAction,
     negativeAction: defaultButtonAction,
     nuetralAction: defaultButtonAction,
@@ -25,6 +26,17 @@ Modal.init = function(modal, options){
   });
 
   self.options = options;
+
+  console.log(options.vars);
+
+  // if variables were defined, convert html to string,
+  // inject variables and reinject
+  if(options.vars){
+    var rawHTML = self.modal.html();
+    self.modal.html('');
+    var renderedHTML = Mustache.render(rawHTML, options.vars);
+    self.modal.html(renderedHTML);
+  }
 
   if(!$container.length) throw new Error('No modal container found');
 
