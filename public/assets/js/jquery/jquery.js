@@ -22,4 +22,7 @@ var $ = require('jquery');
  var PopulateUsers = require('./plugins/populateusers');
  $.fn.populateusers = PopulateUsers;
 
+ var PBModal = require('./plugins/pbmodal');
+ $.fn.pbmodal = PBModal;
+
 module.exports = $;

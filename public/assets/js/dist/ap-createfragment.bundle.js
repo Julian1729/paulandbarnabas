@@ -707,9 +707,12 @@ var $ = require('jquery');
  var PopulateUsers = require('./plugins/populateusers');
  $.fn.populateusers = PopulateUsers;
 
+ var PBModal = require('./plugins/pbmodal');
+ $.fn.pbmodal = PBModal;
+
 module.exports = $;
 
-},{"./plugins/ajaxform":3,"./plugins/disableInputs":4,"./plugins/populatefragments":5,"./plugins/populatestreetnames":6,"./plugins/populateusers":7,"jquery":8}],3:[function(require,module,exports){
+},{"./plugins/ajaxform":3,"./plugins/disableInputs":4,"./plugins/pbmodal":5,"./plugins/populatefragments":6,"./plugins/populatestreetnames":7,"./plugins/populateusers":8,"jquery":9}],3:[function(require,module,exports){
 const $ = require('jquery');
 const form2js = require('../../vendor/form2js');
 
@@ -809,7 +812,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":13,"jquery":8}],4:[function(require,module,exports){
+},{"../../vendor/form2js":14,"jquery":9}],4:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -836,7 +839,136 @@ function disable(){
 
 module.exports = DisableInputs;
 
-},{"jquery":8}],5:[function(require,module,exports){
+},{"jquery":9}],5:[function(require,module,exports){
+var $ = require('jquery');
+const _ = require('lodash');
+
+$container = $('#modal-overlay');
+
+var Modal = function(options){
+  return new Modal.init(this, options);
+};
+
+Modal.init = function(modal, options){
+
+  options = options || {};
+
+  self = this;
+
+  self.modal = modal;
+
+  _.defaults(options, {
+    vars: {},
+    positiveAction: defaultButtonAction,
+    negativeAction: defaultButtonAction,
+    nuetralAction: defaultButtonAction,
+    onClose: defaultButtonAction,
+    closeable: true
+  });
+
+  self.options = options;
+
+  if(!$container.length) throw new Error('No modal container found');
+
+  // cache buttons
+  var buttons = {
+    positive: modal.find('button[data-action="positive"]'),
+    negative: modal.find('button[data-action="negative"]'),
+    neutral: modal.find('button[data-action="neutral"]'),
+    close: modal.find('button[data-action="close"]')
+  };
+
+  // attach handlers
+  if(buttons.positive.length){
+    buttons.positive.click(function(){ options.positiveAction(modal); });
+  }
+  if(buttons.negative.length){
+    buttons.negative.click(function(){ options.negativeAction(modal); });
+  }
+  if(buttons.neutral.length){
+    buttons.neutral.click(function(){ options.neutralAction(modal); });
+  }
+  if(buttons.close.length){
+    buttons.close.click(function(){ closeModal.call(self) });
+  }
+
+  /**
+   * If outside of modal clicked, close modal if
+   * closeable option is true
+   */
+  $container.click(function(e){
+    if(options.closeable === true){
+      if(e.target.matches('#modal-overlay')){
+        closeModal.call(self);
+      }
+    }
+  });
+
+
+};
+
+/**
+ * Default button action to avoid action undefined
+ * @return {[type]} [description]
+ */
+function defaultButtonAction(){
+  throw new Error('No action function assigned to this button');
+};
+
+/**
+ * Add 'show' class to modal overlay
+ * @return {void} [description]
+ */
+function showOverlay(){
+  $container.addClass('show');
+}
+
+/**
+ * Remove show class from modal overlay
+ * @return {void} [description]
+ */
+function hideOverlay(){
+  $container.removeClass('show');
+}
+
+/**
+ * Display overlay and show modal
+ * @param  {DOMElement} modal Optionally pass in modal
+ * @return {void}
+ */
+function showModal(modal){
+  modal = this.modal || modal;
+  showOverlay();
+  modal.addClass('show');
+}
+
+/**
+ * Close modal and overlay
+ * @param  {DOMElement} modal Optionally pass in modal
+ * @return {void}
+ */
+function closeModal(modal){
+  modal = this.modal || modal;
+  modal.removeClass('show');
+  setTimeout(hideOverlay, 400);
+  if(this.options && this.options.onClose){
+    this.options.onClose(modal);
+  }
+}
+
+Modal.prototype = {
+
+  show: showModal,
+
+  close: closeModal
+
+};
+
+Modal.init.prototype = Modal.prototype;
+
+module.exports = Modal;
+
+},{"jquery":9,"lodash":10}],6:[function(require,module,exports){
 var $ = require('jquery');
 
 var PopulateFragments = function(){
@@ -866,7 +998,7 @@ var PopulateFragments = function(){
 
 module.exports = PopulateFragments;
 
-},{"jquery":8}],6:[function(require,module,exports){
+},{"jquery":9}],7:[function(require,module,exports){
 var $ = require('jquery');
 
 var PopulateStreetNames = function(useNames){
@@ -904,7 +1036,7 @@ var PopulateStreetNames = function(useNames){
 
 module.exports = PopulateStreetNames;
 
-},{"jquery":8}],7:[function(require,module,exports){
+},{"jquery":9}],8:[function(require,module,exports){
 /**
  * Populate Select elements users by congregation
  */
@@ -938,7 +1070,7 @@ var PopulateUsers = function(){
 
 module.exports = PopulateUsers;
 
-},{"jquery":8}],8:[function(require,module,exports){
+},{"jquery":9}],9:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -11304,7 +11436,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -28415,7 +28547,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /**
  * Text Input
  * Handle label animation on focus
@@ -28460,7 +28592,7 @@ $inputContainers.each(function(){attachEvents(this)});
 
 module.exports = {attachEvents};
 
-},{"../../utils.js":12,"jquery":8}],11:[function(require,module,exports){
+},{"../../utils.js":13,"jquery":9}],12:[function(require,module,exports){
 const _ = require('lodash');
 const Mustache = require('mustache');
 
@@ -29018,7 +29150,7 @@ var DOM = {
 
 }(window, DOM));
 
-},{"../../jquery/jquery":2,"../../vendor/form2js":13,"../modules/text-input":10,"lodash":9,"mustache":1}],12:[function(require,module,exports){
+},{"../../jquery/jquery":2,"../../vendor/form2js":14,"../modules/text-input":11,"lodash":10,"mustache":1}],13:[function(require,module,exports){
 /**
  * Utility Functions
  */
@@ -29037,7 +29169,7 @@ module.exports = {
   isEmptyString: isEmptyString
 };
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *
@@ -29388,4 +29520,4 @@ module.exports = {
 
 }));
 
-},{}]},{},[11]);
+},{}]},{},[12]);

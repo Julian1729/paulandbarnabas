@@ -8,9 +8,7 @@ const Utils = require('../../utils');
 const {getTemplate, getTextTemplate} = require('../modules/template.js');
 const GenerateUnitsValidation = require('../validators/GenerateUnits');
 const {simpleHandler, clearErrors} = require('../modules/validationHandler.js');
-const Modal = require('../modules/modal');
 
-window.Modal = Modal;
 
 /**
  * DOM Elements
@@ -23,6 +21,24 @@ var panes = {
   fragmentassignment: $('#fragmentassignment')
 };
 var unitContainer = panes.units.find('.units-container');
+
+
+/**
+ * Init Modals
+ */
+(function(){
+
+  var testModal = $('#test').pbmodal({
+    positiveAction: function($modal){
+      console.log('this it');
+    },
+    onClose: function(){
+      console.log('this on close');
+    }
+  });
+  testModal.show();
+
+}());
 
 /**
  * Street Statistics Table Module

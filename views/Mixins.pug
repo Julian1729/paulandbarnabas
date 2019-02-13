@@ -18,3 +18,7 @@ mixin select_input()
   .select.input-element(style=attributes.style, class=attributes.class, id=attributes.id)
     select(name=attributes.name)
       block
+
+mixin modal(id)
+  .modal(id=id)
+    block 

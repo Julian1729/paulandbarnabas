@@ -23,9 +23,12 @@ var $ = require('jquery');
  var PopulateUsers = require('./plugins/populateusers');
  $.fn.populateusers = PopulateUsers;
 
+ var PBModal = require('./plugins/pbmodal');
+ $.fn.pbmodal = PBModal;
+
 module.exports = $;
 
-},{"./plugins/ajaxform":2,"./plugins/disableInputs":3,"./plugins/populatefragments":4,"./plugins/populatestreetnames":5,"./plugins/populateusers":6,"jquery":7}],2:[function(require,module,exports){
+},{"./plugins/ajaxform":2,"./plugins/disableInputs":3,"./plugins/pbmodal":4,"./plugins/populatefragments":5,"./plugins/populatestreetnames":6,"./plugins/populateusers":7,"jquery":8}],2:[function(require,module,exports){
 const $ = require('jquery');
 const form2js = require('../../vendor/form2js');
 
@@ -125,7 +128,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":17,"jquery":7}],3:[function(require,module,exports){
+},{"../../vendor/form2js":17,"jquery":8}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -152,7 +155,136 @@ function disable(){
 
 module.exports = DisableInputs;
 
-},{"jquery":7}],4:[function(require,module,exports){
+},{"jquery":8}],4:[function(require,module,exports){
+var $ = require('jquery');
+const _ = require('lodash');
+
+$container = $('#modal-overlay');
+
+var Modal = function(options){
+  return new Modal.init(this, options);
+};
+
+Modal.init = function(modal, options){
+
+  options = options || {};
+
+  self = this;
+
+  self.modal = modal;
+
+  _.defaults(options, {
+    vars: {},
+    positiveAction: defaultButtonAction,
+    negativeAction: defaultButtonAction,
+    nuetralAction: defaultButtonAction,
+    onClose: defaultButtonAction,
+    closeable: true
+  });
+
+  self.options = options;
+
+  if(!$container.length) throw new Error('No modal container found');
+
+  // cache buttons
+  var buttons = {
+    positive: modal.find('button[data-action="positive"]'),
+    negative: modal.find('button[data-action="negative"]'),
+    neutral: modal.find('button[data-action="neutral"]'),
+    close: modal.find('button[data-action="close"]')
+  };
+
+  // attach handlers
+  if(buttons.positive.length){
+    buttons.positive.click(function(){ options.positiveAction(modal); });
+  }
+  if(buttons.negative.length){
+    buttons.negative.click(function(){ options.negativeAction(modal); });
+  }
+  if(buttons.neutral.length){
+    buttons.neutral.click(function(){ options.neutralAction(modal); });
+  }
+  if(buttons.close.length){
+    buttons.close.click(function(){ closeModal.call(self) });
+  }
+
+  /**
+   * If outside of modal clicked, close modal if
+   * closeable option is true
+   */
+  $container.click(function(e){
+    if(options.closeable === true){
+      if(e.target.matches('#modal-overlay')){
+        closeModal.call(self);
+      }
+    }
+  });
+
+
+};
+
+/**
+ * Default button action to avoid action undefined
+ * @return {[type]} [description]
+ */
+function defaultButtonAction(){
+  throw new Error('No action function assigned to this button');
+};
+
+/**
+ * Add 'show' class to modal overlay
+ * @return {void} [description]
+ */
+function showOverlay(){
+  $container.addClass('show');
+}
+
+/**
+ * Remove show class from modal overlay
+ * @return {void} [description]
+ */
+function hideOverlay(){
+  $container.removeClass('show');
+}
+
+/**
+ * Display overlay and show modal
+ * @param  {DOMElement} modal Optionally pass in modal
+ * @return {void}
+ */
+function showModal(modal){
+  modal = this.modal || modal;
+  showOverlay();
+  modal.addClass('show');
+}
+
+/**
+ * Close modal and overlay
+ * @param  {DOMElement} modal Optionally pass in modal
+ * @return {void}
+ */
+function closeModal(modal){
+  modal = this.modal || modal;
+  modal.removeClass('show');
+  setTimeout(hideOverlay, 400);
+  if(this.options && this.options.onClose){
+    this.options.onClose(modal);
+  }
+}
+
+Modal.prototype = {
+
+  show: showModal,
+
+  close: closeModal
+
+};
+
+Modal.init.prototype = Modal.prototype;
+
+module.exports = Modal;
+
+},{"jquery":8,"lodash":9}],5:[function(require,module,exports){
 var $ = require('jquery');
 
 var PopulateFragments = function(){
@@ -182,7 +314,7 @@ var PopulateFragments = function(){
 
 module.exports = PopulateFragments;
 
-},{"jquery":7}],5:[function(require,module,exports){
+},{"jquery":8}],6:[function(require,module,exports){
 var $ = require('jquery');
 
 var PopulateStreetNames = function(useNames){
@@ -220,7 +352,7 @@ var PopulateStreetNames = function(useNames){
 
 module.exports = PopulateStreetNames;
 
-},{"jquery":7}],6:[function(require,module,exports){
+},{"jquery":8}],7:[function(require,module,exports){
 /**
  * Populate Select elements users by congregation
  */
@@ -254,7 +386,7 @@ var PopulateUsers = function(){
 
 module.exports = PopulateUsers;
 
-},{"jquery":7}],7:[function(require,module,exports){
+},{"jquery":8}],8:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -10620,7 +10752,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -27731,7 +27863,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /*!
  * validate.js 0.12.0
  *
@@ -28919,51 +29051,7 @@ return jQuery;
         typeof module !== 'undefined' ? /* istanbul ignore next */ module : null,
         typeof define !== 'undefined' ? /* istanbul ignore next */ define : null);
 
-},{}],10:[function(require,module,exports){
-/**
- * Modal API
- */
-
-const $ = require('jquery');
-
-var activeModal = null;
-
-var Modal = {
-
-  $overlay: $('#modal-overlay'),
-
-  show: show,
-
-  close: close
-
-};
-
-function show(id){
-  var modal = $(id);
-  if(!modal.length){
-    throw new Error('Modal with id ' + id + ' not found');
-  }
-  activeModal = modal;
-  showOverlay();
-  activeModal.addClass('show');
-}
-
-function close(){
-  activeModal.removeClass('show');
-  setTimeout(hideOverlay, 400);
-}
-
-function showOverlay(){
-  Modal.$overlay.addClass('show');
-}
-
-function hideOverlay(){
-  Modal.$overlay.removeClass('show');
-}
-
-module.exports = Modal;
-
-},{"jquery":7}],11:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 
 var templates = $('#templates');
@@ -29046,7 +29134,7 @@ $inputContainers.each(function(){attachEvents(this)});
 
 module.exports = {attachEvents};
 
-},{"../../utils.js":16,"jquery":7}],13:[function(require,module,exports){
+},{"../../utils.js":16,"jquery":8}],13:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 
 // FIXME: THE WAY CONTIAINERS ARE FOIND NEEDS TO BE CHANGED TO WORK WITH ALL INPUT ELEMETNS
@@ -29128,9 +29216,7 @@ const Utils = require('../../utils');
 const {getTemplate, getTextTemplate} = require('../modules/template.js');
 const GenerateUnitsValidation = require('../validators/GenerateUnits');
 const {simpleHandler, clearErrors} = require('../modules/validationHandler.js');
-const Modal = require('../modules/modal');
 
-window.Modal = Modal;
 
 /**
  * DOM Elements
@@ -29143,6 +29229,24 @@ var panes = {
   fragmentassignment: $('#fragmentassignment')
 };
 var unitContainer = panes.units.find('.units-container');
+
+
+/**
+ * Init Modals
+ */
+(function(){
+
+  var testModal = $('#test').pbmodal({
+    positiveAction: function($modal){
+      console.log('this it');
+    },
+    onClose: function(){
+      console.log('this on close');
+    }
+  });
+  testModal.show();
+
+}());
 
 /**
  * Street Statistics Table Module
@@ -29496,7 +29600,7 @@ var unitContainer = panes.units.find('.units-container');
 
 }(panes.streetselect));
 
-},{"../../jquery/jquery":1,"../../utils":16,"../../vendor/form2js":17,"../modules/modal":10,"../modules/template.js":11,"../modules/text-input.js":12,"../modules/validationHandler.js":13,"../validators/GenerateUnits":15,"lodash":8,"validate.js":9}],15:[function(require,module,exports){
+},{"../../jquery/jquery":1,"../../utils":16,"../../vendor/form2js":17,"../modules/template.js":11,"../modules/text-input.js":12,"../modules/validationHandler.js":13,"../validators/GenerateUnits":15,"lodash":9,"validate.js":10}],15:[function(require,module,exports){
 var validate = require('validate.js');
 const _ = require('lodash');
 
@@ -29566,7 +29670,7 @@ module.exports = (formValues) => {
   return validate(formValues, c);
 };
 
-},{"lodash":8,"validate.js":9}],16:[function(require,module,exports){
+},{"lodash":9,"validate.js":10}],16:[function(require,module,exports){
 /**
  * Utility Functions
  */

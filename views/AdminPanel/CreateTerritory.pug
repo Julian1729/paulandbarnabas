@@ -22,8 +22,11 @@ block modals
     p Please provide the name of the publisher who is currently calling on this residence
     +text_input('name')
     .button-row.mini
+      button.orange(data-action="positive") save
+      button(data-action="close") cancel
+  +modal('another')
+      p this is test
       button.orange save
-      button cancel
 
 block panel
     
