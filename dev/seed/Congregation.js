@@ -7,7 +7,7 @@ var congregation1 = {
   "name" : "North Test",
   "circuit" : "PA-16",
   "language" : "en",
-  "territory" : new ObjectId(),
+  "territory" : new ObjectId("5c65dc6c433e9808a8b0e466"),
   "admin" : new ObjectId()
 }
 
