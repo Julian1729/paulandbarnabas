@@ -162,7 +162,7 @@ var hundred_schema = new Schema({
 }, {minimize: false});
 
   /**
-   * Methods
+   * Hundred Methods
    */
 
    /**
@@ -296,7 +296,7 @@ var streets_schema = new Schema({
 });
 
   /**
-   * Methods
+   * Street Methods
    */
 
     /**
@@ -372,7 +372,7 @@ var fragment_schema = new Schema({
 });
 
   /**
-   * Methods
+   * Fragment Methods
    */
 
   /**
