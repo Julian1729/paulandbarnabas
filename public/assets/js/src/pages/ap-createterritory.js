@@ -1,8 +1,9 @@
 const _ = require('lodash');
+const validate = require('validate.js');
 
 const $ = require('../../jquery/jquery');
 const ti = require('../modules/text-input.js');
-const validate = require('validate.js');
+const error_modals = require('../modules/generic_modals');
 const form2js = require('../../vendor/form2js');
 const Utils = require('../../utils');
 const {getTemplate, getTextTemplate} = require('../modules/template.js');
@@ -21,25 +22,6 @@ var panes = {
   fragmentassignment: $('#fragmentassignment')
 };
 var unitContainer = panes.units.find('.units-container');
-
-
-/**
- * Init Modals
- */
-(function(){
-
-  var testModal = $('#page-error-modal').pbmodal({
-    positiveAction: function($modal){
-      console.log('this it');
-      testModal.close();
-    },
-    onClose: function(){
-      console.log('this on close');
-    }
-  });
-  testModal.show();
-
-}());
 
 /**
  * Street Statistics Table Module
@@ -142,7 +124,10 @@ var unitContainer = panes.units.find('.units-container');
       data: {
         street: street
       },
-      success: morphTable
+      success: morphTable,
+      error: function(){
+        error_modals.request_error_modal.show();
+      }
     });
   }
 
@@ -186,7 +171,24 @@ var unitContainer = panes.units.find('.units-container');
        dataType: 'json',
        data: formData,
        success: function(response){
-         console.log(response);
+        // handle errors
+        if(response.error){
+          if(response.error.name === 'FormValidationError'){
+            return simpleHandler(response.error.validationErrors);
+          }else{
+            return error_modals.page_error_modal.show();
+          }
+        }
+        // show success modal
+        $('#territory-saved-modal').pbmodal({
+          onClose: function(){
+            window.location.reload(true);
+          }
+        }).show();
+
+       },
+       error: function(){
+         error_modals.request_error_modal.show();
        }
      });
    });

@@ -128,7 +128,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":14,"jquery":8}],3:[function(require,module,exports){
+},{"../../vendor/form2js":15,"jquery":8}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -179,13 +179,11 @@ Modal.init = function(modal, options){
     positiveAction: defaultButtonAction,
     negativeAction: defaultButtonAction,
     nuetralAction: defaultButtonAction,
-    onClose: defaultButtonAction,
+    onClose: null,
     closeable: true
   });
 
   self.options = options;
-
-  console.log(options.vars);
 
   // if variables were defined, convert html to string,
   // inject variables and reinject
@@ -28561,6 +28559,18 @@ return jQuery;
 
 },{}],11:[function(require,module,exports){
 /**
+ * Base Modals
+ * Page error, and request error modal, that are available on every page
+ */
+const $ = require('../../jquery/jquery');
+
+var page_error_modal = $('#page-error-modal').pbmodal();
+var request_error_modal = $('#request-error-modal').pbmodal()
+
+module.exports = {page_error_modal, request_error_modal};
+
+},{"../../jquery/jquery":1}],12:[function(require,module,exports){
+/**
  * Text Input
  * Handle label animation on focus
  */
@@ -28604,12 +28614,13 @@ $inputContainers.each(function(){attachEvents(this)});
 
 module.exports = {attachEvents};
 
-},{"../../utils.js":13,"jquery":8}],12:[function(require,module,exports){
+},{"../../utils.js":14,"jquery":8}],13:[function(require,module,exports){
 const _ = require('lodash');
 const Mustache = require('mustache');
 
 const form2js = require('../../vendor/form2js');
 const $ = require('../../jquery/jquery');
+const error_modals = require('../modules/generic_modals');
 require('../modules/text-input');
 
 // OPTIMIZE: when blocks are inserted into block groups, sort them numerically
@@ -29149,7 +29160,10 @@ var DOM = {
       method: 'post',
       contentType: 'application/json',
       data: json,
-      success: success
+      success: success,
+      error: function(){
+        error_modals.request_error_modal.show();
+      }
     });
   }
 
@@ -29159,7 +29173,7 @@ var DOM = {
 
 }(window, DOM));
 
-},{"../../jquery/jquery":1,"../../vendor/form2js":14,"../modules/text-input":11,"lodash":9,"mustache":10}],13:[function(require,module,exports){
+},{"../../jquery/jquery":1,"../../vendor/form2js":15,"../modules/generic_modals":11,"../modules/text-input":12,"lodash":9,"mustache":10}],14:[function(require,module,exports){
 /**
  * Utility Functions
  */
@@ -29178,7 +29192,7 @@ module.exports = {
   isEmptyString: isEmptyString
 };
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *
@@ -29529,4 +29543,4 @@ module.exports = {
 
 }));
 
-},{}]},{},[12]);
+},{}]},{},[13]);

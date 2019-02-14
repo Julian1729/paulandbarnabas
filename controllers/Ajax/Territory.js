@@ -47,6 +47,20 @@ var saveTerritory = (req, res, next) => {
     })
   }
 
+  // OPTIMIZE: Use and finish commented code below to send back a summary of what was updated
+  // to be display inside of success modal.
+
+  // var summary = {};
+  // _.defaults(summary, {
+  //   hundred: territoryData.block_hundred,
+  //   odd_even: territoryData.odd_even
+  //   street: {
+  //     new: false,
+  //     name: null
+  //   },
+  //   fragmentassignment
+  // });
+
   TerritoryModel.findByCongregation(congregationId)
     // SEARCH FOR STREET IN DB, CREATE IT IF IT DOESN'T EXIST
     .then(territory => {
@@ -215,16 +229,64 @@ var getStreets = (req, res, next) => {
 
 var saveFragment = (req, res, next) => {
 
-  var fragmentData = req.body;
+  var congregation = req.session.congregation;
+  var fragmentFormData = req.body;
+  // fragmentFormData e.g
+    // "fragment": {
+    //   "number": "34",
+    //   "assignment": "5c5a640585445f61eaf2147d",
+    //   "data": [
+    //     {
+    //       "name": "Wakeling",
+    //       "blocks": [
+    //         {
+    //           "hundred": 1200,
+    //           "odd_even": "odd",
+    //           "id": "5c5a640585445f61eaf21493"
+    //         },
+    //         {
+    //           "hundred": 1200,
+    //           "odd_even": "even",
+    //           "id": "5c5a640585445f61eaf2149e"
+    //         }
+    //       ]
+    //     }
+    //   ]
+    // }
+
   // validate fragment
-  var validation = CreateFragmentValidator(fragmentData);
+  var validation = CreateFragmentValidator(fragmentFormData);
   if(validation){
     return ajaxResponse(res, {
       error: new FormValidationError(validation)
     });
   }
 
-  // create fragement
+  // climb down excess "fragment" object
+  fragmentData = fragmentFormData.fragment;
+
+  // create fragment
+  TerritoryModel.findByCongregation(congregation)
+    .then(territory => {
+      // CREATE FRAGMENT
+      // WARNING: fragment is automatically added
+      // with overwrite param, to optimize, ask user to
+      // if they would like to overwrite
+      var fragment = territory.addFragment(fragmentData.number, {overwriteFragment: true});
+      // ASSIGN BLOCKS
+      var blockIds = [];
+      fragmentData.data.forEach(street => {
+        street.blocks.forEach(block => blockIds.push(block.id));
+      });
+      // WARNING: if the auto overwrite option is removed
+      // assign blocks can possibly throw BlocksAlreadyAssignedToFragment
+      fragment.assignBlocks(blockIds, null, {skipDuplicatesCheck: true});
+
+    })
+    .catch(e => {
+      throw e;
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+    });
 
 };
 

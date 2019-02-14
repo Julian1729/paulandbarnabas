@@ -128,7 +128,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":18,"jquery":8}],3:[function(require,module,exports){
+},{"../../vendor/form2js":19,"jquery":8}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -179,13 +179,11 @@ Modal.init = function(modal, options){
     positiveAction: defaultButtonAction,
     negativeAction: defaultButtonAction,
     nuetralAction: defaultButtonAction,
-    onClose: defaultButtonAction,
+    onClose: null,
     closeable: true
   });
 
   self.options = options;
-
-  console.log(options.vars);
 
   // if variables were defined, convert html to string,
   // inject variables and reinject
@@ -29748,6 +29746,18 @@ return jQuery;
         typeof define !== 'undefined' ? /* istanbul ignore next */ define : null);
 
 },{}],12:[function(require,module,exports){
+/**
+ * Base Modals
+ * Page error, and request error modal, that are available on every page
+ */
+const $ = require('../../jquery/jquery');
+
+var page_error_modal = $('#page-error-modal').pbmodal();
+var request_error_modal = $('#request-error-modal').pbmodal()
+
+module.exports = {page_error_modal, request_error_modal};
+
+},{"../../jquery/jquery":1}],13:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 
 var templates = $('#templates');
@@ -29785,7 +29795,7 @@ module.exports = {
   getTextTemplate
 };
 
-},{"../../jquery/jquery.js":1}],13:[function(require,module,exports){
+},{"../../jquery/jquery.js":1}],14:[function(require,module,exports){
 /**
  * Text Input
  * Handle label animation on focus
@@ -29830,7 +29840,7 @@ $inputContainers.each(function(){attachEvents(this)});
 
 module.exports = {attachEvents};
 
-},{"../../utils.js":17,"jquery":8}],14:[function(require,module,exports){
+},{"../../utils.js":18,"jquery":8}],15:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 
 // FIXME: THE WAY CONTIAINERS ARE FOIND NEEDS TO BE CHANGED TO WORK WITH ALL INPUT ELEMETNS
@@ -29901,12 +29911,13 @@ module.exports = {
   clearErrors
 };
 
-},{"../../jquery/jquery.js":1}],15:[function(require,module,exports){
+},{"../../jquery/jquery.js":1}],16:[function(require,module,exports){
 const _ = require('lodash');
+const validate = require('validate.js');
 
 const $ = require('../../jquery/jquery');
 const ti = require('../modules/text-input.js');
-const validate = require('validate.js');
+const error_modals = require('../modules/generic_modals');
 const form2js = require('../../vendor/form2js');
 const Utils = require('../../utils');
 const {getTemplate, getTextTemplate} = require('../modules/template.js');
@@ -29925,25 +29936,6 @@ var panes = {
   fragmentassignment: $('#fragmentassignment')
 };
 var unitContainer = panes.units.find('.units-container');
-
-
-/**
- * Init Modals
- */
-(function(){
-
-  var testModal = $('#page-error-modal').pbmodal({
-    positiveAction: function($modal){
-      console.log('this it');
-      testModal.close();
-    },
-    onClose: function(){
-      console.log('this on close');
-    }
-  });
-  testModal.show();
-
-}());
 
 /**
  * Street Statistics Table Module
@@ -30046,7 +30038,10 @@ var unitContainer = panes.units.find('.units-container');
       data: {
         street: street
       },
-      success: morphTable
+      success: morphTable,
+      error: function(){
+        error_modals.request_error_modal.show();
+      }
     });
   }
 
@@ -30090,7 +30085,24 @@ var unitContainer = panes.units.find('.units-container');
        dataType: 'json',
        data: formData,
        success: function(response){
-         console.log(response);
+        // handle errors
+        if(response.error){
+          if(response.error.name === 'FormValidationError'){
+            return simpleHandler(response.error.validationErrors);
+          }else{
+            return error_modals.page_error_modal.show();
+          }
+        }
+        // show success modal
+        $('#territory-saved-modal').pbmodal({
+          onClose: function(){
+            window.location.reload(true);
+          }
+        }).show();
+
+       },
+       error: function(){
+         error_modals.request_error_modal.show();
        }
      });
    });
@@ -30297,7 +30309,7 @@ var unitContainer = panes.units.find('.units-container');
 
 }(panes.streetselect));
 
-},{"../../jquery/jquery":1,"../../utils":17,"../../vendor/form2js":18,"../modules/template.js":12,"../modules/text-input.js":13,"../modules/validationHandler.js":14,"../validators/GenerateUnits":16,"lodash":9,"validate.js":11}],16:[function(require,module,exports){
+},{"../../jquery/jquery":1,"../../utils":18,"../../vendor/form2js":19,"../modules/generic_modals":12,"../modules/template.js":13,"../modules/text-input.js":14,"../modules/validationHandler.js":15,"../validators/GenerateUnits":17,"lodash":9,"validate.js":11}],17:[function(require,module,exports){
 var validate = require('validate.js');
 const _ = require('lodash');
 
@@ -30367,7 +30379,7 @@ module.exports = (formValues) => {
   return validate(formValues, c);
 };
 
-},{"lodash":9,"validate.js":11}],17:[function(require,module,exports){
+},{"lodash":9,"validate.js":11}],18:[function(require,module,exports){
 /**
  * Utility Functions
  */
@@ -30386,7 +30398,7 @@ module.exports = {
   isEmptyString: isEmptyString
 };
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *
@@ -30737,4 +30749,4 @@ module.exports = {
 
 }));
 
-},{}]},{},[15]);
+},{}]},{},[16]);

@@ -21,13 +21,11 @@ Modal.init = function(modal, options){
     positiveAction: defaultButtonAction,
     negativeAction: defaultButtonAction,
     nuetralAction: defaultButtonAction,
-    onClose: defaultButtonAction,
+    onClose: null,
     closeable: true
   });
 
   self.options = options;
-
-  console.log(options.vars);
 
   // if variables were defined, convert html to string,
   // inject variables and reinject

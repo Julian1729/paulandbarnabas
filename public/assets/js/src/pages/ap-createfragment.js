@@ -3,6 +3,7 @@ const Mustache = require('mustache');
 
 const form2js = require('../../vendor/form2js');
 const $ = require('../../jquery/jquery');
+const error_modals = require('../modules/generic_modals');
 require('../modules/text-input');
 
 // OPTIMIZE: when blocks are inserted into block groups, sort them numerically
@@ -542,7 +543,10 @@ var DOM = {
       method: 'post',
       contentType: 'application/json',
       data: json,
-      success: success
+      success: success,
+      error: function(){
+        error_modals.request_error_modal.show();
+      }
     });
   }
 
