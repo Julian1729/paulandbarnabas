@@ -987,6 +987,100 @@ describe('Territory Model', () => {
 
       });
 
+      it('should assign fragment to user', (done) => {
+
+        var theUser = null;
+
+        Utils.clearCollection(User)
+          .then(() => {
+
+            // enter user into db
+            return new User(seedUsers.validUser).save();
+
+          })
+          .then(user => {
+            theUser = user;
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              // assign block to fragment
+              .then(territory => {
+
+                var blockToAdd = territory.findStreet('Oakland').findHundred(4500).odd._id;
+                var fragment = territory.findFragment(1);
+                fragment.assignHolder(theUser._id);
+                return territory.save();
+              })
+              // assure that we can verify block has been assigned
+              .then(territory => {
+                var fragment = territory.findFragment(1);
+                expect(_.last(fragment.assignment_history).to).to.equal(theUser._id);
+                done();
+              })
+              .catch(e => done(e));
+
+          })
+          .catch(e => done(e));
+
+      });
+
+
+      it('should return current fragment holder id', (done) => {
+
+        var theUser = null;
+
+        Utils.clearCollection(User)
+          .then(() => {
+            // enter user into db
+            return new User(seedUsers.validUser).save();
+          })
+          .then(user => {
+            theUser = user;
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              // assign block to fragment
+              .then(territory => {
+                var blockToAdd = territory.findStreet('Oakland').findHundred(4500).odd._id;
+                var fragment = territory.findFragment(1)
+                fragment.assignHolder(theUser._id);
+                return territory.save();
+              })
+              // assure that we can verify block has been assigned
+              .then(territory => {
+                var fragment = territory.findFragment(1);
+                expect(fragment.holder().toString()).to.equal(theUser._id.toString());
+                done();
+              })
+              .catch(e => done(e));
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should unassign fragment by adding empty assignment', (done) => {
+
+        var userId = new ObjectId().toString();
+        var testTerritory = Territory(seed.territory.completed);
+        testTerritory.save()
+          // assign block to fragment
+          .then(territory => {
+            var blockToAdd = territory.findStreet('Oakland').findHundred(4500).odd._id;
+            var fragment = territory.findFragment(1);
+            fragment.assignHolder(userId);
+            return territory.save();
+          })
+          // assure that we can verify block has been assigned
+          .then(territory => {
+            var fragment = territory.findFragment(1);
+            expect(fragment.holder()).to.equal(userId);
+            fragment.unassignHolder();
+            expect(fragment.holder()).to.equal(null);
+            done();
+          })
+          .catch(e => done(e));
+
+      });
+
+
       it('should normalize tags when saved', (done) => {
 
         var testTerritory = Territory(seed.territory.completed);

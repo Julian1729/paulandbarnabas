@@ -9,8 +9,7 @@ var user1 = {
   email: 'hernandez.julian17@gmail.com',
   phone_number: '2154000468',
   title: 'Ministerial Servant',
-  password: 'newpasssword',
-  password_confirm: 'newpasssword',
+  password: 'julianspassword',
   congregation: null
 };
 

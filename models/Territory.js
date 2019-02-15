@@ -367,7 +367,7 @@ var fragment_schema = new Schema({
     // FIXME: not right
     ref: 'Territory.streets'
   },
-  assignment_history: [Object],
+  assignment_history: [],
   worked: [worked_schema]
 });
 
@@ -430,6 +430,40 @@ var fragment_schema = new Schema({
       blockId = new ObjectId(blockId);
     }
     return ( _.findIndex(this.blocks, id => blockId.equals(id)) > -1 ) ? true : false;
+  }
+
+  /**
+   * Assign fragment holder to fragment by entering
+   * user id into assignment_history with timestamp
+   * @param {mixed} userId User ObjectId or string
+   */
+  fragment_schema.methods.assignHolder = function(userId){
+    if(!userId instanceof ObjectId && typeof userId === 'string'){
+      userId = new ObjectId(userId);
+    }
+    this.assignment_history.push({
+      to: userId,
+      on: new Date().getTime()
+    });
+  };
+
+
+  fragment_schema.methods.holder = function(){
+    return _.last(this.assignment_history).to;
+  };
+
+  /**
+   * Unassign fragment by entering assignment
+   * record with null as holder (to)
+   * @return {void}
+   */
+  fragment_schema.methods.unassignHolder = function(){
+    // do not enter empty assinment if there is no current holder
+    if(!this.assignment_history.length || _.last(this.assignment_history).to === null) return;
+    this.assignment_history.push({
+      to: null,
+      on: new Date().getTime()
+    });
   }
 
 
