@@ -128,7 +128,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":15,"jquery":8}],3:[function(require,module,exports){
+},{"../../vendor/form2js":16,"jquery":8}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -28614,13 +28614,85 @@ $inputContainers.each(function(){attachEvents(this)});
 
 module.exports = {attachEvents};
 
-},{"../../utils.js":14,"jquery":8}],13:[function(require,module,exports){
+},{"../../utils.js":15,"jquery":8}],13:[function(require,module,exports){
+var $ = require('../../jquery/jquery.js');
+
+// FIXME: THE WAY CONTIAINERS ARE FOIND NEEDS TO BE CHANGED TO WORK WITH ALL INPUT ELEMETNS
+
+/**
+ * Add error class and append error messages
+ * @param  {[type]} validationErrors [description]
+ * @return {[type]}                  [description]
+ */
+function standardHandler(validationErrors){
+    for (var inputName in validationErrors) {
+      if (validationErrors.hasOwnProperty(inputName)) {
+        // find input-element container with corresponding input
+        var $inputContainer = $('input[name="' + inputName + ']"').parent();
+        if($inputContainer.length) {
+          // add error class
+          $inputContainer.addClass('error');
+          // insert error messages
+          var $messageContainer = $inputContainer.next();//.find('.input-error-messages');
+          var errorMessages = validationErrors[inputName];
+          errorMessages.forEach(function(msg){
+            $messageContainer.append('<p>' + msg + '</p>')
+          });
+        }
+      }
+    }
+}
+
+  /**
+   * Simple validation handler. Find input element
+   * and add error class, no error messages
+   * @param  {object} validationErrors
+   * @return {void}
+   */
+  function simpleHandler(validationErrors){
+    for (var inputName in validationErrors) {
+      if (validationErrors.hasOwnProperty(inputName)) {
+        // find input-element container with corresponding input
+        var $inputContainer = $('input[name="' + inputName + '"]').parent();
+        if($inputContainer.length) {
+          // add error class
+          $inputContainer.addClass('error');
+        }
+      }
+    }
+  }
+
+  /**
+   * Clear error classes from within a container,
+   * usually a form element
+   * @type {jQuery Object} Must be jquery object
+   */
+  function clearErrors($form){
+    if(!$form instanceof $) $form = $($form);
+    // remove error class from last submit
+    $form.find('.input-element.error').each(function(){
+      $(this).removeClass('error');
+    });
+    // remove error messages from container
+    $form.find('.input-error-messages').each(function(){
+      $(this).html('');
+    });
+  }
+
+module.exports = {
+  standardHandler,
+  simpleHandler,
+  clearErrors
+};
+
+},{"../../jquery/jquery.js":1}],14:[function(require,module,exports){
 const _ = require('lodash');
 const Mustache = require('mustache');
 
 const form2js = require('../../vendor/form2js');
 const $ = require('../../jquery/jquery');
 const error_modals = require('../modules/generic_modals');
+const {simpleHandler, clearErrors} = require('../modules/validationHandler.js');
 require('../modules/text-input');
 
 // OPTIMIZE: when blocks are inserted into block groups, sort them numerically
@@ -29168,12 +29240,25 @@ var DOM = {
   }
 
   function success(response){
-    console.log(response);
+    clearErrors(cache.$fragment_form);
+    if(response.error){
+      if (response.error.name === 'FormValidationError'){
+        return simpleHandler(response.error.validationErrors);
+      }
+    }
+    // show success modal
+    $('#fragment-saved-modal').pbmodal({
+      onClose: function(){
+        window.location.reload(true);
+      }
+    })
+    .show();
+
   }
 
 }(window, DOM));
 
-},{"../../jquery/jquery":1,"../../vendor/form2js":15,"../modules/generic_modals":11,"../modules/text-input":12,"lodash":9,"mustache":10}],14:[function(require,module,exports){
+},{"../../jquery/jquery":1,"../../vendor/form2js":16,"../modules/generic_modals":11,"../modules/text-input":12,"../modules/validationHandler.js":13,"lodash":9,"mustache":10}],15:[function(require,module,exports){
 /**
  * Utility Functions
  */
@@ -29192,7 +29277,7 @@ module.exports = {
   isEmptyString: isEmptyString
 };
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *
@@ -29543,4 +29628,4 @@ module.exports = {
 
 }));
 
-},{}]},{},[13]);
+},{}]},{},[14]);

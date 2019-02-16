@@ -15,7 +15,12 @@ append templates
   script(type="x-tmpl-mustache", id="temp-block-row")
     .block
       p.details #[span(class="hundred") {{hundred}}] #[span(class="even") {{odd_even}}]
-          
+
+append modals
+  +modal('fragment-saved-modal')
+    p Fragment successfully created
+    .button-row.mini
+      button(data-action="close") okay
 
 block panel
   //- Fragment Details Pane

@@ -11,7 +11,7 @@ function standardHandler(validationErrors){
     for (var inputName in validationErrors) {
       if (validationErrors.hasOwnProperty(inputName)) {
         // find input-element container with corresponding input
-        var $inputContainer = $('input[name=' + inputName + ']').parent();
+        var $inputContainer = $('input[name="' + inputName + ']"').parent();
         if($inputContainer.length) {
           // add error class
           $inputContainer.addClass('error');
@@ -36,7 +36,7 @@ function standardHandler(validationErrors){
     for (var inputName in validationErrors) {
       if (validationErrors.hasOwnProperty(inputName)) {
         // find input-element container with corresponding input
-        var $inputContainer = $('input[name=' + inputName + ']').parent();
+        var $inputContainer = $('input[name="' + inputName + '"]').parent();
         if($inputContainer.length) {
           // add error class
           $inputContainer.addClass('error');

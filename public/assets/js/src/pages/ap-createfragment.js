@@ -4,6 +4,7 @@ const Mustache = require('mustache');
 const form2js = require('../../vendor/form2js');
 const $ = require('../../jquery/jquery');
 const error_modals = require('../modules/generic_modals');
+const {simpleHandler, clearErrors} = require('../modules/validationHandler.js');
 require('../modules/text-input');
 
 // OPTIMIZE: when blocks are inserted into block groups, sort them numerically
@@ -551,7 +552,20 @@ var DOM = {
   }
 
   function success(response){
-    console.log(response);
+    clearErrors(cache.$fragment_form);
+    if(response.error){
+      if (response.error.name === 'FormValidationError'){
+        return simpleHandler(response.error.validationErrors);
+      }
+    }
+    // show success modal
+    $('#fragment-saved-modal').pbmodal({
+      onClose: function(){
+        window.location.reload(true);
+      }
+    })
+    .show();
+
   }
 
 }(window, DOM));

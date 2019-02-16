@@ -281,7 +281,15 @@ var saveFragment = (req, res, next) => {
       // WARNING: if the auto overwrite option is removed
       // assign blocks can possibly throw BlocksAlreadyAssignedToFragment
       fragment.assignBlocks(blockIds, null, {skipDuplicatesCheck: true});
-
+      // check for fragment holder assignment
+      if(fragmentData.assignment && ObjectId.isValid(fragmentData.assignment)){
+        fragment.assignHolder(fragmentData.assignment);
+      }
+      return territory.save();
+    })
+    .then(territory => {
+      // all done!
+      return ajaxResponse(res);
     })
     .catch(e => {
       throw e;
