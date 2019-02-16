@@ -101,7 +101,7 @@ var unitContainer = panes.units.find('.units-container');
 /**
  * Existing Blocks Loader
  */
-(function(table){
+(function(g, table){
 
   var $streetSelect = $('#street_selector');
 
@@ -119,7 +119,7 @@ var unitContainer = panes.units.find('.units-container');
     // change street label
     $('.street-label').text(street);
     $.ajax({
-      url: '/ajax/territory/get-street-stats',
+      url: g.PB_CONSTANTS.ajax_url + '/territory/get-street-stats',
       method: 'post',
       data: {
         street: street
@@ -149,12 +149,12 @@ var unitContainer = panes.units.find('.units-container');
 
 
 
-}(window.StreetStatsTable));
+}(window, window.StreetStatsTable));
 
 /**
  * Form Submission and data collection
  */
-(function(form){
+(function(g, form){
   /**
    * Attach handlers
    */
@@ -165,7 +165,7 @@ var unitContainer = panes.units.find('.units-container');
      // send to backend
      formData = JSON.stringify(formData);
      $.ajax({
-       url: '/ajax/territory/save-territory',
+       url: g.PB_CONSTANTS.ajax_url + '/territory/save-territory',
        method: 'POST',
        contentType: 'application/json',
        dataType: 'json',
@@ -233,7 +233,7 @@ var unitContainer = panes.units.find('.units-container');
 
   }
 
-}(form, unitContainer));
+}(window, form, unitContainer));
 
 /**
  * Unit UI

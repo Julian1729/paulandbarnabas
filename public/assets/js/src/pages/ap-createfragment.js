@@ -509,7 +509,7 @@ var DOM = {
     current_street.name = streetName;
     current_street.id = $selector.val();
     $.ajax({
-      url: '/ajax/territory/get-street-stats',
+      url: g.PB_CONSTANTS.ajax_url + '/territory/get-street-stats',
       method: 'post',
       data: {
         street: streetName
@@ -540,7 +540,7 @@ var DOM = {
     var json = JSON.stringify(fragmentObj);
     // make ajax request
     $.ajax({
-      url: '/ajax/territory/save-fragment',
+      url: g.PB_CONSTANTS.ajax_url + '/territory/save-fragment',
       method: 'post',
       contentType: 'application/json',
       data: json,
