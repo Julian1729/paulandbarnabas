@@ -20,7 +20,8 @@ const CONFIG = {
       'landing',
       'signup',
       'ap-createterritory',
-      'ap-createfragment'
+      'ap-createfragment',
+      'localize-constants'
     ],
     src: './public/assets/js/src/app.js',
     inputDir: './public/assets/js/src/pages/',

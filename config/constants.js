@@ -18,6 +18,7 @@ var local = {
   }
 };
 local.assets_url = local.base_url + "/assets";
+local.ajax_url = local.base_url + "/ajax";
 
 var production = {
 
