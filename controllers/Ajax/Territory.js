@@ -298,10 +298,65 @@ var saveFragment = (req, res, next) => {
 
 };
 
+var getUnassignedFragments = (req, res, next) => {
+
+  var congregation = req.session.congregation;
+
+  if(!congregation){
+    return res.status(HttpStatus.UNAUTHORIZED).send();
+  }
+
+  // query for fragments with empty assignment_history or last element "to" = null
+  TerritoryModel.aggregate([{
+      "$match": {
+        "congregation": ObjectId("5c69fc84a38f454a4e8687ab")
+      }
+    },
+    {
+      "$limit": 1
+    },
+    {
+      "$unwind": {
+        "path": "$fragments"
+      }
+    },
+    {
+      "$match": {
+        "$or": [{
+            "fragments.assignment_history.to": null
+          },
+          {
+            "fragments.assignment_history.to": {
+              "$exists": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "$project": {
+        "fragments.number": 1,
+        "fragments.assignment_history": {
+          "$slice": ["$fragments.assignment_history", -1]
+        }
+      }
+    }
+  ])
+  .then(r => {
+    res.send(r)
+    console.log(r);
+  })
+  .catch(e => {
+    e.printStack();
+  })
+
+};
+
 module.exports = {
   saveTerritory,
   getStreetStats,
   getStreets,
   getFragments,
-  saveFragment
+  saveFragment,
+  getUnassignedFragments
 };
