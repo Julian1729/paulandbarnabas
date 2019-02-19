@@ -24,4 +24,9 @@ router.get('/createfragment', (req, res, next) => {
   controller.createFragment(req, res, next);
 });
 
+// Manage Publishers page
+router.get('/managepublishers', (req, res, next) => {
+  controller.managePublishers(req, res, next);
+});
+
 module.exports = router;

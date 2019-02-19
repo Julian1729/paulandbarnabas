@@ -131,7 +131,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":15,"jquery":9}],3:[function(require,module,exports){
+},{"../../vendor/form2js":14,"jquery":9}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -28637,84 +28637,117 @@ return jQuery;
 
 },{}],12:[function(require,module,exports){
 /**
- * Text Input
- * Handle label animation on focus
+ * Base Modals
+ * Page error, and request error modal, that are available on every page
  */
-const $ = require('jquery');
-const Utils = require('../../utils.js');
+const $ = require('../../jquery/jquery');
 
-// collect all input containers
-var $inputContainers = $('.text-input-container');
+var page_error_modal = $('#page-error-modal').pbmodal();
+var request_error_modal = $('#request-error-modal').pbmodal()
 
-function attachEvents(e){
-  var $inputContainer = $(e); // convert to jquery object
-  var $input = $($inputContainer).find('input');
-  var $label = $($inputContainer).find('label');
-  $input.on('focus', function(){
-    floatLabel($label);
+// this was added to global namespace so that
+// they could be called even inside a jquery plugin
+window.GENERIC_MODALS = {
+  page_error_modal: page_error_modal,
+  request_error_modal: request_error_modal
+};
+
+module.exports = {page_error_modal, request_error_modal};
+
+},{"../../jquery/jquery":1}],13:[function(require,module,exports){
+/**
+ * Manage Publishers Page Javascript
+ */
+const $ = require('../../jquery/jquery');
+
+var error_modals = require('../modules/generic_modals');
+
+/**
+ * DOM Elements
+ */
+var CACHED_ELEMENTS = {
+  $publisher_selector: $('select[name="publisher_id"]'),
+  $assigned_fragments_table: $('#assigned-fragments-table'),
+  $unassigned_fragments_table: $('#unassigned-fragments-table')
+};
+
+var $assigned_fragments_pbtable = CACHED_ELEMENTS.$assigned_fragments_table.pbtable();
+var $unassigned_fragments_pbtable = CACHED_ELEMENTS.$unassigned_fragments_table.pbtable();
+
+/**
+ * Populate Streets in selector on page load
+ */
+(function($selector){
+
+  $selector.populateusers();
+
+}(CACHED_ELEMENTS.$publisher_selector));
+
+/**
+ * Populate Unassigned Fragments table
+ */
+(function($unassigned_pbtable, $assigned_table){
+
+  $unassigned_pbtable.rowClick(function(r){
+    $row = $(r);
+    $row.attr('data-new', true)
+    $row.appendTo($assigned_table)
   });
-  $input.on('blur', function(){
-    var $this = $(this);
-    // only sink label if input value is empty
-    if( Utils.isEmptyString( $this.val() ) ){
-      // clear value
-      $this.val("");
-      // put label back
-      sinkLabel($label);
+
+  $.ajax({
+    url: window.PB_CONSTANTS.ajax_url + '/territory/get-unassigned-fragments',
+    method: 'POST',
+    success: function(r){
+      if(r.error){
+        return error_modals.page_error_modal.show();
+      }
+      var rowInfo = [];
+      r.data.forEach(function(fragment){
+        rowInfo.push({
+          rowAttrs: {'data-fragment': fragment.id, 'class': 'selectable'},
+          values: [fragment.number, fragment.block_count],
+        });
+      });
+      console.log(rowInfo);
+      $unassigned_pbtable.appendRows(rowInfo);
+    },
+    error: function(){
+      error_modals.request_error_modal.show();
     }
   });
-}
 
-function floatLabel($label){
-  $label.addClass('float');
-}
-
-function sinkLabel($label){
-  $label.removeClass('float');
-}
+}($unassigned_fragments_pbtable, CACHED_ELEMENTS.$assigned_fragments_table));
 
 /**
- * Attach event handler to all existing text inputs
+ * Populate Assigned Fragments Table
  */
-$inputContainers.each(function(){attachEvents(this)});
+(function(cached){
 
-module.exports = {attachEvents};
+  function morphTable(r){
+    if(response.error){
+      return error_modals.request_error_modal.show();
+    }
 
-},{"../../utils.js":14,"jquery":9}],13:[function(require,module,exports){
-var $ = require('../../jquery/jquery.js');
-var Utils = require('../../utils.js');
-const inputs = require('../modules/text-input.js');
+  }
 
-var signupForm = $('#signup-form').ajaxform({
-url: '/ajax/account/sign-up',
-method: 'POST',
-success: function(response, validation_handler, form){
+  function populateAssignedFragments(){
+    var userId = $(this).val();
 
-  console.log(response);
+    $.ajax({
+      url: window.PB_CONSTANTS.ajax_url + '/territory/get-assigned-fragments',
+      success: morphTable,
+      error: function(){
+        error_modals.request_error_modal.show()
+      }
+    });
+  }
 
-}
-});
+  cached.$publisher_selector.on('change', populateAssignedFragments);
 
-},{"../../jquery/jquery.js":1,"../../utils.js":14,"../modules/text-input.js":12}],14:[function(require,module,exports){
-/**
- * Utility Functions
- */
 
-var redirect = function(to){
-  window.location.replace(to);
-};
+}(CACHED_ELEMENTS))
 
-var isEmptyString = function(string){
-  string = string + ""; //cast to string
-  return (string.length === 0 || !string.trim());
-};
-
-module.exports = {
-  redirect: redirect,
-  isEmptyString: isEmptyString
-};
-
-},{}],15:[function(require,module,exports){
+},{"../../jquery/jquery":1,"../modules/generic_modals":12}],14:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *

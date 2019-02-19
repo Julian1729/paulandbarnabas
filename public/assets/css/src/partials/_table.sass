@@ -11,5 +11,15 @@ table
     @include font-smooth
     background: $light_cyan
     color: $white
+
+  tr.selectable
+    cursor: pointer
+    &.selected
+      background: $secondary_orange
+      color: $white
+      @include font-smooth
+    &:hover:not(:first-of-type)
+      box-shadow: inset 0 0 0 1px $secondary_orange
+      
   th,td
     padding: 5px 15px

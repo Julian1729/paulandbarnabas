@@ -21,6 +21,7 @@ const CONFIG = {
       'signup',
       'ap-createterritory',
       'ap-createfragment',
+      'ap-managepublishers',
       'localize-constants'
     ],
     src: './public/assets/js/src/app.js',

@@ -1,0 +1,32 @@
+extends AdminBase.pug
+
+prepend GLOBAL_PUG
+  - var page_name = "ap-createterritory"
+
+append scripts
+  script(src=constants.base_url + "/assets/js/dist/ap-managepublishers.bundle.js", type="text/javascript")
+
+block panel
+  .pane
+    +section_header('select publisher')
+    +select_input()(name="publisher_id", id="publisher_selector")
+      option(selected, disabled) select publisher
+    h6 assigned fragments
+    table#assigned-fragments-table
+      tr
+        td Number
+        td Blocks
+    h6 unassigned fragments
+    table#unassigned-fragments-table
+      tr
+        td Number
+        td Blocks
+    
+    button#save-changes save changes
+    
+  
+  .pane
+    +section_header('options')
+    button remove user
+    
+  

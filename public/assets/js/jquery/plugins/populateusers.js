@@ -10,13 +10,13 @@ var PopulateUsers = function(){
   $.ajax({
     url: '/ajax/user/get-list',
     method: 'GET',
-    success: populateUsers
+    success: populateUsers,
+    error: function(){
+      window.GENERIC_MODALS.request_error_modal.show();
+    }
   })
 
   function populateUsers (response){
-    if(response.error){
-      return console.log('HANDLE THIS ERROR');
-    }
     var users = response.data;
     users.forEach(function(user){
       // create option

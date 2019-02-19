@@ -25,4 +25,7 @@ var $ = require('jquery');
  var PBModal = require('./plugins/pbmodal');
  $.fn.pbmodal = PBModal;
 
+  var PBTable = require('./plugins/pbtable');
+  $.fn.pbtable = PBTable;
+
 module.exports = $;

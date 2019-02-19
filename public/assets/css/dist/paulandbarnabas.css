@@ -380,6 +380,16 @@ table {
     -moz-osx-font-smoothing: grayscale;
     background: #7CC8C2;
     color: #FFF; }
+  table tr.selectable {
+    cursor: pointer; }
+    table tr.selectable.selected {
+      background: #FE994D;
+      color: #FFF;
+      -webkit-font-smoothing: antialiased;
+      font-smooth: always;
+      -moz-osx-font-smoothing: grayscale; }
+    table tr.selectable:hover:not(:first-of-type) {
+      box-shadow: inset 0 0 0 1px #FE994D; }
   table th, table td {
     padding: 5px 15px; }
 
@@ -662,17 +672,6 @@ body.ap-createfragment .fragment-display-wrapper {
 
 body.ap-createfragment .fragment-details .fragment-number {
   width: 150px; }
-
-body.ap-createfragment .fragment-details table.select-blocks tr {
-  cursor: pointer; }
-  body.ap-createfragment .fragment-details table.select-blocks tr.selected {
-    background: #FE994D;
-    color: #FFF;
-    -webkit-font-smoothing: antialiased;
-    font-smooth: always;
-    -moz-osx-font-smoothing: grayscale; }
-  body.ap-createfragment .fragment-details table.select-blocks tr:hover:not(:first-of-type) {
-    box-shadow: inset 0 0 0 1px #FE994D; }
 
 /**
  * Third-party

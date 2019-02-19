@@ -474,6 +474,12 @@ var TerritorySchema = new Schema({
   streets: [streets_schema]
 });
 
+/**
+ * Query Helpers
+ */
+// TerritorySchema.query.unnassignedFragments = function(congregation){
+//   return this.aggregate([],  )
+// };
 
 
 /**

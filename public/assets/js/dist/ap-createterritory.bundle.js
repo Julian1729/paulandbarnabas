@@ -26,9 +26,12 @@ var $ = require('jquery');
  var PBModal = require('./plugins/pbmodal');
  $.fn.pbmodal = PBModal;
 
+  var PBTable = require('./plugins/pbtable');
+  $.fn.pbtable = PBTable;
+
 module.exports = $;
 
-},{"./plugins/ajaxform":2,"./plugins/disableInputs":3,"./plugins/pbmodal":4,"./plugins/populatefragments":5,"./plugins/populatestreetnames":6,"./plugins/populateusers":7,"jquery":8}],2:[function(require,module,exports){
+},{"./plugins/ajaxform":2,"./plugins/disableInputs":3,"./plugins/pbmodal":4,"./plugins/pbtable":5,"./plugins/populatefragments":6,"./plugins/populatestreetnames":7,"./plugins/populateusers":8,"jquery":9}],2:[function(require,module,exports){
 const $ = require('jquery');
 const form2js = require('../../vendor/form2js');
 
@@ -128,7 +131,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":19,"jquery":8}],3:[function(require,module,exports){
+},{"../../vendor/form2js":20,"jquery":9}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -155,7 +158,7 @@ function disable(){
 
 module.exports = DisableInputs;
 
-},{"jquery":8}],4:[function(require,module,exports){
+},{"jquery":9}],4:[function(require,module,exports){
 var $ = require('jquery');
 const _ = require('lodash');
 const Mustache = require('mustache');
@@ -294,7 +297,82 @@ Modal.init.prototype = Modal.prototype;
 
 module.exports = Modal;
 
-},{"jquery":8,"lodash":9,"mustache":10}],5:[function(require,module,exports){
+},{"jquery":9,"lodash":10,"mustache":11}],5:[function(require,module,exports){
+/**
+ * PB Table morph module
+ */
+var $ = require('jquery');
+const _ = require('lodash');
+
+var PBTable = function(options){
+  return new PBTable.init(this, options);
+};
+
+PBTable.init = function(table, options){
+  this.table = table;
+};
+
+/**
+ * Generate a row with row info
+ * @param  {Object} rowInfoObj value object e.g. { rowAttrs: {data-action: "close", class: ".theclass" }, values: ['123', 'Julian'] }
+ * @return {jQuery} Generated row
+ */
+function generateRow(rowInfoObj){
+  rowInfoObj = rowInfoObj || {};
+  _.defaults(rowInfoObj, {
+    rowAttrs: {},
+    values: []
+  });
+  // row to be mutated
+  var row = $('<tr>');
+  // add row attributes
+  for (var attr in rowInfoObj.rowAttrs) {
+    if (rowInfoObj.rowAttrs.hasOwnProperty(attr)) {
+      row.attr(attr, rowInfoObj.rowAttrs[attr])
+    }
+  }
+  rowInfoObj.values.forEach(function(v){
+    var td = $('<td>');
+    td.text(v);
+    row.append(td);
+  });
+  return row;
+}
+
+PBTable.prototype = {
+
+  /**
+   * Take an array of row info objects with values
+   * and append mutate table
+   * @param  {Array} rowInfoObjArray Array of row info objects
+   * @return {void}
+   */
+  appendRows: function(rowInfoObjArray){
+    rowInfoObjArray.forEach(function(rowInfoObj){
+      var row = generateRow(rowInfoObj);
+      this.table.append(row);
+    }, this);
+  },
+
+  /**
+   * Use event delegation to attach a click
+   * event to row.
+   * @param  {Function} callback Callback function, passed row element
+   * @return {void}
+   */
+  rowClick: function(callback){
+    this.table.on('click', 'tr', function(e){
+        callback(this);
+    });
+  }
+
+};
+
+PBTable.init.prototype = PBTable.prototype;
+
+module.exports = PBTable;
+
+},{"jquery":9,"lodash":10}],6:[function(require,module,exports){
 var $ = require('jquery');
 
 var PopulateFragments = function(){
@@ -324,7 +402,7 @@ var PopulateFragments = function(){
 
 module.exports = PopulateFragments;
 
-},{"jquery":8}],6:[function(require,module,exports){
+},{"jquery":9}],7:[function(require,module,exports){
 var $ = require('jquery');
 
 var PopulateStreetNames = function(useNames){
@@ -362,7 +440,7 @@ var PopulateStreetNames = function(useNames){
 
 module.exports = PopulateStreetNames;
 
-},{"jquery":8}],7:[function(require,module,exports){
+},{"jquery":9}],8:[function(require,module,exports){
 /**
  * Populate Select elements users by congregation
  */
@@ -375,13 +453,13 @@ var PopulateUsers = function(){
   $.ajax({
     url: '/ajax/user/get-list',
     method: 'GET',
-    success: populateUsers
+    success: populateUsers,
+    error: function(){
+      window.GENERIC_MODALS.request_error_modal.show();
+    }
   })
 
   function populateUsers (response){
-    if(response.error){
-      return console.log('HANDLE THIS ERROR');
-    }
     var users = response.data;
     users.forEach(function(user){
       // create option
@@ -396,7 +474,7 @@ var PopulateUsers = function(){
 
 module.exports = PopulateUsers;
 
-},{"jquery":8}],8:[function(require,module,exports){
+},{"jquery":9}],9:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -10762,7 +10840,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -27873,7 +27951,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /*!
  * mustache.js - Logic-less {{mustache}} templates with JavaScript
  * http://github.com/janl/mustache.js
@@ -28557,7 +28635,7 @@ return jQuery;
   return mustache;
 }));
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /*!
  * validate.js 0.12.0
  *
@@ -29745,7 +29823,7 @@ return jQuery;
         typeof module !== 'undefined' ? /* istanbul ignore next */ module : null,
         typeof define !== 'undefined' ? /* istanbul ignore next */ define : null);
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /**
  * Base Modals
  * Page error, and request error modal, that are available on every page
@@ -29755,9 +29833,16 @@ const $ = require('../../jquery/jquery');
 var page_error_modal = $('#page-error-modal').pbmodal();
 var request_error_modal = $('#request-error-modal').pbmodal()
 
+// this was added to global namespace so that
+// they could be called even inside a jquery plugin
+window.GENERIC_MODALS = {
+  page_error_modal: page_error_modal,
+  request_error_modal: request_error_modal
+};
+
 module.exports = {page_error_modal, request_error_modal};
 
-},{"../../jquery/jquery":1}],13:[function(require,module,exports){
+},{"../../jquery/jquery":1}],14:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 
 var templates = $('#templates');
@@ -29795,7 +29880,7 @@ module.exports = {
   getTextTemplate
 };
 
-},{"../../jquery/jquery.js":1}],14:[function(require,module,exports){
+},{"../../jquery/jquery.js":1}],15:[function(require,module,exports){
 /**
  * Text Input
  * Handle label animation on focus
@@ -29840,7 +29925,7 @@ $inputContainers.each(function(){attachEvents(this)});
 
 module.exports = {attachEvents};
 
-},{"../../utils.js":18,"jquery":8}],15:[function(require,module,exports){
+},{"../../utils.js":19,"jquery":9}],16:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
 
 // FIXME: THE WAY CONTIAINERS ARE FOIND NEEDS TO BE CHANGED TO WORK WITH ALL INPUT ELEMETNS
@@ -29911,7 +29996,7 @@ module.exports = {
   clearErrors
 };
 
-},{"../../jquery/jquery.js":1}],16:[function(require,module,exports){
+},{"../../jquery/jquery.js":1}],17:[function(require,module,exports){
 const _ = require('lodash');
 const validate = require('validate.js');
 
@@ -30309,7 +30394,7 @@ var unitContainer = panes.units.find('.units-container');
 
 }(panes.streetselect));
 
-},{"../../jquery/jquery":1,"../../utils":18,"../../vendor/form2js":19,"../modules/generic_modals":12,"../modules/template.js":13,"../modules/text-input.js":14,"../modules/validationHandler.js":15,"../validators/GenerateUnits":17,"lodash":9,"validate.js":11}],17:[function(require,module,exports){
+},{"../../jquery/jquery":1,"../../utils":19,"../../vendor/form2js":20,"../modules/generic_modals":13,"../modules/template.js":14,"../modules/text-input.js":15,"../modules/validationHandler.js":16,"../validators/GenerateUnits":18,"lodash":10,"validate.js":12}],18:[function(require,module,exports){
 var validate = require('validate.js');
 const _ = require('lodash');
 
@@ -30379,7 +30464,7 @@ module.exports = (formValues) => {
   return validate(formValues, c);
 };
 
-},{"lodash":9,"validate.js":11}],18:[function(require,module,exports){
+},{"lodash":10,"validate.js":12}],19:[function(require,module,exports){
 /**
  * Utility Functions
  */
@@ -30398,7 +30483,7 @@ module.exports = {
   isEmptyString: isEmptyString
 };
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *
@@ -30749,4 +30834,4 @@ module.exports = {
 
 }));
 
-},{}]},{},[16]);
+},{}]},{},[17]);

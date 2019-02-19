@@ -108,6 +108,11 @@ var insertData = async () => {
             overington1500.odd._id,
             overington1500.even._id,
           ], territory );
+      // assign frament 1 to Julian Hernandez
+      territory.findFragment(1).assignHolder(seededData.users[0]._id);
+      territory.findFragment(2).assignHolder(seededData.users[0]._id);
+      territory.findFragment(2).unassignHolder();
+      territory.addFragment(3);
       return territory.save();
     })
     // Save modified territory to data

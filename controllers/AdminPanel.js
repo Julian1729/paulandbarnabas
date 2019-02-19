@@ -20,8 +20,15 @@ var createFragment = (req, res, next) => {
 
 };
 
+var managePublishers = (req, res, next) => {
+
+  res.render('AdminPanel/ManagePublishers');
+
+};
+
 module.exports = controllerBase.extend({
   land,
   createTerritory,
-  createFragment
+  createFragment,
+  managePublishers
 });

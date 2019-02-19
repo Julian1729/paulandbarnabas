@@ -307,7 +307,8 @@ var getUnassignedFragments = (req, res, next) => {
   }
 
   // query for fragments with empty assignment_history or last element "to" = null
-  TerritoryModel.aggregate([{
+  TerritoryModel.aggregate([
+    {
       "$match": {
         "congregation": ObjectId("5c69fc84a38f454a4e8687ab")
       }
@@ -322,7 +323,8 @@ var getUnassignedFragments = (req, res, next) => {
     },
     {
       "$match": {
-        "$or": [{
+        "$or": [
+          {
             "fragments.assignment_history.to": null
           },
           {
@@ -336,19 +338,97 @@ var getUnassignedFragments = (req, res, next) => {
     {
       "$project": {
         "fragments.number": 1,
+        "fragments._id": 1,
         "fragments.assignment_history": {
           "$slice": ["$fragments.assignment_history", -1]
-        }
+        },
+        "size": {"$size":"$fragments.blocks"}
       }
-    }
+    },
+
   ])
   .then(r => {
-    res.send(r)
-    console.log(r);
+    // loop through returned and grab only needed information
+    // OPTIMIZE: there has to be a way I can do this with aggregation
+    // e.g. [ {id: ObjectId('asdfasdf'), number: 3}, ... ]
+    var fragments = [];
+    r.forEach(d => {
+      fragments.push({
+        id: d.fragments._id,
+        number: d.fragments.number,
+        block_count: d.size
+      });
+    });
+    ajaxResponse(res, {
+      data: fragments
+    })
   })
   .catch(e => {
-    e.printStack();
-  })
+    console.log(e);
+  });
+
+};
+
+var getAssignedFragments = (req, res, next) => {
+
+    var congregation = req.session.congregation;
+    var user_id = req.body.user_id;
+
+    if(!congregation || !user_id){
+      return res.status(HttpStatus.UNAUTHORIZED).send();
+    }
+
+    // query for fragments with empty assignment_history or last element "to" = null
+    TerritoryModel.aggregate([
+      {
+        "$match": {
+          "congregation": ObjectId("5c69fc84a38f454a4e8687ab")
+        }
+      },
+      {
+        "$limit": 1
+      },
+      {
+        "$unwind": {
+          "path": "$fragments"
+        }
+      },
+      {
+        "$project": {
+          "fragments.number": 1,
+          "fragments._id": 1,
+          "fragments.assignment_history": {
+            "$slice": ["$fragments.assignment_history", -1]
+          },
+          "size": {"$size":"$fragments.blocks"}
+        }
+      },
+      {
+        "$match": {
+          "fragments.assignment_history.to": ObjectId("5c69fc84a38f454a4e8687ac")
+        }
+      }
+    ])
+    .then(r => {
+      // loop through returned and grab only needed information
+      // OPTIMIZE: there has to be a way I can do this with aggregation
+      // e.g. [ {id: ObjectId('asdfasdf'), number: 3}, ... ]
+      console.log(r);
+      var fragments = [];
+      r.forEach(d => {
+        fragments.push({
+          id: d.fragments._id,
+          number: d.fragments.number,
+          block_count: d.size
+        });
+      });
+      ajaxResponse(res, {
+        data: fragments
+      })
+    })
+    .catch(e => {
+      console.log(e);
+    });
 
 };
 
@@ -358,5 +438,6 @@ module.exports = {
   getStreets,
   getFragments,
   saveFragment,
-  getUnassignedFragments
+  getUnassignedFragments,
+  getAssignedFragments
 };
