@@ -273,32 +273,6 @@ describe('Territory Model', () => {
 
       });
 
-      // it('should save block into fragment', (done) => {
-      //
-      //   var targetFragmentNumber = seed.territory.completed.fragments[0].number;
-      //   var targetBlockId = null;
-      //   var testTerritory = Territory(seed.territory.completed);
-      //   testTerritory.save()
-      //     .then(territory => {
-      //       targetBlockId = territory
-      //         .findStreet('Oakland')
-      //         .findHundred(4500)._id;
-      //
-      //       expect(targetBlockId).to.exist;
-      //       return territory.assignBlockToFragment(targetFragmentNumber, targetBlockId)
-      //     })
-      //     .then(territory => {
-      //       var fragment = territory.findFragment(targetFragmentNumber);
-      //       expect(fragment).to.exist;
-      //       var findBlock = fragment.blocks.find(id => id === targetBlockId);
-      //       expect(findBlock).to.exist;
-      //       done();
-      //     })
-      //     .catch(e => done(e));
-      //
-      //
-      // });
-
     });
 
     it('should return the correct block subdocuments', (done) => {
@@ -1121,6 +1095,43 @@ describe('Territory Model', () => {
             console.log(JSON.stringify(block.tags, null, 2));
             expect(block.tags).to.include('the tag');
             done();
+          })
+          .catch(e => done(e));
+
+      });
+
+      it('should find 1 fragment that belong to user', (done) => {
+
+        var theUser = null;
+
+        Utils.clearCollection(User)
+          .then(() => {
+
+            // enter user into db
+            return new User(seedUsers.validUser).save();
+
+          })
+          .then(user => {
+            theUser = user;
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              // assign block to fragment
+              .then(territory => {
+
+                var blockToAdd = territory.findStreet('Oakland').findHundred(4500).odd._id;
+                var fragment = territory.findFragment(1);
+                fragment.assignHolder(theUser._id);
+                return territory.save();
+              })
+              // assure that we can verify block has been assigned
+              .then(territory => {
+                var fragments = territory.findUserFragments(theUser.id);
+                expect(fragments).to.have.lengthOf(1);
+                expect(fragments[0]).to.have.property('blocks');
+                done();
+              })
+              .catch(e => done(e));
+
           })
           .catch(e => done(e));
 

@@ -109,18 +109,6 @@ const errors = require('../errors');
     }
   });
 
-
-var current_holder_schema = new Schema({
-  holder: {
-    type: Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  assignedon: {
-    type: Date,
-    required: true
-  }
-});
-
 var worked_schema = new Schema({
   start: {
     type: Date,
@@ -744,6 +732,23 @@ var TerritorySchema = new Schema({
       blocks.push(blockRef);
     });
     return blocks;
+  };
+
+  /**
+   * Get fragments that belong to a user
+   * @param {mixed} userId ObjectId or string
+   * @return {Array} Fragement sub docs that belong to user
+   * OPTIMIZE: this can be optimized a lot
+   */
+  TerritorySchema.methods.findUserFragments = function(userId){
+    userId = new ObjectId(userId);
+    var fragments = [];
+    this.fragments.forEach(function(fragment){
+      if(userId.equals(fragment.holder())){
+        fragments.push(fragment);
+      }
+    });
+    return fragments;
   };
 
 
