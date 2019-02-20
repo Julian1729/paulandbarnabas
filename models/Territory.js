@@ -712,6 +712,39 @@ var TerritorySchema = new Schema({
     return removedCount;
   };
 
+  // OPTIMIZE: THIS IS ABSOLTELY TERRIBLE!!
+  TerritorySchema.methods.findBlocksById = function(blockIds){
+    var blocks = [];
+    blockIds.forEach(blockId => {
+      var blockRef = {
+        street: null,
+        hundred: null,
+        odd_even: null,
+        block: null
+      };
+      // loop through streets
+      this.streets.forEach(street => {
+        // loop through hundreds
+        street.hundreds.forEach(hundred => {
+          if(hundred.odd._id === blockId){
+            blockRef.odd_even = 'odd';
+            blockRef.block = hundred.odd;
+          }else if(hundred.even._id === blockId){
+            blockRef.odd_even = 'even';
+            blockRef.block = hundred.even;
+          }
+          // if block was found
+          if(blockRef.block !== null){
+            blockRef.hundred = hundred.hundred;
+            blockRef.street = street.name;
+            return;
+          }
+        });
+      });
+      blocks.push(blockRef);
+    });
+    return blocks;
+  };
 
 
 /**

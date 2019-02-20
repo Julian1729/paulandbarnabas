@@ -301,6 +301,32 @@ describe('Territory Model', () => {
 
     });
 
+    it('should return the correct block subdocuments', (done) => {
+
+      var addedBlockIds = [];
+      var testTerritory = Territory(seed.territory.completed);
+      testTerritory.save()
+        // add blocks to streets
+        .then(territory => {
+          var oakland = territory.findStreet('Oakland')
+          var oakland4800 = oakland.addHundred(4800)
+          oakland4800.addUnits([{number: 4801}, {number: 4803, subunits: ['Apt 1', 'Apt 2']}, {number: 4802}]);
+          addedBlockIds.push(oakland4800.odd._id);
+          addedBlockIds.push(oakland4800.even._id);
+          return territory.save();
+        })
+        // find blocks
+        .then(territory => {
+          var blocks = territory.findBlocksById(addedBlockIds);
+          // console.log(JSON.stringify(blocks, null, 2));
+          expect(blocks).to.have.lengthOf(2);
+          done();
+          //expect(blocks[0].block).to.have.include({block: addedBlockIds[0])
+        })
+        .catch(e => done(e));
+
+    });
+
     describe('Street methods', () => {
 
       it('should return true that 4500 Oakland exists', (done) => {
@@ -1099,6 +1125,25 @@ describe('Territory Model', () => {
           .catch(e => done(e));
 
       });
+
+      // it('should return populated and referenced fragment blocks', (done) => {
+      //
+      //     var blocksToAdd = [];
+      //     var testTerritory = Territory(seed.territory.completed);
+      //     testTerritory.save()
+      //       .then(territory => {
+      //         var street = territory.findStreet('Oakland');
+      //         var oakland4500 = street.findHundred(4500);
+      //         hundred.addUnits([{number: 4504},{number: 4506},{number: 4503}];
+      //         blocksToAdd.push(oakland4500.odd._id);
+      //         blocksToAdd.push(oakland4500.even._id);
+      //         // add to fragment
+      //
+      //         done();
+      //       })
+      //       .catch(e => done(e));
+      //
+      // });
 
     });
 
