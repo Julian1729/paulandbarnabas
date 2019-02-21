@@ -47,6 +47,7 @@ app.set('views', __dirname + '/views');
  // Add constants and config vars to all render params
  app.use((req, res, next) => {
    res.locals.constants = constants;
+   app.locals.moment = require('moment');
    next();
  });
  // // Express json

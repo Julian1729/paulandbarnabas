@@ -3,6 +3,7 @@ const Schema = mongoose.Schema;
 const {ObjectId} = require('mongodb');
 const _ = require('lodash');
 
+const logger = require('../utils/logger');
 const Utils = require('../utils/utils');
 const errors = require('../errors');
 
@@ -437,6 +438,7 @@ var fragment_schema = new Schema({
 
 
   fragment_schema.methods.holder = function(){
+    if(!this.assignment_history.length) return null;
     return _.last(this.assignment_history).to;
   };
 
@@ -714,10 +716,12 @@ var TerritorySchema = new Schema({
       this.streets.forEach(street => {
         // loop through hundreds
         street.hundreds.forEach(hundred => {
-          if(hundred.odd._id === blockId){
+          if( hundred.odd._id.equals(blockId) ){
+            logger.debug(`odd match for ${blockId.toString()}`)
             blockRef.odd_even = 'odd';
             blockRef.block = hundred.odd;
-          }else if(hundred.even._id === blockId){
+          }else if( hundred.even._id.equals(blockId) ){
+            logger.debug(`even match for ${blockId.toString()}`)
             blockRef.odd_even = 'even';
             blockRef.block = hundred.even;
           }
@@ -727,9 +731,9 @@ var TerritorySchema = new Schema({
             blockRef.street = street.name;
             return;
           }
+          blocks.push(blockRef);
         });
       });
-      blocks.push(blockRef);
     });
     return blocks;
   };
