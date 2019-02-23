@@ -292,10 +292,10 @@ describe('Territory Model', () => {
         // find blocks
         .then(territory => {
           var blocks = territory.findBlocksById(addedBlockIds);
-          // console.log(JSON.stringify(blocks, null, 2));
+          console.log(JSON.stringify(blocks, null, 2));
           expect(blocks).to.have.lengthOf(2);
+          expect(blocks[0]).to.deep.include({street: 'Oakland'});
           done();
-          //expect(blocks[0].block).to.have.include({block: addedBlockIds[0])
         })
         .catch(e => done(e));
 
