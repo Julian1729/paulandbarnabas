@@ -703,6 +703,71 @@ describe('Territory Model', () => {
 
       });
 
+      describe('Unit Methods', () => {
+
+        it('should find subunit by subunit name', (done) => {
+
+          var testUnit =
+            {
+              number: 4504,
+              subunits: ["Apt 1", "Apt 2"]
+            };
+          var testTerritory = Territory(seed.territory.completed);
+          testTerritory.save()
+            .then(territory => {
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var addedUnits = hundred.addUnits([testUnit]);
+              expect(addedUnits).to.equal(1);
+              return territory.save();
+            })
+            .then(territory => {
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var unit = hundred.findUnit(testUnit.number);
+              var subunit = unit.findSubunit('Apt 1');
+              expect(subunit).to.exist;
+              expect(subunit).to.have.include({name: 'Apt 1'});
+              done();
+            })
+            .catch(e => done(e));
+
+        });
+
+        it('should not find subunit and throw SubunitNotFound', (done) => {
+
+          var testUnit =
+            {
+              number: 4504,
+              subunits: ["Apt 1", "Apt 2"]
+            };
+          var testTerritory = Territory(seed.territory.completed);
+          testTerritory.save()
+            .then(territory => {
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var addedUnits = hundred.addUnits([testUnit]);
+              expect(addedUnits).to.equal(1);
+              return territory.save();
+            })
+            .then(territory => {
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var unit = hundred.findUnit(testUnit.number);
+              try {
+                var subunit = unit.findSubunit('Apt 8');
+              } catch (e) {
+                console.log(e);
+                expect(e instanceof errors.SubunitNotFound).to.be.true;
+              }
+              done();
+            })
+            .catch(e => done(e));
+
+        });
+
+      });
+
     });
 
     describe('Fragment Methods', () => {

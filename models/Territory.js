@@ -110,6 +110,14 @@ const errors = require('../errors');
     }
   });
 
+  unit_schema.methods.findSubunit = function(name){
+
+    var foundSubunit = _.find(this.subunits, ['name', name]);
+    if(!foundSubunit) throw new errors.SubunitNotFound(name);
+    return foundSubunit;
+
+  };
+
 var worked_schema = new Schema({
   start: {
     type: Date,

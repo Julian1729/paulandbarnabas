@@ -194,6 +194,14 @@ class UnitsAlreadyExist extends Error {
   }
 }
 
+class SubunitNotFound extends Error {
+  constructor(subunit_name){
+    super();
+    this.name = 'SubunitNotFound';
+    this.subunit_name = subunit_name;
+  }
+}
+
 
  module.exports = {
    TestFailed,
@@ -214,5 +222,6 @@ class UnitsAlreadyExist extends Error {
    HundredNotFound,
    HundredAlreadyExists,
    UnitNotFound,
-   UnitsAlreadyExist
+   UnitsAlreadyExist,
+   SubunitNotFound
  };
