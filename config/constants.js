@@ -13,6 +13,7 @@ var universal = {
 var local = {
   mode: "local",
   base_url: "http://localhost:3000",
+  // base_url: "http://192.168.1.224:3000",
   bcrypt: {
     salt_rounds: 10
   }
