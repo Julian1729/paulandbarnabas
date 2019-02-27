@@ -287,14 +287,20 @@ describe('Territory Model', () => {
           oakland4800.addUnits([{number: 4801}, {number: 4803, subunits: ['Apt 1', 'Apt 2']}, {number: 4802}]);
           addedBlockIds.push(oakland4800.odd._id);
           addedBlockIds.push(oakland4800.even._id);
+          var knorr = territory.addStreet('Knorr');
+          var knorr2800 = knorr.addHundred(2800);
+          knorr2800.addUnits([{number: 2801}, {number: 2802}]);
+          addedBlockIds.push(knorr2800.odd._id);
+          addedBlockIds.push(knorr2800.even._id);
           return territory.save();
         })
         // find blocks
         .then(territory => {
           var blocks = territory.findBlocksById(addedBlockIds);
-          console.log(JSON.stringify(blocks, null, 2));
-          expect(blocks).to.have.lengthOf(2);
+          //console.log(JSON.stringify(blocks, null, 2));
+          expect(blocks).to.have.lengthOf(4);
           expect(blocks[0]).to.deep.include({street: 'Oakland'});
+          expect(blocks[1]).to.deep.include({street: 'Knorr'});
           done();
         })
         .catch(e => done(e));
@@ -968,6 +974,7 @@ describe('Territory Model', () => {
             var fragment = territory.findFragment(1);
             expect(fragment.blocks.length).to.equal(0);
             fragment.assignBlocks([testBlock], territory);
+            expect(fragment.blocks.length).to.equal(1);
             return territory.save();
 
           })
@@ -979,9 +986,11 @@ describe('Territory Model', () => {
             // remove all assigned blocks
             var removedCount = territory.removeBlocksFromFragments(result);
             //expect(removedCount).to.equal(1);
+            return territory.save();
+          })
+          .then(territory => {
             expect(territory.findFragment(1).blocks.length).to.equal(0);
             done();
-
           })
           .catch(e => done(e));
 

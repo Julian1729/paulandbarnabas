@@ -1,0 +1,21 @@
+extends ../ProtoBase
+
+append content
+  .container.text-center
+    h2 #{block_ref.hundred} #{block_ref.street}
+    h5= block_ref.odd_even
+  .container 
+    ul.list-group
+      each unit in block_ref.block.units
+        - var classes = "list-group-item list-group-item-action align-items-center d-flex justify-content-between"
+        if unit.isdonotcall
+          - classes = classes + " list-group-item-danger"
+        else if unit.iscalledon
+          - classes = classes + " list-group-item-warning"
+        else if unit.visits.length
+          - classes = classes + " list-group-item-success"
+        
+        li(class=classes)
+          a(href=unit.url)= unit.number
+          each tag in unit.tags
+            span.badge.badge-primary.badge-pill= tag

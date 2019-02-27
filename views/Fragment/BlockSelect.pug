@@ -1,0 +1,19 @@
+extends ../ProtoBase 
+
+append content
+  .container-fluid
+    nav(aria-label='breadcrumb')
+      ol.breadcrumb
+        li.breadcrumb-item
+          a(href='#') Home
+        li.breadcrumb-item
+          a(href='#') Library
+        li.breadcrumb-item.active(aria-current='page') Data
+
+  .container-fluid
+    ul
+      each block in blocks
+        li
+          a(href=block.block.url) #{block.hundred} #{block.street} (#{block.odd_even})
+
+        

@@ -280,7 +280,7 @@ var saveFragment = (req, res, next) => {
       });
       // WARNING: if the auto overwrite option is removed
       // assign blocks can possibly throw BlocksAlreadyAssignedToFragment
-      fragment.assignBlocks(blockIds, null, {skipDuplicatesCheck: true});
+      fragment.assignBlocks(blockIds, territory, {overwriteAssignments: true});
       // check for fragment holder assignment
       if(fragmentData.assignment && ObjectId.isValid(fragmentData.assignment)){
         fragment.assignHolder(fragmentData.assignment);

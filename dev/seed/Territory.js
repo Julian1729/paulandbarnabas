@@ -36,8 +36,23 @@ var streets =
               name: null,
               subunits: [],
               tags: [],
-              householders: [],
-              visits: [],
+              householders: [
+                {
+                  name: "John Doe",
+                  email: "john@example.com",
+                  phone_number: "2153459999",
+                  gender: "male"
+                }
+              ],
+              visits: [
+                {
+                  householders_contacted: "John Doe",
+                  contacted_by: "Todd Roberson",
+                  nowcalledon: false,
+                  details: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas ac pulvinar elit. Aliquam egestas sed neque sed porttitor. Cras lacinia rutrum velit eget convallis. Nunc lacus sem, congue tincidunt finibus id, tincidunt et odio",
+                  timestamp: new Date().getTime()
+                }
+              ],
               isdonotcall: false,
               language: null,
               notes: [],
@@ -48,8 +63,32 @@ var streets =
               name: null,
               subunits: [],
               tags: [],
-              householders: [],
-              visits: [],
+              householders: [
+                {
+                  name: "Kareem",
+                  gender: "male"
+                },
+                {
+                  name: "Tonya",
+                  gender: "female"
+                }
+              ],
+              visits: [
+                {
+                  householders_contacted: ["Kareem"],
+                  contacted_by: "Todd Roberson",
+                  nowcalledon: false,
+                  details: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas ac pulvinar elit. Aliquam egestas sed neque sed porttitor. Cras lacinia rutrum velit eget convallis. Nunc lacus sem, congue tincidunt finibus id, tincidunt et odio",
+                  timestamp: new Date().getTime()
+                },
+                {
+                  householders_contacted: ["Kareem", "Tonya"],
+                  contacted_by: "Todd Roberson",
+                  nowcalledon: false,
+                  details: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas ac pulvinar elit. Aliquam egestas sed neque sed porttitor. Cras lacinia rutrum velit eget convallis. Nunc lacus sem, congue tincidunt finibus id, tincidunt et odio",
+                  timestamp: new Date().getTime()
+                }
+              ],
               isdonotcall: false,
               language: null,
               notes: [],

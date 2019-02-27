@@ -4,13 +4,14 @@ const Session = require('../session/session');
 const logger = require('../utils/logger');
 const HttpStatus = require('http-status-codes');
 const controllerBase = require('./base');
+const constants = require('../config/constants');
 
 var land = (req, res, next) => {
 
   var user = Session.pickUserCredentials(req.session);
 
-  //send number of fragment
-  //send number of units
+  var base_fragment_url = constants.base_url + '/fragment';
+
   var renderVars = {
     'dashboard_stats': {
       fragment_count: 0,
@@ -28,6 +29,7 @@ var land = (req, res, next) => {
         var fragmentStats = {
           number: null,
           id: null,
+          url: null,
           assigned_on: null,
           last_worked: null,
           block_count: null,
@@ -35,7 +37,8 @@ var land = (req, res, next) => {
         };
         fragmentStats.number = f.number;
         fragmentStats.id = f._id;
-        fragmentStats.assigned_on = _.last(f.assignment_history).on,
+        fragmentStats.url = `${base_fragment_url}/${f._id.toString()}`;
+        fragmentStats.assigned_on = _.last(f.assignment_history).on;
         fragmentStats.last_worked = _.last(f.worked);
         fragmentStats.block_count = f.blocks.length;
         // find blocks
@@ -56,7 +59,6 @@ var land = (req, res, next) => {
         renderVars.dashboard_stats.fragment_count++;
         renderVars.dashboard_stats.unit_count += stat.unit_count;
       })
-      console.log( JSON.stringify(renderVars, null, 2) );
       res.render('Dashboard', renderVars);
 
     })
@@ -64,8 +66,6 @@ var land = (req, res, next) => {
       console.log(e);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
     });
-
-
 
 };
 

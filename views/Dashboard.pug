@@ -1,21 +1,6 @@
 extends ProtoBase.pug
 
-block content
-
-  .container-fluid
-    nav.navbar.navbar-expand-md.navbar-light.bg-light
-      a.navbar-brand(href='#') #{constants.site_name}
-      button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarSupportedContent', aria-controls='navbarSupportedContent', aria-expanded='false', aria-label='Toggle navigation')
-        span.navbar-toggler-icon
-      #navbarSupportedContent.collapse.navbar-collapse
-        ul.navbar-nav.mr-auto
-          li.nav-item.active
-            a.nav-link(href='#')
-              | Dashboard 
-              span.sr-only (current)
-          li.nav-item
-            a.nav-link.disabled(href='#', tabindex='-1', aria-disabled='true') My Account
-  
+append content
   .container-fluid
     .row.mt-md-2
       each val in fragments.length ? fragments : ['No assigned fragments'] 
@@ -30,7 +15,7 @@ block content
                   small last worked on #{val.last_worked}
                 else
                   small never worked
-              a.btn.btn-primary(href='#') view
+              a.btn.btn-primary(href=val.url) view
             ul.list-group.list-group-flush
               li.list-group-item #{val.block_count} blocks
               li.list-group-item #{val.unit_count} units   

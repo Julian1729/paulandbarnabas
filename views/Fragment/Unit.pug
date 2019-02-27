@@ -1,0 +1,56 @@
+extends ../ProtoBase
+
+append content
+  .container
+    .row.justify-content-center
+      h1.text-center #{block_ref.unit_number} #{block_ref.street}
+    .row.align-items-center.d-flex.justify-content-center
+      button.btn.btn-primary.btn-block.mb-sm-2 householder contacted
+      <button class="nav-item dropdown btn btn-secondary btn-sm" data-toggle="dropdown"> options
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="#">mark as do not call</a>
+          <a class="dropdown-item" href="#">add tag</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#">this unit is currently being visited</a>
+        </div>
+      </button>
+      ul.list-group.list-group-horizontal
+        each tag in unit.tags
+          li.list-group-item= tag
+    .row
+      h4 householders
+      
+    .row
+      each householder in unit.householders
+        .card.mr-sm-2
+          .card-header= householder.name
+          .card-body 
+            p 
+              small= householder.gender
+            if householder.email
+              p 
+                small 
+                  a(href=householder.email)= householder.email
+            if householder.phone_number
+              p 
+                small= householder.phone_number
+
+    
+    .row
+      h4 visits
+    .row
+      
+      each visit in unit.visits
+        .card.mb-sm-2
+          .card-header= visit.contacted_by
+          .card-body
+            .card-text
+              p 
+                small Contacted: #{visit.householders_contacted}
+              p= visit.details
+          .card-footer.text-muted= moment(visit.timestamp).format('MMMM DD, YYYY \\at hh:mm a')
+            
+            
+              
+        
+        

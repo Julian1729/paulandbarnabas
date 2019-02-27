@@ -1,0 +1,14 @@
+extends ../ProtoBase
+
+append content
+  .container-fluid
+    a(href=work_url).btn.btn-primary.btn-lg.btn-block.my-md-2 work fragment
+  .container-fluid
+    .row.mt-md-2
+      each props, street in streets
+        .col-sm
+          .card
+            .card-header= street
+            ul.list-group.list-group-flush
+              each v, i in props.blocks
+                li.list-group-item #{v.hundred} #{v.odd_even}

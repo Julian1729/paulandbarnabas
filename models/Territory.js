@@ -388,7 +388,9 @@ var fragment_schema = new Schema({
           throw new errors.BlocksAlreadyAssignedToFragment(assignedBlocks);
         }
         // remove blocks from other fragments
-        this.removeBlocksFromFragments(assignedBlocks);
+        console.log( `removing ${JSON.stringify(assignedBlocks, null, 2)}` );
+        var removed = territory.removeBlocksFromFragments(assignedBlocks);
+        console.log( `removed ${removed} blocks` );
       }
     }
     // push into fragments array
@@ -404,9 +406,17 @@ var fragment_schema = new Schema({
    * @return {Number} Count of blocks removed
    */
   fragment_schema.methods.removeBlocks = function(blocks){
-    return _.remove(this.blocks, b => {
-      if (_.findIndex(blocks, bc => b.equals(bc)) > -1) return true;
-    }).length;
+    var removed = 0;
+    blocks.forEach(b => {
+      b = new ObjectId(b);
+      var index = _.findIndex(blocks, bc => b.equals(bc));
+      if (index > -1) {
+        this.blocks.pull(b);
+        removed++;
+      }
+    });
+    this.markModified('blocks');
+    return removed;
   };
 
   /**
@@ -595,10 +605,8 @@ var TerritorySchema = new Schema({
    * @return {Boolean} True on at least one fragment removed. False on 0
    */
   TerritorySchema.methods.removeFragment = function(number){
-    var removed = _.remove(this.fragments, f => {
-      return f.number === number;
-    });
-    return (removed.length > 0) ? true : false;
+    this.fragments.pull({number: number});
+    this.markModified('fragments');
   };
 
   /**
@@ -697,6 +705,7 @@ var TerritorySchema = new Schema({
       if (fragmentMap.hasOwnProperty(number)) {
           var fragment = this.findFragment(number);
           var removed = fragment.removeBlocks(fragmentMap[number]);
+          removedCount = removedCount + removed;
       }
     }
     return removedCount;
@@ -706,34 +715,39 @@ var TerritorySchema = new Schema({
   TerritorySchema.methods.findBlocksById = function(blockIds){
     var blocks = [];
     blockIds.forEach(blockId => {
-      var blockRef = {
-        street: null,
-        hundred: null,
-        odd_even: null,
-        block: null
-      };
+
       // loop through streets
       this.streets.forEach(street => {
+
         // loop through hundreds
         street.hundreds.forEach(hundred => {
+          var blockRef = {
+            street: null,
+            hundred: null,
+            odd_even: null,
+            block: null
+          };
+
           if( hundred.odd._id.equals(blockId) ){
-            logger.debug(`odd match for ${blockId.toString()}`)
             blockRef.odd_even = 'odd';
             blockRef.block = hundred.odd;
+            logger.debug(`match for ${blockId.toString()} : (${hundred.hundred} ${street.name} odd)`)
           }else if( hundred.even._id.equals(blockId) ){
-            logger.debug(`even match for ${blockId.toString()}`)
             blockRef.odd_even = 'even';
             blockRef.block = hundred.even;
+            logger.debug(`match for ${blockId.toString()} : (${hundred.hundred} ${street.name} even)`)
           }
           // if block was found
           if(blockRef.block !== null){
             blockRef.hundred = hundred.hundred;
             blockRef.street = street.name;
+            blocks.push(blockRef);
             return;
           }
-          blocks.push(blockRef);
         });
+
       });
+
     });
     return blocks;
   };
