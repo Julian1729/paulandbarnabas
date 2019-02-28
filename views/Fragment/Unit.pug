@@ -4,14 +4,18 @@ append content
   .container
     .row.justify-content-center
       h1.text-center #{block_ref.unit_number} #{block_ref.street}
-    .row.align-items-center.d-flex.justify-content-center
-      button.btn.btn-primary.btn-block.mb-sm-2 householder contacted
+    .row.align-items-center.d-flex.flex-column
+      button.btn.btn-primary.btn-lg.mb-2 householder contacted
       <button class="nav-item dropdown btn btn-secondary btn-sm" data-toggle="dropdown"> options
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          <a class="dropdown-item" href="#">mark as do not call</a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="font-size: 62.5%">
           <a class="dropdown-item" href="#">add tag</a>
+          <a class="dropdown-item" href="#">add note</a>
           <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#">mark as do not call</a>
           <a class="dropdown-item" href="#">this unit is currently being visited</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#">not interested</a>
+          <a class="dropdown-item" href="#">busy, call again</a>
         </div>
       </button>
       ul.list-group.list-group-horizontal
@@ -34,6 +38,10 @@ append content
             if householder.phone_number
               p 
                 small= householder.phone_number
+      else 
+        
+        p 
+          small No householders found
 
     
     .row
@@ -41,7 +49,7 @@ append content
     .row
       
       each visit in unit.visits
-        .card.mb-sm-2
+        .card.mb-2
           .card-header= visit.contacted_by
           .card-body
             .card-text
@@ -49,6 +57,10 @@ append content
                 small Contacted: #{visit.householders_contacted}
               p= visit.details
           .card-footer.text-muted= moment(visit.timestamp).format('MMMM DD, YYYY \\at hh:mm a')
+      else 
+        
+        p 
+          small No visits found
             
             
               

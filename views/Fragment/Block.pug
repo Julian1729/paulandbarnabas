@@ -38,7 +38,7 @@ append content
               - classes = classes + " list-group-item-success"
             
             li(class=classes)
-              a(href="#")= subunit.name
+              a(href="#", style="display: block; margin-left: 20px; width: 1px; white-space: nowrap;")= subunit.name
               each tag in unit.tags
                 span.badge.badge-primary.badge-pill= tag
             

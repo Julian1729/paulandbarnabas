@@ -1,10 +1,10 @@
 extends ../ProtoBase
 
 append content
-  .container-fluid
-    a(href=work_url).btn.btn-primary.btn-lg.btn-block.my-md-2 work fragment
-  .container-fluid
-    .row.mt-md-2
+  .container
+    .row.text-center
+      a(href=work_url).btn.btn-primary.btn-lg.my-2 work fragment
+    .row.my-2
       each props, street in streets
         .col-sm
           .card
