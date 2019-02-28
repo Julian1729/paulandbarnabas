@@ -97,7 +97,28 @@ var streets =
             {
               number: 4505,
               name: null,
-              subunits: [],
+              subunits: [
+                {
+                  name: "Apt 1",
+                  tags: [],
+                  householders: [],
+                  visits: [],
+                  isdonotcall: false,
+                  language: null,
+                  notes: [],
+                  iscalledon: false
+                },
+                {
+                  name: "Apt 2",
+                  tags: [],
+                  householders: [],
+                  visits: [],
+                  isdonotcall: false,
+                  language: null,
+                  notes: [],
+                  iscalledon: false
+                }
+              ],
               tags: [],
               householders: [],
               visits: [],
