@@ -71,8 +71,8 @@ app.set('views', __dirname + '/views');
  // Admin Panel
  app.use('/adminpanel', require('./routes/AdminPanel'));
 
- // Territory View (Fragment)
- app.use('/fragment', require('./routes/Fragment'));
+ // User Territory CRUD
+ app.use('/territory', require('./routes/Territory/Territory'));
 
  // Seed database if in development
  if(process.env.NODE_ENV === 'development'){

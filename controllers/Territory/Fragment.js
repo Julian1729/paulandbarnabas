@@ -1,12 +1,12 @@
 const HttpStatus = require('http-status-codes');
 
-const controllerBase = require('./base');
-const TerritoryModel = require('../models/Territory');
-const UserModel = require('../models/User');
-const Session = require('../session/session');
-const constants = require('../config/constants');
-const errors = require('../errors');
-const Utils = require('../utils/utils');
+const controllerBase = require('../base');
+const TerritoryModel = require('../../models/Territory');
+const UserModel = require('../../models/User');
+const Session = require('../../session/session');
+const constants = require('../../config/constants');
+const errors = require('../../errors');
+const Utils = require('../../utils/utils');
 
 /**
  * Show fragment overview, blocks
@@ -20,7 +20,7 @@ var land = (req, res, next) => {
     // Oakland: {id: 'asdfasdf', blocks: {hundred: 4700, odd_even: 'even'}}
     fragment_id: req.params.fragment_id,
     // work_url: constants.fragment_url + "/work/" + fragment_id
-    work_url: `${constants.fragment_url}/${req.params.fragment_id}/work`,
+    work_url: `${constants.fragment_url}/${req.params.fragment_id}/blocks/`,
     streets: {}
   };
 

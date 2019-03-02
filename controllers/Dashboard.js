@@ -10,8 +10,6 @@ var land = (req, res, next) => {
 
   var user = Session.pickUserCredentials(req.session);
 
-  var base_fragment_url = constants.base_url + '/fragment';
-
   var renderVars = {
     'dashboard_stats': {
       fragment_count: 0,
@@ -37,7 +35,7 @@ var land = (req, res, next) => {
         };
         fragmentStats.number = f.number;
         fragmentStats.id = f._id;
-        fragmentStats.url = `${base_fragment_url}/${f._id.toString()}`;
+        fragmentStats.url = `${constants.fragment_url}/${f._id.toString()}`;
         fragmentStats.assigned_on = _.last(f.assignment_history).on;
         fragmentStats.last_worked = _.last(f.worked);
         fragmentStats.block_count = f.blocks.length;
