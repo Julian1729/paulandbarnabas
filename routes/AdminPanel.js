@@ -15,7 +15,7 @@ router.get('/', (req, res, next) => {
 });
 
 // Create Territory
-router.get('/createterritory', protected, (req, res, next) => {
+router.get('/createterritory', (req, res, next) => {
   controller.createTerritory(req, res, next);
 });
 
