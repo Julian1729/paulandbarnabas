@@ -1,16 +1,14 @@
 extends ../ProtoBase 
 
 append content
-  .container-fluid
+  .container.my-2
     nav(aria-label='breadcrumb')
       ol.breadcrumb
-        li.breadcrumb-item
-          a(href='#') Home
-        li.breadcrumb-item
-          a(href='#') Library
-        li.breadcrumb-item.active(aria-current='page') Data
+        li.breadcrumb-item.active(aria-current="page") Fragment #{fragment_number}
+        li.breadcrumb-item  Block
+        li.breadcrumb-item Unit
 
-  .container-fluid
+  .container
     ul
       each block in blocks
         li

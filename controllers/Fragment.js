@@ -74,6 +74,7 @@ var blockSelect = (req, res, next) => {
 
     var renderVars = {
       fragment_id: req.params.fragment_id,
+      fragment_number: null,
       // e.g. {street: Oakland, hundred: 4500, odd_even: 'even', id: 'sskskd' }
       blocks: []
     };
@@ -83,6 +84,7 @@ var blockSelect = (req, res, next) => {
 
         // OPTIMIZE: this should have been included in the fragment methods
         var fragment = territory.fragments.id(fragmentId);
+        renderVars.fragment_number = fragment.number;
         if(!fragment){
           throw new errors.FragmentNotFound()
         }

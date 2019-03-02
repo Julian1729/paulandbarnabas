@@ -1,6 +1,12 @@
 extends ../ProtoBase
 
 append content
+  .container.my-2
+    nav(aria-label='breadcrumb')
+      ol.breadcrumb
+        li.breadcrumb-item Fragment #{fragment_number}
+        li.breadcrumb-item #{block_ref.hundred} #{block_ref.street}
+        li.breadcrumb-item #{block_ref.unit_number}
   .container
     .row.justify-content-center
       h1.text-center #{block_ref.unit_number} #{block_ref.street}
