@@ -9,10 +9,9 @@ router.get('/', (req, res, next) => {
   res.send(`NOT CONFIGURED: "/territory" route`)
 });
 
-router.use('/fragment/:fragment_id', require('./Fragment'));
-
-// router.get('/fragment/:fragment_id', (req, res, next) => {
-//   res.send('hello from fragment route');
-// });
+/**
+ * Main User Endpoint
+ */
+router.use('/fragment', require('./Fragment'));
 
 module.exports = router;

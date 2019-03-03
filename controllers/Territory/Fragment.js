@@ -69,7 +69,7 @@ var blockSelect = (req, res, next) => {
     var fragmentId = req.params.fragment_id;
 
     var base_block_url = function(fragment_id, block_id){
-      return `${constants.fragment_url}/${fragmentId}/work/${block_id}`;
+      return `${constants.fragment_url}/${fragmentId}/blocks/${block_id}`;
     }
 
     var renderVars = {
@@ -111,7 +111,7 @@ var block = (req, res, next) => {
   // construct url
   function unit_url(fragmentId, blockId, streetName, hundred, unitNumber){
     // /:fragment_id/work/:block_id/:street_name/:hundred/:unit_number'
-    return `${constants.fragment_url}/${fragmentId}/work/${blockId}/${streetName}/${hundred}/${unitNumber}`
+    return `${constants.fragment_url}/${fragmentId}/blocks/${blockId}/unit/${unitNumber}`
   }
 
   var user = Session.pickUserCredentials(req.session);
@@ -159,65 +159,8 @@ var block = (req, res, next) => {
 
 };
 
-/**
- * Unit Overview
- */
-var unit = (req, res, next) => {
-
-  var user = Session.pickUserCredentials(req.session);
-  var fragmentId = req.params.fragment_id;
-  var street_name = req.params.street_name;
-  var hundred = req.params.hundred;
-  var unit_number = req.params.unit_number;
-
-  // var base_unit_url = function(fragment_id, block_id){
-  //   return `${constants.fragment_url}/${fragmentId}/work/${block_id}`;
-  // }
-
-  var renderVars = {
-    fragment_id: req.params.fragment_id,
-    // e.g. {street: Oakland, hundred: 4500, odd_even: 'even', id: 'sskskd' }
-    block_ref: {},
-    unit: {}
-  };
-
-  TerritoryModel.findByCongregation(user.congregation)
-    .then(territory => {
-
-      // OPTIMIZE: this should have been included in the fragment methods
-      var fragment = territory.fragments.id(fragmentId);
-      if(!fragment){
-        throw new errors.FragmentNotFound()
-      }
-      var street = territory.findStreet(street_name);
-      var hundred = street.findHundred(req.params.hundred);
-      var unit = hundred.findUnit(unit_number);
-      // populate block ref
-      renderVars.block_ref.street = street.name;
-      renderVars.block_ref.hundred = hundred.hundred;
-      renderVars.block_ref.unit_number = unit_number;
-      // determine odd or even from unit number
-      if(Utils.isOdd(unit_number)){
-        renderVars.block_ref.odd_even = 'odd';
-      }else{
-        renderVars.block_ref.odd_even = 'even';
-      }
-      // attach unit to render variables
-      renderVars.unit = unit;
-      console.log( JSON.stringify(renderVars, null, 2) );
-      res.render('Fragment/Unit', renderVars);
-
-    })
-    .catch(e => {
-      console.log(e);
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    });
-
-};
-
 module.exports = controllerBase.extend({
   land,
   blockSelect,
-  block,
-  unit
+  block
 });
