@@ -34,7 +34,9 @@ var authenticate = (req, res, next) => {
  * to make available to pug templates
  */
 var localizeSession =  (req, res, next) => {
-  res.locals.user = Session.pickUserCredentials(req.session);
+  let userCreds = Session.pickUserCredentials(req.session);
+  res.locals.user = userCreds;
+  req.app.locals.user = userCreds;
   next();
 };
 

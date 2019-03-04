@@ -4,6 +4,7 @@ const yargs = require('yargs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
+const HttpStatus = require('http-status-codes');
 
 const publicPath = path.join(__dirname, '/public');
 const config = require('./config/config');
@@ -73,6 +74,14 @@ app.set('views', __dirname + '/views');
 
  // User Territory CRUD
  app.use('/territory', require('./routes/Territory/Territory'));
+
+ // Error Handler
+ app.use((err, req, res, next) => {
+
+   console.error(err.stack);
+   res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+
+ })
 
  // Seed database if in development
  if(process.env.NODE_ENV === 'development'){
