@@ -28,9 +28,9 @@ router.get('/:fragment_id/blocks', controller.endpoints.blockSelect);
 /**
  * Block overview
  */
-// router.get('/:fragment_id/blocks/:block_id', (req, res, next) => {
-//   res.send(`hello from Fragment work block route`);
-// });
+
+router.all('/:fragment_id/blocks/:block_id*', controller.middleware.findRequestedBlock);
+
 router.get('/:fragment_id/blocks/:block_id', controller.endpoints.block);
 
 /**
