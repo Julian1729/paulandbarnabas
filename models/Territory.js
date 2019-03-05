@@ -142,6 +142,21 @@ var block_schema = new Schema({
   tags: tag_properties,
 });
 
+  /**
+   * Methods
+   */
+
+    /**
+     * Search for a unit by number
+     * @param  {mixed} number Unit street number, strings will be parsed
+     * @return {mixed} Unit subdocument or null
+     */
+    block_schema.methods.unit = function(number){
+      var foundUnit = _.find(this.units, ['number', number]);
+      if(!foundUnit) throw new errors.UnitNotFound(number);
+      return foundUnit;
+    };
+
 // HUNDRED
 var hundred_schema = new Schema({
   hundred: {
@@ -202,9 +217,7 @@ var hundred_schema = new Schema({
     number = parseInt(number);
     // determine whether odd or even
     var block = this.getUnitBlock(number);
-    var foundUnit = _.find(block.units, ['number', number]);
-    if(!foundUnit) throw new errors.UnitNotFound(number);
-    return foundUnit;
+    return block.unit(number);
   };
 
   /**

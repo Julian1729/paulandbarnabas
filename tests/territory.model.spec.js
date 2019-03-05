@@ -472,6 +472,27 @@ describe('Territory Model', () => {
             .catch(e => done(e));
         });
 
+        describe('Block Methods', () => {
+
+          it('should find 4502 oakland', (done) => {
+
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              .then(territory => {
+                var street = territory.findStreet('Oakland');
+                var hundred = street.findHundred(4500)
+                var evenBlock = hundred.even;
+                var unit = evenBlock.unit(4502);
+                expect(unit).to.exist;
+                expect(unit).to.have.property('_id');
+                done();
+              })
+              .catch(e => done(e));
+
+          });
+
+        });
+
         it('should find unit 4502', (done) => {
           var testTerritory = Territory(seed.territory.completed);
           testTerritory.save()
