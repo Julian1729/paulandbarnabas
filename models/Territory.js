@@ -152,6 +152,7 @@ var block_schema = new Schema({
      * @return {mixed} Unit subdocument or null
      */
     block_schema.methods.unit = function(number){
+      number = number * 1;
       var foundUnit = _.find(this.units, ['number', number]);
       if(!foundUnit) throw new errors.UnitNotFound(number);
       return foundUnit;
