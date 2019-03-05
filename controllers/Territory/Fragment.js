@@ -3,6 +3,7 @@
  */
 
 const HttpStatus = require('http-status-codes');
+const _ = require('lodash');
 
 const controllerBase = require('../base');
 const TerritoryModel = require('../../models/Territory');
@@ -74,16 +75,24 @@ var endpoints = {};
 
   };
 
+  middleware.findRequestedBlock = (req, res, next) => {
+
+    let blockId = req.params.block_id;
+
+    let block = req.app.locals.territory.current.blocks.find(b => {
+      return b.block._id.equals(blockId);
+    });
+
+    req.app.locals.territory.current.block = block;
+
+    return next();
+
+  };
+
 
 /**
  * Endpoint controllers
  */
-
-  // endpoints.test = (req, res, next) => {
-  //    // console.log(JSON.stringify(req.app.locals.territory, null, 2));
-  //    // console.log(Object.keys(req.app.locals.territory));
-  //    res.send('yea');
-  //  }
 
   /**
    * Show fragment overview, blocks
@@ -149,50 +158,30 @@ var endpoints = {};
    */
   endpoints.block = (req, res, next) => {
 
+    let user = Session.pickUserCredentials(req.session);
+    let current = req.app.locals.territory.current;
+    let fragment = current.fragment;
+    let block_ref = current.block;
+
     // construct url
-    function unit_url(fragmentId, blockId, streetName, hundred, unitNumber){
-      // /:fragment_id/work/:block_id/:street_name/:hundred/:unit_number'
+    function unit_url(fragmentId, blockId, unitNumber){
+      // /:fragment_id/blocks/:block_id/unit/:unit_number'
       return `${constants.fragment_url}/${fragmentId}/blocks/${blockId}/unit/${unitNumber}`
     }
 
-    var user = Session.pickUserCredentials(req.session);
-    var fragmentId = req.params.fragment_id;
-    var blockId = req.params.block_id;
+    // insert unit urls into unit object
+    block_ref.block.units.map(u => {
+      u.url = unit_url(fragment._id, block_ref.block._id, u.number);
+    });
 
     var renderVars = {
-      fragment_id: req.params.fragment_id,
-      fragment_number: req.app.locals.territory.current.fragment.number,
-      // e.g. {street: Oakland, hundred: 4500, odd_even: 'even', id: 'sskskd' }
-      block_ref: {},
-      unit: []
+      fragment: {
+        number: req.app.locals.territory.current.fragment.number,
+      },
+      block_ref,
     };
 
-    TerritoryModel.findByCongregation(user.congregation)
-      .then(territory => {
-
-        // OPTIMIZE: this should have been included in the fragment methods
-        var fragment = territory.fragments.id(fragmentId);
-        if(!fragment){
-          throw new errors.FragmentNotFound()
-        }
-        var block = null;
-        try{
-          block = territory.findBlocksById([req.params.block_id]);
-        }catch(e){
-          console.log(e);
-          res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-        }
-        block[0].block.units.map = block[0].block.units.map(u => {
-          u.url = unit_url(fragmentId, blockId, block[0].street, block[0].hundred, u.number);
-        });
-        renderVars.block_ref = block[0];
-        res.render('Fragment/Block', renderVars);
-
-      })
-      .catch(e => {
-        console.log(e);
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-      });
+    res.render('Fragment/Block', renderVars);
 
   };
 
