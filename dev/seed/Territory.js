@@ -50,7 +50,7 @@ var streets =
                   contacted_by: "Todd Roberson",
                   nowcalledon: false,
                   details: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas ac pulvinar elit. Aliquam egestas sed neque sed porttitor. Cras lacinia rutrum velit eget convallis. Nunc lacus sem, congue tincidunt finibus id, tincidunt et odio",
-                  timestamp: new Date().getTime()
+                  timestamp: new Date("2019-03-06 16:57:50.624Z").getTime()
                 }
               ],
               isdonotcall: false,
@@ -79,14 +79,14 @@ var streets =
                   contacted_by: "Todd Roberson",
                   nowcalledon: false,
                   details: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas ac pulvinar elit. Aliquam egestas sed neque sed porttitor. Cras lacinia rutrum velit eget convallis. Nunc lacus sem, congue tincidunt finibus id, tincidunt et odio",
-                  timestamp: new Date().getTime()
+                  timestamp: new Date("2016-07-27T07:45:00Z").getTime()
                 },
                 {
                   householders_contacted: ["Kareem", "Tonya"],
                   contacted_by: "Todd Roberson",
                   nowcalledon: false,
                   details: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas ac pulvinar elit. Aliquam egestas sed neque sed porttitor. Cras lacinia rutrum velit eget convallis. Nunc lacus sem, congue tincidunt finibus id, tincidunt et odio",
-                  timestamp: new Date().getTime()
+                  timestamp: new Date("2018-09-27T11:45:00Z").getTime()
                 }
               ],
               isdonotcall: false,
