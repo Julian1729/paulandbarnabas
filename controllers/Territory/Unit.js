@@ -21,16 +21,32 @@ middleware.findRequestedUnit = (req, res, next) => {
   let unit = block_ref.block.unit(unitNumber);
   let subunitParam = req.query.subunit || null;
 
+  // create unit reference
+  let unit_ref = {
+    street: block_ref.street,
+    hundred: block_ref.hundred,
+    odd_even: block_ref.odd_even,
+    unit
+  };
+
   // attach to locals
-  req.app.locals.territory.current.unit = unit;
+  req.app.locals.territory.current.unit = unit_ref;
 
   // get subunit if "subunit" GET param
   if(subunitParam){
     // search for subunit in unit
     try {
       let subunit = unit.findSubunit(subunitParam);
+      // create subunit ref
+      let subunit_ref = {
+        street: block_ref.street,
+        hundred: block_ref.hundred,
+        odd_even: block_ref.odd_even,
+        unit: unit.number,
+        subunit
+      };
       // attach to locals
-      req.app.locals.territory.current.subunit = subunit;
+      req.app.locals.territory.current.subunit = subunit_ref;
     } catch (e) {
       // send 404 if subunit not found
       if(e instanceof errors.SubunitNotFound){

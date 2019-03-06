@@ -8,17 +8,17 @@ append content
         li.breadcrumb-item #{block_ref.hundred} #{block_ref.street}
         if subunit
         
-          li.breadcrumb-item #{unit.number} &#62; #{subunit.name}
+          li.breadcrumb-item #{unit.unit.number} &#62; #{subunit.subunit.name}
         
         else
           
-          li.breadcrumb-item= unit.number
+          li.breadcrumb-item= unit.unit.number
           
   .container
     .row.flex-column.text-center
-      h1 #{unit.number} #{block_ref.street}
+      h1 #{unit.unit.number} #{block_ref.street}
       if subunit
-        h5= subunit.name
+        h5= subunit.subunit.name
         
     .row.align-items-center.d-flex.flex-column
       button.btn.btn-primary.btn-lg.mb-2 householder contacted
@@ -35,13 +35,13 @@ append content
         </div>
       </button>
       ul.list-group.list-group-horizontal
-        each tag in unit.tags
+        each tag in unit.unit.tags
           li.list-group-item= tag
     .row
       h4 householders
       
     .row
-      each householder in unit.householders
+      each householder in unit.unit.householders
         .card.mr-sm-2
           .card-header= householder.name
           .card-body 
@@ -64,7 +64,7 @@ append content
       h4 visits
     .row
       
-      each visit in unit.visits
+      each visit in unit.unit.visits
         .card.mb-2
           .card-header= visit.contacted_by
           .card-body
