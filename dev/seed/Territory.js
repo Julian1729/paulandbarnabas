@@ -91,7 +91,12 @@ var streets =
               ],
               isdonotcall: false,
               language: null,
-              notes: [],
+              notes: [
+                {
+                  by: 'Julian Hernandez',
+                  note: 'Someone looked out the window but didn\t answer'
+                }
+              ],
               iscalledon: false
             },
             {
@@ -105,7 +110,12 @@ var streets =
                   visits: [],
                   isdonotcall: false,
                   language: null,
-                  notes: [],
+                  notes: [
+                    {
+                      by: 'Tracy Scott',
+                      note: 'very large dog outside'
+                    }
+                  ],
                   iscalledon: false
                 },
                 {
