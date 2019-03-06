@@ -71,6 +71,8 @@ const errors = require('../errors');
     }
   });
 
+
+
   var subunit_schema = new Schema({
     name: String,
     tags: tag_properties,
@@ -117,6 +119,119 @@ const errors = require('../errors');
     return foundSubunit;
 
   };
+
+  unit_schema.methods.addSubunit = function(name){
+    this.subunits.push({name: name});
+    return _.last(this.subunits);
+  };
+
+  unit_schema.methods.removeSubunit = function(id){
+    return this.subunits.id(id).remove();
+  };
+
+  unit_schema.methods.addHouseholder = addHouseholder;
+  unit_schema.methods.removeHouseholder = removeHouseholder;
+  unit_schema.methods.addVisit = addVisit;
+  unit_schema.methods.removeVisit = removeVisit;
+  unit_schema.methods.addTag = addTag;
+  unit_schema.methods.removeTag = removeTag;
+  unit_schema.methods.addNote = addNote;
+  unit_schema.methods.removeNote = removeNote;
+
+  /**
+   * Unit and Subunit schema shared methods
+   */
+
+   /**
+    * Add householder to unit
+    * @param {String} name
+    * @param {String} gender
+    * @param {String} email
+    * @param {String} phone_number
+    */
+   function addHouseholder(name, gender, email, phone_number){
+    let householder = {name, gender, email, phone_number};
+    this.householders.push(householder);
+   };
+
+   /**
+    * Remove householder from unit by id
+    * @param  {String} id
+    * @return {void}
+    */
+   function removeHouseholder(id){
+    // cast to object id
+    this.householders.id(id).remove();
+  };
+
+  function addVisit(visitObj){
+    visitObj = visitObj || {};
+    _.defaults(visitObj, {
+      householders_contacted: [],
+      contacted_by: 'Unknown Publisher',
+      nowcalledon: false,
+      details: '',
+      timestamp: new Date().getTime(),
+      id: null
+    });
+
+    // if an _id has been passed in, the existing visit
+    // should be edited or a new one entered
+    if(visitObj._id !== null){
+      let visit = this.visits.id(visitObj.id);
+      if(visit) {
+        // overwrite any different details
+        return _.extend(visit, visitObj);
+      }
+    }
+
+    // push brand new visit into array
+    this.visits.push(visitObj);
+    // return new visit
+    return _.last(this.visits);
+  }
+
+  function removeVisit(id){
+    return this.visits.id(id).remove();
+  }
+
+  function addTag(tag){
+    this.tags.push(tag);
+    // if tag was already in there, remove it
+    let newTag = _.last(this.tags);
+    if(_.lastIndexOf(this.tags, newTag, (this.tags.length - 1))){
+      this.tags.pop();
+    }
+  }
+
+  function removeTag(tag){
+    return this.tags.pull(tag);
+  }
+
+  function addNote(noteObj){
+    noteObj = noteObj || {};
+    _.defaults(noteObj, {
+      by: 'Unknown Publisher',
+      note: '',
+      id: null
+    });
+
+    if(noteObj.id !== null){
+      let note = this.notes.id(noteObj.id);
+      if(note){
+        return _.extend(note, noteObj);
+      }
+    }
+
+    this.notes.push(noteObj);
+
+    return _.last(this.notes);
+
+  }
+
+  function removeNote(id){
+    return this.notes.id(id).remove();
+  }
 
 var worked_schema = new Schema({
   start: {
