@@ -1147,6 +1147,7 @@ describe('Territory Model', () => {
               let street = territory.findStreet('Oakland');
               let hundred = street.findHundred(4500);
               let unit = hundred.findUnit(4502);
+              expect(unit.notes).to.have.lengthOf(2);
               unit.removeNote(idToRemove);
               return territory.save();
             })
@@ -1158,6 +1159,358 @@ describe('Territory Model', () => {
               return done();
             })
             .catch(e => done(e));
+
+        });
+
+        describe('Subunit Methods', () => {
+
+          it('should add householder to subunit', (done) => {
+
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.addSubunit('Apt 1');
+                expect(subunit).to.have.property('_id');
+                subunit.addHouseholder('Johnathan Doe', 'male', 'john@doe.com', '2154000468');
+                return territory.save();
+              })
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.findSubunit('Apt 1');
+                expect(_.last(subunit.householders)).to.include({name: 'Johnathan Doe', gender: 'male', email: 'john@doe.com', phone_number: '2154000468'});
+                return done();
+              })
+              .catch(e => done(e));
+
+          });
+
+          it('should remove householder from subunit', (done) => {
+
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.addSubunit('Apt 1');
+                subunit.addHouseholder('Johnathan Doe', 'male', 'john@doe.com', '2154000468');
+                return territory.save();
+              })
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.findSubunit('Apt 1');
+                let latestHouseholder = _.last(subunit.householders);
+                expect(latestHouseholder).to.include({name: 'Johnathan Doe', gender: 'male', email: 'john@doe.com', phone_number: '2154000468'});
+                subunit.removeHouseholder(latestHouseholder._id);
+                return territory.save();
+              })
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.findSubunit('Apt 1');
+                let latestHouseholder = _.last(subunit.householders);
+                expect(latestHouseholder).to.not.exist;
+                return done();
+              })
+              .catch(e => done(e));
+
+          });
+
+          it('should add a visit to subunit', (done) => {
+
+            let visitObj = {
+              householders_contacted: ['John', 'Whitney'],
+              contacted_by: 'Tracy Scott',
+              details: 'Lorem impsum dolor sit amet',
+              timestamp: new Date().getTime()
+            };
+
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.addSubunit('Apt 1');
+                subunit.addVisit(visitObj);
+                return territory.save();
+              })
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.findSubunit('Apt 1');
+                expect(subunit.visits).to.have.lengthOf(1);
+                return done();
+              })
+              .catch(e => done(e));
+
+          });
+
+          it('should overwrite (edit) a visit in subunit', (done) => {
+
+            let visitObj = {
+              householders_contacted: ['John', 'Whitney'],
+              contacted_by: 'Tracy Scott',
+              details: 'Lorem impsum dolor sit amet',
+              timestamp: new Date().getTime()
+            };
+
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.addSubunit('Apt 1');
+                subunit.addVisit(visitObj);
+                return territory.save();
+              })
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.findSubunit('Apt 1');
+                expect(subunit.visits).to.have.lengthOf(1);
+                // add existing visit id to object and change householders
+                visitObj.id = subunit.visits[0]._id.toString();
+                visitObj.householders_contacted = ['Jacob'];
+                visitObj.contacted_by = 'Leaona Staten';
+                subunit.addVisit(visitObj);
+                return territory.save();
+              })
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.findSubunit('Apt 1');
+                expect(subunit.visits).to.have.lengthOf(1);
+                expect(subunit.visits[0].householders_contacted).to.include('Jacob');
+                expect(subunit.visits[0].contacted_by).to.include('Leaona Staten');
+                return done();
+              })
+              .catch(e => done(e));
+
+          });
+
+          it('should remove visit by id', (done) => {
+
+            let visitObj = {
+              householders_contacted: ['John', 'Whitney'],
+              contacted_by: 'Tracy Scott',
+              details: 'Lorem impsum dolor sit amet',
+              timestamp: new Date().getTime()
+            };
+
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.addSubunit('Apt 1');
+                subunit.addVisit(visitObj);
+                return territory.save();
+              })
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.findSubunit('Apt 1');
+                expect(subunit.visits).to.have.lengthOf(1);
+                let latestVisit = _.last(subunit.visits);
+                subunit.removeVisit(latestVisit._id);
+                return territory.save();
+              })
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.findSubunit('Apt 1');
+                expect(subunit.visits).to.have.lengthOf(0);
+                return done();
+              })
+              .catch(e => done(e));
+
+          });
+
+          it('should add tag to subunit', (done) => {
+
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.addSubunit('Apt 1');
+                subunit.addTag('Low steps');
+                expect(subunit.tags).to.include('low steps');
+                return done();
+              })
+              .catch(e => done(e));
+
+          });
+
+          it('should not duplicate tag', (done) => {
+
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.addSubunit('Apt 1');
+                subunit.addTag('low steps');
+                expect(subunit.tags).to.include('low steps');
+                return territory.save();
+              })
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.findSubunit('Apt 1');
+                subunit.addTag('low steps');
+                expect(subunit.tags).to.have.lengthOf(1);
+                return done();
+              })
+              .catch(e => done(e));
+
+          });
+
+          it('should remove tag from subunit', (done) => {
+
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.addSubunit('Apt 1');
+                subunit.addTag('low steps');
+                expect(subunit.tags).to.include('low steps');
+                subunit.removeTag('low steps');
+                return territory.save();
+              })
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.findSubunit('Apt 1');
+                expect(subunit.tags).to.not.include('low steps');
+                return done();
+              })
+              .catch(e => done(e));
+
+          });
+
+          it('should add note to subunit', (done) => {
+
+            var noteObj = {
+              by: 'Brittany Alston',
+              note: 'This is a general note'
+            };
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.addSubunit('Apt 1');
+                subunit.addNote(noteObj);
+                let latestNote = _.last(subunit.notes)
+                expect(latestNote.by).to.equal(noteObj.by);
+                return done();
+              })
+              .catch(e => done(e));
+
+          });
+
+          it('should update note in subunit', (done) => {
+
+            var noteObj = {
+              by: 'Brittany Alston',
+              note: 'This is a general note'
+            };
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.addSubunit('Apt 1');
+                subunit.addNote(noteObj);
+                let latestNote = _.last(subunit.notes)
+                expect(latestNote.by).to.include(noteObj.by);
+                return territory.save();
+              })
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.findSubunit('Apt 1');
+                let latestNote = _.last(subunit.notes);
+                latestNote.by = 'Chidinma Mapp';
+                subunit.addNote(latestNote);
+                return territory.save();
+              })
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.findSubunit('Apt 1');
+                let latestNote = _.last(subunit.notes);
+                expect(latestNote.by).to.equal('Chidinma Mapp');
+                return done();
+              })
+              .catch(e => done(e));
+
+          });
+
+          it('should delete note in subunit', (done) => {
+
+            var noteObj = {
+              by: 'Brittany Alston',
+              note: 'This is a general note'
+            };
+            var idToRemove = null;
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.addSubunit('Apt 1');
+                let newNote = subunit.addNote(noteObj);
+                idToRemove = newNote._id;
+                return territory.save();
+              })
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.findSubunit('Apt 1');
+                subunit.removeNote(idToRemove);
+                return territory.save();
+              })
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                let subunit = unit.findSubunit('Apt 1');
+                expect(subunit.notes).to.have.lengthOf(0);
+                return done();
+              })
+              .catch(e => done(e));
+
+          });
 
         });
 

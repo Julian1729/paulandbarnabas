@@ -90,6 +90,18 @@ const errors = require('../errors');
     }
   });
 
+    /**
+     * Methods
+     */
+      subunit_schema.methods.addHouseholder = addHouseholder;
+      subunit_schema.methods.removeHouseholder = removeHouseholder;
+      subunit_schema.methods.addVisit = addVisit;
+      subunit_schema.methods.removeVisit = removeVisit;
+      subunit_schema.methods.addTag = addTag;
+      subunit_schema.methods.removeTag = removeTag;
+      subunit_schema.methods.addNote = addNote;
+      subunit_schema.methods.removeNote = removeNote;
+
   var unit_schema = new Schema({
     number: {
       type: Number,
