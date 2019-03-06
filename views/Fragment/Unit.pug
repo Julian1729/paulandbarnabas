@@ -77,6 +77,10 @@ append content
         
         p 
           small No visits found
+  
+  //- stringify unit ref
+  - var reference = subunit ? JSON.stringify(subunit.ref) : JSON.stringify(unit.ref);
+  input(type="hidden", value=reference)
             
             
               

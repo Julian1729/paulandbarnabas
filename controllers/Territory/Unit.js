@@ -14,6 +14,7 @@ var endpoints = {};
 /**
  * Middleware
  */
+
 middleware.findRequestedUnit = (req, res, next) => {
 
   let unitNumber = req.params.unit_number;
@@ -21,16 +22,21 @@ middleware.findRequestedUnit = (req, res, next) => {
   let unit = block_ref.block.unit(unitNumber);
   let subunitParam = req.query.subunit || null;
 
+
+  // OPTIMIZE: this could be created only once, including subunit if applicable
   // create unit reference
-  let unit_ref = {
-    street: block_ref.street,
-    hundred: block_ref.hundred,
-    odd_even: block_ref.odd_even,
+  let unitObj = {
+    ref: {
+      street: block_ref.street,
+      hundred: block_ref.hundred,
+      odd_even: block_ref.odd_even,
+      unit: unit.number,
+    },
     unit
   };
 
   // attach to locals
-  req.app.locals.territory.current.unit = unit_ref;
+  req.app.locals.territory.current.unit = unitObj;
 
   // get subunit if "subunit" GET param
   if(subunitParam){
@@ -38,15 +44,18 @@ middleware.findRequestedUnit = (req, res, next) => {
     try {
       let subunit = unit.findSubunit(subunitParam);
       // create subunit ref
-      let subunit_ref = {
-        street: block_ref.street,
-        hundred: block_ref.hundred,
-        odd_even: block_ref.odd_even,
-        unit: unit.number,
+      let subunitObj = {
+        ref: {
+          street: block_ref.street,
+          hundred: block_ref.hundred,
+          odd_even: block_ref.odd_even,
+          unit: unit.number,
+          subunit: subunit.name,
+        },
         subunit
       };
       // attach to locals
-      req.app.locals.territory.current.subunit = subunit_ref;
+      req.app.locals.territory.current.subunit = subunitObj;
     } catch (e) {
       // send 404 if subunit not found
       if(e instanceof errors.SubunitNotFound){
