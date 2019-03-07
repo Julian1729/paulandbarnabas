@@ -63,6 +63,9 @@ app.set('views', __dirname + '/views');
  // AJAX Requests
  app.use('/ajax', require('./routes/ajax'));
 
+ // Rajax Requests
+ app.use('/rajax', require('./routes/Rajax/Rajax'));
+
  // Sign Up
  app.use('/createaccount', require('./routes/CreateAccount'));
 
