@@ -17,7 +17,7 @@ describe('Rajax Router', () => {
   it('should find unit router', (done) => {
 
     request(app)
-      .get('/rajax/unit/123unitid123')
+      .get('/rajax/territory/unit/123unitid123')
       .expect(200)
       .end(done);
 
@@ -26,7 +26,7 @@ describe('Rajax Router', () => {
   it('should not find unit router', (done) => {
 
     request(app)
-      .get('/rajax/unit')
+      .get('/rajax/territory/unit')
       .expect(404)
       .end(done);
 

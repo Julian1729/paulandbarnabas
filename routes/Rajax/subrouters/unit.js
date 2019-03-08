@@ -1,13 +1,14 @@
 /**
- * Unit Rajax Controller
- *
+ * Unit Rajax Router
  */
 
 const express = require('express');
 const router = express.Router({mergeParams: true});
 const HttpStatus = require('http-status-codes');
 
-router.get('/:unit_id*', (req, res, next) => {
+const controller = require('../../../controllers/Rajax/unit')
+
+router.all('/:unit_id*', controller.middleware.findUnit, (req, res, next) => {
 
   res.send();
 

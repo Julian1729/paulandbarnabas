@@ -23,6 +23,7 @@ var local = {
 local.assets_url = local.base_url + "/assets";
 local.ajax_url = local.base_url + "/ajax";
 local.fragment_url = local.base_url + "/territory/fragment";
+local.rajax_url = local.base_url + "/rajax"
 
 var production = {
 

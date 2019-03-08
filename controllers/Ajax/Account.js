@@ -97,7 +97,7 @@ const Utils = require('../../utils/utils');
           logger.debug(`Unable to find user with info: ${JSON.stringify(loginData)}`);
           throw new InvalidCredentials();
         }
-        logger.debug(`User found by email. User: ${user}`);
+        logger.debug(`User found by email. User: ${user.first_name} ${user.last_name} (${user.email})`);
         return user;
       })
       .then(user => {
@@ -113,8 +113,6 @@ const Utils = require('../../utils/utils');
           .catch(e => Promise.reject(e));
       })
       .then( user => {
-        logger.info(user);
-        logger.debug(user._id);
 
         // USER AUTHENTICATED
         Session.createSession(req, {
@@ -142,6 +140,7 @@ const Utils = require('../../utils/utils');
         }else{
           // if cannot discern specific error type, log error and return HTTP 500
           logger.debug(`Login controller failed. Error: ${e.message} \n ${e.stack}`);
+          console.log(e.stack);
           return ajaxResponse(res, {
             status: HttpStatus.INTERNAL_SERVER_ERROR
           });
