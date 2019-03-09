@@ -1,15 +1,69 @@
 const {expect} = require('chai');
-const request = require('supertest');
+const session = require('supertest-session');
 
 const {app} = require('../app');
+const TerritoryModel = require('../models/Territory');
+const UserModel = require('../models/User');
+const seed_data = require('../dev/seed/data');
+const user_seed_data = require('../dev/seed/User');
+const Utils = require('../utils/utils');
 
 describe('Unit Rajax Route', () => {
 
-  it('should respond with 400 for empty unit_ref', (done) => {
+  before((done) => {
 
-    request(app)
-      .get('/rajax/unit/123unitis123')
-      .expect(400)
+    // seed database
+    require('../dev/seed/populate')(true)
+      .then(done)
+      .catch(e => done(e));
+
+  });
+
+  var authenticatedSession;
+  beforeEach(function (done) {
+
+    initSession = session(app);
+
+    initSession.post('/ajax/account/login')
+      // use unhashed user seed data
+      .send({ email: user_seed_data[0].email, password: user_seed_data[0].password})
+      .expect(200)
+      .end(function (err) {
+        if (err) return done(err);
+        authenticatedSession = initSession;
+        return done();
+      });
+  });
+
+  it('should allow territory methods', () => {
+
+    var street = seed_data.territories.findStreet('Oakland');
+    expect(street).to.exist;
+
+  });
+
+  it('should find the correct unit', (done) => {
+
+    let street = 'Oakland';
+    let hundred = 4500;
+    let unit = 4502;
+
+    authenticatedSession
+      .post(`/rajax/territory/unit/${street}/${hundred}/${unit}`)
+      .expect(200)
+      .end(done);
+
+  });
+
+  it('should find requested unit and respond w/ 404', (done) => {
+
+    let street = 'Oakland';
+    let hundred = 4500;
+    let unit = 4599;
+
+    authenticatedSession
+      .post(`/rajax/territory/unit/${street}/${hundred}/${unit}`)
+      .expect(404)
       .end(done);
 
   });

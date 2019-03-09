@@ -22,6 +22,15 @@ yargs
 // Arguments
 var argv = yargs.argv;
 
+
+(async argv => {
+   // Seed database if in development
+   if(process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'testing'){
+    var seed = (argv.seed || argv._[0] === 'seed');
+    await require('./dev/seed/populate')(seed);
+  }
+})(argv);
+
 /**
  * Create HTTP Server and Express
  */
@@ -86,11 +95,6 @@ app.set('views', __dirname + '/views');
 
  })
 
- // Seed database if in development
- if(process.env.NODE_ENV === 'development'){
-  var seed = (argv.seed || argv._[0] === 'seed');
-  require('./dev/seed/populate')(seed);
-}
 
 
 // Start express server
@@ -98,4 +102,4 @@ server.listen(process.env.PORT, ()=>{
   console.log(`"${constants.site_name}" live on port ${process.env.PORT}`);
 });
 
-module.exports = {app};
+module.exports = {app, server};

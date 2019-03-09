@@ -8,10 +8,14 @@ const HttpStatus = require('http-status-codes');
 
 const controller = require('../../../controllers/Rajax/unit')
 
-router.all('/:unit_id*', controller.middleware.findUnit, (req, res, next) => {
+router.all('/:street/:hundred/:unit', controller.middleware.findUnit, (req, res, next) => {
 
-  res.send();
+  res.send('from all');
 
 });
+
+/**
+ * Test routes
+ */
 
 module.exports = router;
