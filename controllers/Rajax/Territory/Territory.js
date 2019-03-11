@@ -3,7 +3,7 @@
  */
 const HttpStatus = require('http-status-codes');
 
-const TerritoryModel = require('../../models/Territory');
+const TerritoryModel = require('../../../models/Territory');
 
 var middleware = {};
 

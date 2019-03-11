@@ -1,11 +1,23 @@
 const session = require('supertest-session');
-const request = require('supertest');
+
+
 
 var {app} = require('../app');
 
 var testSession = null;
 
 describe('Territory Rajax', () => {
+
+  /**
+   * Seed database
+   */
+  before((done) => {
+
+    require('../dev/seed/populate')(true)
+      .then(done)
+      .catch(e => done(e));
+
+  });
 
   var authenticatedSession;
   beforeEach(function (done) {
@@ -20,6 +32,7 @@ describe('Territory Rajax', () => {
         authenticatedSession = testSession;
         return done();
       });
+      
   });
 
   it('find territory object', function (done) {

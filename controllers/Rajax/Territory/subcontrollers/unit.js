@@ -3,8 +3,8 @@
  */
 const HttpStatus = require('http-status-codes');
 
-const logger = require('../../utils/logger');
-const errors = require('../../errors');
+const logger = require('../../../../utils/logger');
+const errors = require('../../../../errors');
 
 var middleware = {};
 var endpoints = {};
