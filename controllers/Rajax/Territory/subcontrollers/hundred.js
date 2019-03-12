@@ -59,7 +59,6 @@ var endpoints = {};
 
     try {
       var addedUnitCount = hundred.addUnits(reqAddUnits, options);
-      return res.json({summary: {units_added: addedUnitCount}});
     } catch (e) {
       if(e instanceof errors.UnitsAlreadyExist){
         return res.json({summary: {units_added: 0}, error: e});
@@ -67,6 +66,15 @@ var endpoints = {};
       console.log(e.stack);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
     }
+
+    territory.territory.save()
+      .then(territory => {
+        return res.json({summary: {units_added: addedUnitCount}});
+      })
+      .catch(e => {
+        console.log(e.stack);
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+      });
 
   };
 
