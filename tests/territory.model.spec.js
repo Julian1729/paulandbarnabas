@@ -491,6 +491,22 @@ describe('Territory Model', () => {
 
           });
 
+          it('should add tag to 4500 oakland', (done) => {
+
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let odd = hundred.odd;
+                odd.addTag('Low steps');
+                expect(odd.tags).to.include('low steps');
+                return done();
+              })
+              .catch(e => done(e));
+
+          });
+
         });
 
         it('should find unit 4502', (done) => {
