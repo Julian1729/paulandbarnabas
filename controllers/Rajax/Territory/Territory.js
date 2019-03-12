@@ -20,6 +20,8 @@ middleware.findUserTerritory = (req, res, next) => {
   TerritoryModel.findByCongregation(req.session.congregation)
     .then(territory => {
       req.app.locals.territory = {territory};
+      // init current object
+      req.app.locals.territory.current = {};
       return next();
     })
     .catch(e => next(e));

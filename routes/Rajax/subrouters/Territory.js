@@ -13,7 +13,7 @@ router.get('/test', (req, res, next) => {
   res.send();
 })
 
-router.use('/street', require('./street'));
+router.use('/street/:street_name', require('./street'));
 
 // router.use('/unit', require('./unit'));
 

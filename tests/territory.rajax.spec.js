@@ -1,8 +1,9 @@
+const {expect} = require('chai');
 const session = require('supertest-session');
 
-
-
-var {app} = require('../app');
+const {app} = require('../app');
+const seed_data = require('../dev/seed/data');
+const user_seed_data = require('../dev/seed/User');
 
 var testSession = null;
 
@@ -11,7 +12,7 @@ describe('Territory Rajax', () => {
   /**
    * Seed database
    */
-  before((done) => {
+  before(done => {
 
     require('../dev/seed/populate')(true)
       .then(done)
@@ -20,25 +21,201 @@ describe('Territory Rajax', () => {
   });
 
   var authenticatedSession;
-  beforeEach(function (done) {
-
-    testSession = session(app);
-
-    testSession.post('/ajax/account/login')
-      .send({ email: 'hernandez.julian17@gmail.com', password: 'julianspassword' })
+  beforeEach(done => {
+    initSession = session(app);
+    initSession.post('/ajax/account/login')
+      // use unhashed user seed data
+      .send({ email: user_seed_data[0].email, password: user_seed_data[0].password})
       .expect(200)
       .end(function (err) {
         if (err) return done(err);
-        authenticatedSession = testSession;
+        authenticatedSession = initSession;
         return done();
       });
-      
   });
 
-  it('find territory object', function (done) {
+  it('should find user territory', function (done) {
     authenticatedSession.get('/rajax/territory/test')
       .expect(200)
       .end(done);
+  });
+
+  describe('Street Router', () => {
+
+    it('should find Oakland street', (done) => {
+
+      authenticatedSession
+        .get('/rajax/territory/street/Oakland/test')
+        .expect(200)
+        .end((err, res) => {
+          if(err) console.log(err.stack);
+          expect(res.body.street.name).to.equal('Oakland');
+          done();
+        });
+
+    });
+
+    // FIXME: this should pass, findStreet methods needs to made case insenstive
+    // it('should find Oakland street w/lowercase', (done) => {
+    //
+    //   authenticatedSession
+    //     .get('/rajax/territory/street/oakland/test')
+    //     .expect(200)
+    //     .end((err, res) => {
+    //       if(err) console.log(err.stack);
+    //       expect(res.body.street.name).to.equal('Oakland');
+    //       done();
+    //     });
+    //
+    // });
+
+    // it('should remove a street', (done) => {
+    //
+    // });
+
+    describe('Hundred Router', () => {
+
+      let base_url = '/rajax/territory/street/Oakland/hundred';
+
+      it('should find 4500 Oakland', (done) => {
+
+        authenticatedSession
+          .get(`${base_url}/4500/test`)
+          .expect(200)
+          .end(done);
+
+      });
+
+      it('should add 3 units to 4500', (done) => {
+
+        authenticatedSession
+          .post(`${base_url}/4500/units/add`)
+          .send({units: [
+            {
+              number: 4515
+            },
+            {
+              number: 4517
+            },
+            {
+              number: 4518,
+              subunits: ['Apt 1', 'Apt 2', 'Apt 3']
+            }
+          ]})
+          .expect(200)
+          .end((err, res) => {
+            if(err) return done(err);
+
+            expect(res.body.summary.units_added).to.equal(3);
+            done();
+
+          });
+
+      });
+
+      it('should not add units to 4500 Oakland and return UnitsAlreadyExist error obj', (done) => {
+
+        authenticatedSession
+          .post(`${base_url}/4500/units/add`)
+          // these units already exist
+          .send({units: [
+            {
+              number: 4501
+            },
+            {
+              number: 4503
+            },
+            {
+              number: 4505,
+              subunits: ['Apt 1', 'Apt 2', 'Apt 3']
+            }
+          ]})
+          .expect(200)
+          .end((err, res) => {
+            if(err) return done(err);
+
+            expect(res.body.summary.units_added).to.equal(0);
+            expect(res.body.error).to.have.property('duplicateNumbers');
+            expect(res.body.error.duplicateNumbers).to.have.include(4501, 4503, 4505);
+            done();
+
+          });
+
+      });
+
+      it('should overwrite 3 units in 4500 Oakland', (done) => {
+
+        authenticatedSession
+          .post(`${base_url}/4500/units/add?overwriteduplicates=true`)
+          // these units already exist
+          .send({units: [
+            {
+              number: 4501
+            },
+            {
+              number: 4503
+            },
+            {
+              number: 4505,
+              subunits: ['Apt 1', 'Apt 2', 'Apt 3']
+            }
+          ]})
+          .expect(200)
+          .end((err, res) => {
+            if(err) return done(err);
+
+            expect(res.body.summary.units_added).to.equal(3);
+            done();
+
+          });
+
+      });
+
+      it('should skip adding 3 units in 4500 Oakland', (done) => {
+
+        authenticatedSession
+          .post(`${base_url}/4500/units/add?skipduplicates=true`)
+          // these units already exist
+          .send({units: [
+            {
+              number: 4501
+            },
+            {
+              number: 4503
+            },
+            {
+              number: 4505,
+              subunits: ['Apt 1', 'Apt 2', 'Apt 3']
+            }
+          ]})
+          .expect(200)
+          .end((err, res) => {
+            if(err) return done(err);
+
+            expect(res.body.summary.units_added).to.equal(0);
+            done();
+
+          });
+
+      });
+
+      describe('Block Router', () => {
+
+        let base_url = '/rajax/territory/street/Oakland/hundred/4500/block';
+
+        it('should find correct block', (done) => {
+
+          authenticatedSession
+            .get(`${base_url}/odd/test`)
+            .expect(200)
+            .end(done);
+
+        });
+
+      });
+
+    });
+
   });
 
 });

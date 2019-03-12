@@ -1,12 +1,4 @@
-const {expect} = require('chai');
-const session = require('supertest-session');
 
-const {app} = require('../app');
-const TerritoryModel = require('../models/Territory');
-const UserModel = require('../models/User');
-const seed_data = require('../dev/seed/data');
-const user_seed_data = require('../dev/seed/User');
-const Utils = require('../utils/utils');
 
 describe('Unit Rajax Route', () => {
 
