@@ -507,6 +507,42 @@ describe('Territory Model', () => {
 
           });
 
+          it('should add a worked record to block with current timestamp', (done) => {
+
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let odd = hundred.odd;
+                expect(odd.worked).to.have.lengthOf(0);
+                odd.work();
+                expect(odd.worked).to.have.lengthOf(1);
+                return done();
+              })
+              .catch(e => done(e));
+
+          });
+
+          // this doesn't test that it actaully enters the date specified
+          // #justoolazy
+          it('should add a worked record with passed in timestamp', (done) => {
+            var testTerritory = Territory(seed.territory.completed);
+            testTerritory.save()
+              .then(territory => {
+                let street = territory.findStreet('Oakland');
+                let hundred = street.findHundred(4500);
+                let odd = hundred.odd;
+                expect(odd.worked).to.have.lengthOf(0);
+                let time = new Date('05-07-1998').getTime();
+                odd.work(time);
+                expect(odd.worked).to.have.lengthOf(1);
+                // test that the date equals the date above
+                return done();
+              })
+              .catch(e => done(e));
+          });
+
         });
 
         it('should find unit 4502', (done) => {

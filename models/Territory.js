@@ -285,6 +285,10 @@ var block_schema = new Schema({
       return foundUnit;
     };
 
+    block_schema.methods.work = function(time){
+      this.worked.push((time || new Date().getTime()));
+    };
+
     block_schema.methods.addTag = addTag;
     block_schema.methods.removeTag = removeTag;
 
