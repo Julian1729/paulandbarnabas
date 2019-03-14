@@ -6,11 +6,21 @@ const express = require('express');
 const router = express.Router({mergeParams: true});
 const HttpStatus = require('http-status-codes');
 
-const controller = require('../../../controllers/Rajax/unit')
+const controller = require('../../../controllers/Rajax/Territory/subcontrollers/unit');
 
-router.all('/:street/:hundred/:unit', controller.middleware.findUnit, (req, res, next) => {
+router.use(controller.middleware.findUnit);
 
-  res.send('from all');
+router.get('/test', (req, res) => {
+
+  let territory = req.app.locals.territory;
+  let unit = territory.current.unit;
+
+  if(!unit){
+    console.log('no unit');
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+  }
+
+  res.send();
 
 });
 

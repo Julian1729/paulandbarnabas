@@ -212,6 +212,69 @@ describe('Territory Rajax', () => {
 
         });
 
+        it('should add tag to 4500 Oakland odd', (done) => {
+
+          authenticatedSession
+            .post(`${base_url}/odd/tag/add?tag=low+steps`)
+            .expect(200)
+            .end(done)
+
+        });
+
+        it(`should remove 'low steps' tag from 4500 Oakland odd`, (done) => {
+
+          (async () => {
+            await authenticatedSession
+            .post(`${base_url}/odd/tag/add?tag=low+steps`)
+            .expect(200);
+          })();
+
+          (async () =>{
+            await authenticatedSession
+            .post(`${base_url}/odd/tag/remove?tag=low+steps`)
+            .expect(200)
+          })();
+
+          done();
+
+        });
+
+        // manually verified (by looking at db)
+        it('should add a worked record', (done) => {
+
+          authenticatedSession
+            .post(`${base_url}/odd/worked`)
+            .expect(200)
+            .end(done);
+
+        });
+
+        // manually verified
+        it('should add a worked record with specified timestamp', (done) => {
+
+          let time = new Date('05-07-1998').getTime();
+          authenticatedSession
+            .post(`${base_url}/odd/worked?time=${time}`)
+            .expect(200)
+            .end(done);
+
+        });
+
+      });
+
+      describe('Unit Router', () => {
+
+        let base_url = `/rajax/territory/street/Oakland/hundred/4500/unit`;
+
+        it('should find unit', (done) => {
+
+          authenticatedSession
+            .get(`${base_url}/4502/test`)
+            .expect(200)
+            .end(done);
+
+        });
+
       });
 
     });

@@ -32,6 +32,6 @@ const controller = require('../../../controllers/Rajax/Territory/subcontrollers/
   // Delegate to block router
   router.use('/block/:side', require('./block'));
 
-// router.use('/:street_name/hundred', require('./hundred'));
+  router.use('/unit/:unit_number', require('./unit'));
 
 module.exports = router;

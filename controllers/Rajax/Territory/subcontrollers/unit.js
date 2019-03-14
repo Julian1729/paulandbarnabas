@@ -14,21 +14,17 @@ var endpoints = {};
  */
 middleware.findUnit = function(req, res, next){
 
-  let territory = req.app.locals.territory.territory;
-  // track down unit
-  let reqStreet = req.params.street;
-  let reqHundred = req.params.hundred;
-  let reqUnit = req.params.unit;
-  // store found here
-  let street = null;
-  let hundred = null;
+  let territory = req.app.locals.territory;
+  let hundred = territory.current.hundred;
+
+  let reqUnit = req.params.unit_number;
+
   let unit = null;
+
   try {
-    street = territory.findStreet(reqStreet);
-    hundred = street.findHundred(reqHundred);
     unit = hundred.findUnit(reqUnit);
   } catch (e) {
-    if(e instanceof errors.StreetNotFound || e instanceof errors.HundredNotFound || e instanceof errors.UnitNotFound){
+    if(e instanceof errors.UnitNotFound){
       return res.status(HttpStatus.NOT_FOUND).send();
     }else{
       console.log(e.stack);
@@ -36,7 +32,10 @@ middleware.findUnit = function(req, res, next){
     }
   }
 
-  next();
+  // attach to locals
+  territory.current.unit = unit;
+
+  return next();
 
 };
 

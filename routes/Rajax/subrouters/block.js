@@ -13,20 +13,27 @@ const logger = require('../../../utils/logger');
 /**
  * Middleware
  */
-router.use(controller.middleware.findBlock);
+ router.use(controller.middleware.findBlock);
 
 /**
  * Endpoints
  */
-router.get('/test', (req, res) => {
+  router.get('/test', (req, res) => {
 
-  let territory = req.app.locals.territory;
-  if(!territory.current.block){
-    throw new Error('block not passed in on middleware');
-    res.send(HttpStatus.INTERNAL_SERVER_ERROR).send();
-  }
-  return res.send();
+    let territory = req.app.locals.territory;
+    if(!territory.current.block){
+      throw new Error('block not passed in on middleware');
+      res.send(HttpStatus.INTERNAL_SERVER_ERROR).send();
+    }
+    return res.send();
 
-});
+  });
+
+  // add / remove tags
+  router.post('/tag/add', controller.endpoints.addTag);
+  router.post('/tag/remove', controller.endpoints.removeTag);
+
+  // add worked record
+  router.post('/worked', controller.endpoints.addWorkedRecord);
 
 module.exports = router;

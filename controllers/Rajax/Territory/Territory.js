@@ -22,7 +22,7 @@ middleware.findUserTerritory = (req, res, next) => {
       req.app.locals.territory = {territory};
       // init current object
       req.app.locals.territory.current = {};
-      return next();
+      next();
     })
     .catch(e => next(e));
 
