@@ -4,20 +4,24 @@ const session = require('supertest-session');
 const {app} = require('../app');
 const seed_data = require('../dev/seed/data');
 const user_seed_data = require('../dev/seed/User');
+const TerritoryModel = require('../models/Territory');
 
 var testSession = null;
 
+/**
+ * Seed Database
+ * @return {Promise}
+ */
+var seed = () => {
+  return require('../dev/seed/populate')(true);
+};
+
+
 describe('Territory Rajax', () => {
 
-  /**
-   * Seed database
-   */
+  // seed db before running tests
   before(done => {
-
-    require('../dev/seed/populate')(true)
-      .then(done)
-      .catch(e => done(e));
-
+    seed().then(done).catch(e => done(e));
   });
 
   var authenticatedSession;
@@ -272,6 +276,102 @@ describe('Territory Rajax', () => {
             .get(`${base_url}/4502/test`)
             .expect(200)
             .end(done);
+
+        });
+
+        describe('POST /visit', () => {
+
+          let visitIdToEdit = null;
+
+          it('should add a visit', (done) => {
+
+            authenticatedSession
+              .post(`${base_url}/4502/visit/add`)
+              .send({
+
+                householders_contacted: ['Chandler Bing', 'Joey Tribbiani'],
+
+                contacted_by: 'Velma Jeter',
+
+                details: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                Suspendisse sit amet enim tristique, lacinia tortor ut, maximus dolor.
+                Proin dapibus facilisis lacinia. Morbi hendrerit dolor non metus auctor pharetra.
+                Maecenas in augue blandit, pharetra metus nec, vulputate ligula. Nulla gravida accumsan odio.`,
+
+                timestamp: 1000251000,
+
+                id: null
+
+              })
+              .expect(200)
+              .end((err, res) => {
+                if(err) throw err;
+                expect(res.body.data.id).to.exist;
+                visitIdToEdit = res.body.data.id;
+                return done();
+              });
+
+          });
+
+          // FIXME: this is poor unit testing because this test
+          // relies on the test before passing. Due to an error for
+          // makign two calls in one test this approach was taken
+          it('should edit added visit', (done) => {
+
+            authenticatedSession
+              .post(`${base_url}/4502/visit/add`)
+              .send({
+
+                householders_contacted: ['Monica Gellert'],
+
+                contacted_by: 'Brittany Alston',
+
+                details: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                Suspendisse sit amet enim tristique, lacinia tortor ut, maximus dolor.
+                Proin dapibus facilisis lacinia. Morbi hendrerit dolor non metus auctor pharetra.
+                Maecenas in augue blandit, pharetra metus nec, vulputate ligula. Nulla gravida accumsan odio.`,
+
+                timestamp: 1000251000,
+
+                id: visitIdToEdit
+
+              })
+              .expect(200)
+              .end((err, res) => {
+                // have to check that changes were made here
+                TerritoryModel.findByCongregation(seed_data.congregations[0]._id)
+                  .then(territory => {
+                    let oakland = territory.findStreet('Oakland');;
+                    let hundred = oakland.findHundred(4500);
+                    let unit = hundred.findUnit(4502);
+                    expect(unit.visits).to.have.lengthOf(1);
+                    expect(unit.visits[0].householders_contacted).to.not.include('Chandler Bing');
+                    expect(unit.visits[0].contacted_by).to.equal('Brittany Alston');
+                    return done();
+                  })
+                  .catch(e => done(e));
+              });
+
+          });
+
+          it('should remove visit from unit', (done) => {
+
+            authenticatedSession
+              .post(`${base_url}/4502/visit/remove?id=${visitIdToEdit.toString()}`)
+              .expect(200)
+              .end((err, res) => {
+                TerritoryModel.findByCongregation(seed_data.congregations[0]._id)
+                  .then(territory => {
+                    let oakland = territory.findStreet('Oakland');;
+                    let hundred = oakland.findHundred(4500);
+                    let unit = hundred.findUnit(4502);
+                    expect(unit.visits).to.have.lengthOf(0);
+                    return done();
+                  })
+                  .catch(e => done(e));
+              });
+
+          });
 
         });
 
