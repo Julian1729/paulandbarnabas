@@ -39,6 +39,35 @@ middleware.findUnit = function(req, res, next){
 
 };
 
+middleware.findSubunit = function(req, res, next){
+
+  let reqSubunit = req.query.subunit || null;
+
+  if(!reqSubunit) return next();
+
+  let territory = req.app.locals.territory;
+  let unit = territory.current.unit;
+
+  let subunit = null;
+
+  try {
+    subunit = unit.findSubunit(reqSubunit);
+  } catch (e) {
+    if(e instanceof errors.SubunitNotFound){
+      return res.status(HttpStatus.NOT_FOUND).send();
+    }else{
+      console.log(e.stack);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+    }
+  }
+
+  // attach to locals
+  territory.current.subunit = subunit;
+
+  return next();
+
+};
+
 /**
  * Endpoints
  */
@@ -47,7 +76,7 @@ middleware.findUnit = function(req, res, next){
 endpoints.addVisit = (req, res) => {
 
   let territory = req.app.locals.territory;
-  let unit = territory.current.unit;
+  let unit = territory.current.subunit || territory.current.unit;
 
   let visitData = _.pick(req.body, [
     'householders_contacted',
@@ -79,7 +108,7 @@ endpoints.removeVisit = (req, res) => {
   }
 
   let territory = req.app.locals.territory;
-  let unit = territory.current.unit;
+  let unit = territory.current.subunit || territory.current.unit;
 
   unit.removeVisit(visitId)
 

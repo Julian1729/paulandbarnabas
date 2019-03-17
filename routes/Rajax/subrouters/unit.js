@@ -11,7 +11,7 @@ const controller = require('../../../controllers/Rajax/Territory/subcontrollers/
 /**
  * Middleware
  */
-router.use(controller.middleware.findUnit);
+router.use(controller.middleware.findUnit, controller.middleware.findSubunit);
 
 
 
@@ -28,7 +28,6 @@ router.get('/test', (req, res) => {
     if(!territory.current.subunit){
       console.log('no subunit');
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    }
     }
   }
 
@@ -47,7 +46,7 @@ router.post('/visit/add', controller.endpoints.addVisit);
 router.post('/visit/remove', controller.endpoints.removeVisit);
 
 // Subunits
-router.post('/subunit/add', )
+//router.post('/subunit/add', contrller.endpoints.r)
 
 
 

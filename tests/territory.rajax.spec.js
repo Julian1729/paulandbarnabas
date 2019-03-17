@@ -279,6 +279,15 @@ describe('Territory Rajax', () => {
 
         });
 
+        it('should find subunit', (done) => {
+
+          authenticatedSession
+            .get(`${base_url}/4505/test?subunit=Apt+1`)
+            .expect(200)
+            .end(done);
+
+        });
+
         describe('POST /visit', () => {
 
           let visitIdToEdit = null;
@@ -309,6 +318,43 @@ describe('Territory Rajax', () => {
                 expect(res.body.data.id).to.exist;
                 visitIdToEdit = res.body.data.id;
                 return done();
+              });
+
+          });
+
+          it('should add a visit to subunit (4505 Oakland Apt 1)', (done) => {
+
+            authenticatedSession
+              .post(`${base_url}/4505/visit/add?subunit=Apt+1`)
+              .send({
+
+                householders_contacted: ['Chandler Bing', 'Joey Tribbiani'],
+
+                contacted_by: 'Velma Jeter',
+
+                details: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                Suspendisse sit amet enim tristique, lacinia tortor ut, maximus dolor.
+                Proin dapibus facilisis lacinia. Morbi hendrerit dolor non metus auctor pharetra.
+                Maecenas in augue blandit, pharetra metus nec, vulputate ligula. Nulla gravida accumsan odio.`,
+
+                timestamp: 1000251000,
+
+                id: null
+
+              })
+              .expect(200)
+              .end((err, res) => {
+                if(err) throw err;
+                TerritoryModel.findByCongregation(seed_data.congregations[0]._id)
+                  .then(territory => {
+                    let oakland = territory.findStreet('Oakland');;
+                    let hundred = oakland.findHundred(4500);
+                    let unit = hundred.findUnit(4505);
+                    let subunit = unit.findSubunit('Apt 1');
+                    expect(subunit.visits).to.have.lengthOf(1);
+                    return done();
+                  })
+                  .catch(e => done(e));
               });
 
           });
