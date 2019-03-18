@@ -79,12 +79,12 @@ describe('Territory Rajax', () => {
 
     describe('Hundred Router', () => {
 
-      let base_url = '/rajax/territory/street/Oakland/hundred';
+      let hundred_base_url = '/rajax/territory/street/Oakland/hundred';
 
       it('should find 4500 Oakland', (done) => {
 
         authenticatedSession
-          .get(`${base_url}/4500/test`)
+          .get(`${hundred_base_url}/4500/test`)
           .expect(200)
           .end(done);
 
@@ -93,7 +93,7 @@ describe('Territory Rajax', () => {
       it('should add 3 units to 4500', (done) => {
 
         authenticatedSession
-          .post(`${base_url}/4500/units/add`)
+          .post(`${hundred_base_url}/4500/units/add`)
           .send({units: [
             {
               number: 4515
@@ -120,7 +120,7 @@ describe('Territory Rajax', () => {
       it('should not add units to 4500 Oakland and return UnitsAlreadyExist error obj', (done) => {
 
         authenticatedSession
-          .post(`${base_url}/4500/units/add`)
+          .post(`${hundred_base_url}/4500/units/add`)
           // these units already exist
           .send({units: [
             {
@@ -150,7 +150,7 @@ describe('Territory Rajax', () => {
       it('should overwrite 3 units in 4500 Oakland', (done) => {
 
         authenticatedSession
-          .post(`${base_url}/4500/units/add?overwriteduplicates=true`)
+          .post(`${hundred_base_url}/4500/units/add?overwriteduplicates=true`)
           // these units already exist
           .send({units: [
             {
@@ -178,7 +178,7 @@ describe('Territory Rajax', () => {
       it('should skip adding 3 units in 4500 Oakland', (done) => {
 
         authenticatedSession
-          .post(`${base_url}/4500/units/add?skipduplicates=true`)
+          .post(`${hundred_base_url}/4500/units/add?skipduplicates=true`)
           // these units already exist
           .send({units: [
             {
@@ -205,12 +205,12 @@ describe('Territory Rajax', () => {
 
       describe('Block Router', () => {
 
-        let base_url = '/rajax/territory/street/Oakland/hundred/4500/block';
+        let block_base_url = '/rajax/territory/street/Oakland/hundred/4500/block';
 
         it('should find correct block', (done) => {
 
           authenticatedSession
-            .get(`${base_url}/odd/test`)
+            .get(`${block_base_url}/odd/test`)
             .expect(200)
             .end(done);
 
@@ -219,7 +219,7 @@ describe('Territory Rajax', () => {
         it('should add tag to 4500 Oakland odd', (done) => {
 
           authenticatedSession
-            .post(`${base_url}/odd/tag/add?tag=low+steps`)
+            .post(`${block_base_url}/odd/tag/add?tag=low+steps`)
             .expect(200)
             .end(done)
 
@@ -229,13 +229,13 @@ describe('Territory Rajax', () => {
 
           (async () => {
             await authenticatedSession
-            .post(`${base_url}/odd/tag/add?tag=low+steps`)
+            .post(`${block_base_url}/odd/tag/add?tag=low+steps`)
             .expect(200);
           })();
 
           (async () =>{
             await authenticatedSession
-            .post(`${base_url}/odd/tag/remove?tag=low+steps`)
+            .post(`${block_base_url}/odd/tag/remove?tag=low+steps`)
             .expect(200)
           })();
 
@@ -247,7 +247,7 @@ describe('Territory Rajax', () => {
         it('should add a worked record', (done) => {
 
           authenticatedSession
-            .post(`${base_url}/odd/worked`)
+            .post(`${block_base_url}/odd/worked`)
             .expect(200)
             .end(done);
 
@@ -258,7 +258,7 @@ describe('Territory Rajax', () => {
 
           let time = new Date('05-07-1998').getTime();
           authenticatedSession
-            .post(`${base_url}/odd/worked?time=${time}`)
+            .post(`${block_base_url}/odd/worked?time=${time}`)
             .expect(200)
             .end(done);
 
@@ -268,12 +268,12 @@ describe('Territory Rajax', () => {
 
       describe('Unit Router', () => {
 
-        let base_url = `/rajax/territory/street/Oakland/hundred/4500/unit`;
+        let unit_base_url = `/rajax/territory/street/Oakland/hundred/4500/unit`;
 
         it('should find unit', (done) => {
 
           authenticatedSession
-            .get(`${base_url}/4502/test`)
+            .get(`${unit_base_url}/4502/test`)
             .expect(200)
             .end(done);
 
@@ -282,7 +282,7 @@ describe('Territory Rajax', () => {
         it('should find subunit', (done) => {
 
           authenticatedSession
-            .get(`${base_url}/4505/test?subunit=Apt+1`)
+            .get(`${unit_base_url}/4505/test?subunit=Apt+1`)
             .expect(200)
             .end(done);
 
@@ -295,7 +295,7 @@ describe('Territory Rajax', () => {
           it('should add a visit', (done) => {
 
             authenticatedSession
-              .post(`${base_url}/4502/visit/add`)
+              .post(`${unit_base_url}/4502/visit/add`)
               .send({
 
                 householders_contacted: ['Chandler Bing', 'Joey Tribbiani'],
@@ -325,7 +325,7 @@ describe('Territory Rajax', () => {
           it('should add a visit to subunit (4505 Oakland Apt 1)', (done) => {
 
             authenticatedSession
-              .post(`${base_url}/4505/visit/add?subunit=Apt+1`)
+              .post(`${unit_base_url}/4505/visit/add?subunit=Apt+1`)
               .send({
 
                 householders_contacted: ['Chandler Bing', 'Joey Tribbiani'],
@@ -365,7 +365,7 @@ describe('Territory Rajax', () => {
           it('should edit added visit', (done) => {
 
             authenticatedSession
-              .post(`${base_url}/4502/visit/add`)
+              .post(`${unit_base_url}/4502/visit/add`)
               .send({
 
                 householders_contacted: ['Monica Gellert'],
@@ -384,6 +384,7 @@ describe('Territory Rajax', () => {
               })
               .expect(200)
               .end((err, res) => {
+                if(err) throw err;
                 // have to check that changes were made here
                 TerritoryModel.findByCongregation(seed_data.congregations[0]._id)
                   .then(territory => {
@@ -403,9 +404,10 @@ describe('Territory Rajax', () => {
           it('should remove visit from unit', (done) => {
 
             authenticatedSession
-              .post(`${base_url}/4502/visit/remove?id=${visitIdToEdit.toString()}`)
+              .post(`${unit_base_url}/4502/visit/remove?id=${visitIdToEdit.toString()}`)
               .expect(200)
               .end((err, res) => {
+                if(err) return console.log(err.stack);
                 TerritoryModel.findByCongregation(seed_data.congregations[0]._id)
                   .then(territory => {
                     let oakland = territory.findStreet('Oakland');;
@@ -416,6 +418,229 @@ describe('Territory Rajax', () => {
                   })
                   .catch(e => done(e));
               });
+
+          });
+
+          describe('POST /subunit', () => {
+
+            let subunitId = null;
+
+            it('should add 2 subunits to 4507 Oakland', (done) => {
+
+              authenticatedSession
+                .post(`${unit_base_url}/4507/subunit/add`)
+                .send({
+                  subunits: [
+                    {
+                      name: 'Apt 1'
+                    },
+                    {
+                      name: 'Apt 2'
+                    }
+                  ]
+                })
+                .expect(200)
+                .end((err, res) => {
+                  if(err) throw err;
+                  expect(res.body.data.subunits).to.exist;
+                  expect(res.body.data.subunits).to.have.lengthOf(2);
+                  // WARNING: bad practice!
+                  // set first subunit to var to be removed in next test
+                  subunitId = res.body.data.subunits[0]._id;
+                  TerritoryModel.findByCongregation(seed_data.congregations[0]._id)
+                    .then(territory => {
+                      let oakland = territory.findStreet('Oakland');
+                      let hundred = oakland.findHundred(4500);
+                      let unit = hundred.findUnit(4507);
+                      expect(unit.subunits).to.have.lengthOf(2);
+                      return done();
+                    })
+                    .catch(e => done(e));
+              });
+
+            });
+
+            // WARNING: this is bad practice because this test depends on
+            // the test immediately before it to pass
+            it('should remove 1 subunit from 4507 Oakland', (done) => {
+
+              authenticatedSession
+                .post(`${unit_base_url}/4507/subunit/remove?id=${subunitId.toString()}`)
+                .expect(200)
+                .end((err, res) => {
+                  if(err) throw err;
+                  TerritoryModel.findByCongregation(seed_data.congregations[0]._id)
+                    .then(territory => {
+                      let oakland = territory.findStreet('Oakland');
+                      let hundred = oakland.findHundred(4500);
+                      let unit = hundred.findUnit(4507);
+                      expect(unit.subunits).to.have.lengthOf(1);
+                      return done();
+                    })
+                    .catch(e => done(e));
+              });
+
+            });
+
+          });
+
+          describe('POST /tag', () => {
+
+            it('should add a tag to unit (4501 Oakland)', (done) => {
+
+              authenticatedSession
+                .post(`${unit_base_url}/4501/tag/add?tag=low+steps`)
+                .expect(200)
+                .end((err, res) => {
+                  if(err) throw err;
+                  TerritoryModel.findByCongregation(seed_data.congregations[0]._id)
+                    .then(territory => {
+                      let oakland = territory.findStreet('Oakland');
+                      let hundred = oakland.findHundred(4500);
+                      let unit = hundred.findUnit(4501);
+                      expect(unit.tags).to.have.lengthOf(1);
+                      expect(unit.tags).to.include('low steps');
+                      return done();
+                    })
+                    .catch(e => done(e));
+                  });
+
+            });
+
+            it('should add a tag to subunit (4505 Oakland > Apt 1)', (done) => {
+
+              authenticatedSession
+                .post(`${unit_base_url}/4505/tag/add?subunit=Apt+1&tag=low+steps`)
+                .expect(200)
+                .end((err, res) => {
+                  if(err) throw err;
+                  TerritoryModel.findByCongregation(seed_data.congregations[0]._id)
+                    .then(territory => {
+                      let oakland = territory.findStreet('Oakland');
+                      let hundred = oakland.findHundred(4500);
+                      let unit = hundred.findUnit(4505);
+                      let subunit = unit.findSubunit('Apt 1');
+                      expect(subunit.tags).to.have.lengthOf(1);
+                      expect(subunit.tags).to.include('low steps');
+                      return done();
+                    })
+                    .catch(e => done(e));
+                  });
+
+            });
+
+            // WARNING: Bad practice, this test depends on previous test to pass
+            it('should remove a tag from unit (4501 Oakland)', (done) => {
+
+              authenticatedSession
+                .post(`${unit_base_url}/4501/tag/remove?tag=low+steps`)
+                .expect(200)
+                .end((err, res) => {
+                  if(err) throw err;
+                  TerritoryModel.findByCongregation(seed_data.congregations[0]._id)
+                    .then(territory => {
+                      let oakland = territory.findStreet('Oakland');
+                      let hundred = oakland.findHundred(4500);
+                      let unit = hundred.findUnit(4501);
+                      expect(unit.tags).to.have.lengthOf(0);
+                      return done();
+                    })
+                    .catch(e => done(e));
+                  });
+
+            });
+
+          });
+
+          describe('POST /householder', () => {
+
+            let householderToRemove = null;
+
+            it('should add a householder to unit (4505 Oakland)', (done) => {
+
+              authenticatedSession
+                .post(`${unit_base_url}/4505/householder/add`)
+                .send({
+                  householder: {
+                    name: 'Johnathan Doe',
+                    gender: 'male'
+                  }
+                })
+                .expect(200)
+                .end((err, res) => {
+                  console.log(JSON.stringify(res, null, 2));
+                  if(err) throw err;
+                  expect(res.body.data.householder._id).to.exist;
+                  // set this housholder's id to be removed
+                  householderToRemove = res.body.data.householder._id;
+                  TerritoryModel.findByCongregation(seed_data.congregations[0]._id)
+                    .then(territory => {
+                      let oakland = territory.findStreet('Oakland');
+                      let hundred = oakland.findHundred(4500);
+                      let unit = hundred.findUnit(4505);
+                      expect(unit.householders).to.have.lengthOf(1);
+                      expect(unit.householders[0].name).to.equal('Johnathan Doe');
+                      return done();
+                    })
+                    .catch(e => done(e));
+                  });
+
+            });
+
+            it('should add a householder to subunit (4505 Oakland > Apt 1)', (done) => {
+
+              authenticatedSession
+                .post(`${unit_base_url}/4505/householder/add?subunit=Apt+1`)
+                .send({
+                  householder: {
+                    name: 'Johnathan Doe',
+                    gender: 'male'
+                  }
+                })
+                .expect(200)
+                .end((err, res) => {
+                  if(err) throw err;
+                  expect(res.body.data.householder._id).to.exist;
+                  TerritoryModel.findByCongregation(seed_data.congregations[0]._id)
+                    .then(territory => {
+                      let oakland = territory.findStreet('Oakland');
+                      let hundred = oakland.findHundred(4500);
+                      let unit = hundred.findUnit(4505);
+                      let subunit = unit.findSubunit('Apt 1');
+                      expect(subunit.householders).to.have.lengthOf(1);
+                      expect(subunit.householders[0].name).to.equal('Johnathan Doe');
+                      return done();
+                    })
+                    .catch(e => done(e));
+                  });
+
+            });
+
+            it('should remove a householder from unit (4505 Oakland)', (done) => {
+
+              authenticatedSession
+                .post(`${unit_base_url}/4505/householder/remove?id=${householderToRemove.toString()}`)
+                .send({
+                  householder: {
+                    name: 'Johnathan Doe',
+                    gender: 'male'
+                  }
+                })
+                .expect(200)
+                .end((err, res) => {
+                  if(err) throw err;
+                  TerritoryModel.findByCongregation(seed_data.congregations[0]._id)
+                    .then(territory => {
+                      let oakland = territory.findStreet('Oakland');
+                      let hundred = oakland.findHundred(4500);
+                      let unit = hundred.findUnit(4505);
+                      expect(unit.householders).to.have.lengthOf(0);
+                      return done();
+                    })
+                    .catch(e => done(e));
+                  });
+
+            });
 
           });
 

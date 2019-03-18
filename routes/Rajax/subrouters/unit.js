@@ -42,11 +42,19 @@ router.get('/test', (req, res) => {
 
 // Visits
 router.post('/visit/add', controller.endpoints.addVisit);
-
 router.post('/visit/remove', controller.endpoints.removeVisit);
 
 // Subunits
-//router.post('/subunit/add', contrller.endpoints.r)
+router.post('/subunit/add', controller.endpoints.addSubunit);
+router.post('/subunit/remove', controller.endpoints.removeSubunit);
+
+// Tags
+router.post('/tag/add', controller.endpoints.addTag);
+router.post('/tag/remove', controller.endpoints.removeTag);
+
+// Householders
+router.post('/householder/add', controller.endpoints.addHouseholder);
+router.post('/householder/remove', controller.endpoints.removeHouseholder);
 
 
 
