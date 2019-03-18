@@ -164,6 +164,7 @@ const errors = require('../errors');
    function addHouseholder(name, gender, email, phone_number){
     let householder = {name, gender, email, phone_number};
     this.householders.push(householder);
+    return _.last(this.householders);
    };
 
    /**

@@ -846,7 +846,9 @@ describe('Territory Model', () => {
               let street = territory.findStreet('Oakland');
               let hundred = street.findHundred(4500);
               let unit = hundred.findUnit(4502);
-              unit.addHouseholder('Johnathan Doe', 'male', 'john@doe.com', '2154000468');
+              let householder = unit.addHouseholder('Johnathan Doe', 'male', 'john@doe.com', '2154000468');
+              expect(householder).to.exist;
+              expect(householder).to.have.property('_id');
               return territory.save();
             })
             .then(territory => {
