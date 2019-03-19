@@ -56,6 +56,14 @@ router.post('/tag/remove', controller.endpoints.removeTag);
 router.post('/householder/add', controller.endpoints.addHouseholder);
 router.post('/householder/remove', controller.endpoints.removeHouseholder);
 
+// Notes
+router.post('/note/add', controller.endpoints.addNote);
+router.post('/note/remove', controller.endpoints.removeNote);
+
+// Metadata
+// router.get('/meta', controller.endpoints.meta);
+router.post('/meta', controller.endpoints.meta);
+
 
 
 module.exports = router;

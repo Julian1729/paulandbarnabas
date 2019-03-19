@@ -292,18 +292,132 @@ endpoints.removeHouseholder = (req, res) => {
     })
     .catch(e => {
       console.log(e.stack);
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
     });
 
 };
 
-// /**
-//  * Add a note to a unit
-//  */
-// endpoints.addNote = (req, res) => {
-//
-//
-//
-// };
+/**
+ * Add a note to unit or subunit
+ */
+endpoints.addNote = (req, res) => {
+
+  let territory = req.app.locals.territory;
+  let unit = territory.current.subunit || territory.current.unit;
+
+  let reqNote = req.body;
+
+  let note = unit.addNote(reqNote);
+
+  territory.territory.save()
+    .then(t => {
+      return res.json({data: {note: note}});
+    })
+    .catch(e => {
+      console.log(e.stack);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+    });
+
+};
+
+/**
+ * Remove note from unit or subunit
+ */
+endpoints.removeNote = (req, res) => {
+
+  let noteId = req.query.id;
+  if(!noteId) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
+
+  let territory = req.app.locals.territory;
+  let unit = territory.current.subunit || territory.current.unit;
+
+  unit.removeNote(noteId);
+
+  territory.territory.save()
+    .then(t => {
+      return res.send();
+    })
+    .catch(e => {
+      console.log(e.stack);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+    });
+
+};
+
+/**
+ * Set a meta property on unit
+ * Expected in query: dnc || lang || calledon || name
+ * (isdonotcall)
+ * (language)
+ * (iscalledon)
+ * (name)
+ */
+endpoints.meta = (req, res) => {
+
+  let territory = req.app.locals.territory;
+  let unit = territory.current.subunit || territory.current.unit;
+
+  // search for valid meta option in query
+  // and store in option var
+  let option = null;
+  let value = null;
+  [
+    'dnc',
+    'lang',
+    'calledon',
+    'name'
+  ].forEach(opt => {
+    if(req.query.hasOwnProperty(opt)){
+      value = req.query[opt];
+      return option = opt;
+    }
+  });
+
+  if(!option){
+    return res.status(HttpStatus.NOT_ACCEPTABLE).send();
+  }
+
+  var isFalseMeta = (val) => {
+    return (val === 'false' || val === '0') ? false : true;
+  };
+
+  // update unit metadata
+  switch (option) {
+    case 'dnc':
+      if(isFalseMeta(value)){
+        unit.isdonotcall = true;
+      }else{
+        unit.isdonotcall = false;
+      }
+      console.log('dnc', unit.isdonotcall);
+      break;
+    case 'lang':
+      // FIXME: implement lanuage setter
+      return res.status(HttpStatus.NOT_IMPLEMENTED).send();
+      break;
+    case 'calledon':
+      if(isFalseMeta(value)){
+        unit.iscalledon = true;
+      }else{
+        unit.iscalledon = false;
+      }
+      break;
+    case 'name':
+      unit.name = value;
+      break;
+    default:
+      return res.send();
+  }
+
+  territory.territory.save()
+    .then(t => {
+      return res.json({data: {option, value}});
+    })
+    .catch(e => {
+      console.log(e.stack);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+    });
+
+};
 
 module.exports = {middleware, endpoints};
