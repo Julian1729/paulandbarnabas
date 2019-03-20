@@ -94,4 +94,20 @@ endpoints.overview = (req, res, next) => {
 
 };
 
+/**
+ * Householder Contacted
+ */
+endpoints.householderContacted = (req, res) => {
+
+  // let territory = req.app.locals.territory;
+  // let unit = territory.current.unit;
+  //
+  // let renderVars = {
+  //   unit
+  // };
+
+  res.send('HOUSEHOLDER CONTACTED!')
+
+};
+
 module.exports = {endpoints, middleware};

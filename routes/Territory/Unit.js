@@ -11,4 +11,9 @@ router.all('/:unit_number*', controller.middleware.findRequestedUnit);
  */
 router.get('/:unit_number', controller.endpoints.overview);
 
+/**
+ * Housholder contacted
+ */
+router.get('/:unit_number/householder-contacted', controller.endpoints.householderContacted);
+
 module.exports = router;
