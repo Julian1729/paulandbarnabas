@@ -1,5 +1,6 @@
 const {expect} = require('chai');
 const session = require('supertest-session');
+var languageAbbreviations = require('iso-639-2-english').living;
 
 const {app} = require('../app');
 const seed_data = require('../dev/seed/data');
@@ -715,6 +716,26 @@ describe('Territory Rajax', () => {
                 return done();
               }).catch(e => done(e));
             });
+
+          });
+
+          it('should set unit language to spanish [sp] (4502 Oakland)', (done) => {
+
+            authenticatedSession
+              .post(`${unit_base_url}/4502/meta?lang=spa`)
+              .expect(200)
+              .end((err, res) => {
+                if (err)
+                  throw err;
+                TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
+                  let oakland = territory.findStreet('Oakland');
+                  let hundred = oakland.findHundred(4500);
+                  let unit = hundred.findUnit(4502);
+                  expect(unit.language).to.equal('spa');
+                  expect(languageAbbreviations[unit.language]).to.equal('Spanish');
+                  return done();
+                }).catch(e => done(e));
+              });
 
           });
 

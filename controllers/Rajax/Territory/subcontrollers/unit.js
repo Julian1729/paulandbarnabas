@@ -392,8 +392,7 @@ endpoints.meta = (req, res) => {
       console.log('dnc', unit.isdonotcall);
       break;
     case 'lang':
-      // FIXME: implement lanuage setter
-      return res.status(HttpStatus.NOT_IMPLEMENTED).send();
+      unit.language = value;
       break;
     case 'calledon':
       if(isFalseMeta(value)){
