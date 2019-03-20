@@ -389,7 +389,6 @@ endpoints.meta = (req, res) => {
       }else{
         unit.isdonotcall = false;
       }
-      console.log('dnc', unit.isdonotcall);
       break;
     case 'lang':
       unit.language = value;
