@@ -3,7 +3,8 @@ extends ../ProtoBase
 append content
   .container
     .row.text-center
-      a(href=work_url).btn.btn-primary.btn-lg.my-2 work fragment
+      //- send to fragment overview page
+      a(href=render_vars.fragment.overview_url).btn.btn-primary.btn-lg.my-2 work fragment
     .row.my-2
       each props, street in streets
         .col-sm

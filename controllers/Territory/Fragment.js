@@ -20,6 +20,18 @@ var endpoints = {};
  * Middleware
  */
 
+  /**
+   * Initialize render_vars object to be held and
+   * updated throughout route journey on res.locals
+   */
+  middleware.initRenderVars = (req, res, next) => {
+
+    res.locals.render_vars = {};
+
+    next();
+
+  };
+
   middleware.findUserFragments = (req, res, next) => {
 
     let territory = req.app.locals.territory.territory;
@@ -34,7 +46,6 @@ var endpoints = {};
 
     if(!req.params.fragment_id) return next();
 
-
     let territory = req.app.locals.territory.territory;
     let assigned_fragments = req.app.locals.territory.assigned_fragments;
 
@@ -42,13 +53,26 @@ var endpoints = {};
       return f._id.equals(req.params.fragment_id);
     });
 
+    // if fragment is not found in user assigned fragments,
+    // the user in not authorized to view that fragment
     if(!fragment){
       return res.status(HttpStatus.UNAUTHORIZED).send();
     }
 
-    //init current
+    //init current object to hold currently requested assets
     req.app.locals.territory.current = {};
     req.app.locals.territory.current.fragment = fragment;
+
+    let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
+
+    // ini fragment object on render_vars
+    // attach number and work_url
+    res.locals.render_vars.fragment = {
+      number: fragment.number,
+      id: fragment._id,
+      overview_url: URL_CONSTRUCTOR['block-select'](fragment._id.toString())
+    };
+
 
     return next();
 
@@ -83,7 +107,15 @@ var endpoints = {};
       return b.block._id.equals(blockId);
     });
 
+    // attach to locals
     req.app.locals.territory.current.block = block;
+
+    // attach block ref to render_vars
+    res.locals.render_vars.block = _.pick(block, ['street', 'hundred', 'odd_even', '_id', 'block._id']);
+    let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
+    let territory = req.app.locals.territory;
+    // add block overview url to render_vars
+    res.locals.render_vars.block.overview_url = URL_CONSTRUCTOR['block-select'](territory.current.fragment._id.toString());
 
     return next();
 
@@ -97,7 +129,7 @@ var endpoints = {};
   /**
    * Show fragment overview, blocks
    */
-  endpoints.land = (req, res, next) => {
+  endpoints.fragmentOverview = (req, res) => {
 
     // find requested fragment
     let fragment = req.app.locals.territory.current.fragment;
@@ -105,14 +137,10 @@ var endpoints = {};
 
     var renderVars = {
       // Oakland: {id: 'asdfasdf', blocks: {hundred: 4700, odd_even: 'even'}}
-      fragment_id: fragment._id,
-      // work_url: constants.fragment_url + "/work/" + fragment_id
-      work_url: `${constants.fragment_url}/${fragment._id}/blocks/`,
       streets: {}
     };
 
     // organize blocks by street
-
     blocks.forEach(b => {
       if(!renderVars.streets[b.street]){
         renderVars.streets[b.street] = {
@@ -125,63 +153,86 @@ var endpoints = {};
       });
     });
 
-    res.render('Fragment/Overview', renderVars);
+    res.render('Territory/FragmentOverview', renderVars);
 
   };
 
   /**
    * List Blocks
    */
-  endpoints.blockSelect = (req, res, next) => {
+  endpoints.blockSelect = (req, res) => {
+
+    let territory = req.app.locals.territory;
+    let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
 
     let blocks = req.app.locals.territory.current.blocks;
 
-    // add url to each block obj
+    console.log(blocks);
+
+    // have following propertes street, hundred, odd_even, id, overview_url
     blocks = blocks.map(b => {
-      b.block.url = `${constants.fragment_url}/${req.params.fragment_id}/blocks/${b.block._id}`;
-      return b;
+      return {
+        street: b.street,
+        hundred: b.hundred,
+        odd_even: b.odd_even,
+        id: b._id,
+        overview_url: URL_CONSTRUCTOR['block-overview'](territory.current.fragment._id.toString(), b.block._id.toString())
+      }
     });
 
     let renderVars = {
-      fragment_id: req.params.fragment_id,
-      fragment_number: req.app.locals.territory.current.fragment.number,
-      // e.g. {street: Oakland, hundred: 4500, odd_even: 'even', id: 'sskskd' }
       blocks: blocks
     };
 
-    res.render('Fragment/BlockSelect', renderVars);
+    res.render('Territory/BlockSelect', renderVars);
 
   };
 
   /**
    * List Units
    */
-  endpoints.block = (req, res, next) => {
+  endpoints.blockOverview = (req, res) => {
 
-    let user = Session.pickUserCredentials(req.session);
-    let current = req.app.locals.territory.current;
-    let fragment = current.fragment;
-    let block_ref = current.block;
+    let territory = req.app.locals.territory;
+    let block = territory.current.block;
+    let units = block.block.units;
 
-    // construct url
-    function unit_url(fragmentId, blockId, unitNumber){
-      // /:fragment_id/blocks/:block_id/unit/:unit_number'
-      return `${constants.fragment_url}/${fragmentId}/blocks/${blockId}/unit/${unitNumber}`
-    }
-
-    // insert unit urls into unit object
-    block_ref.block.units.map(u => {
-      u.url = unit_url(fragment._id, block_ref.block._id, u.number);
+    let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
+    // format array of units to have following properties
+    // number, id, overview_url, subunits .. overview_url
+    let formattedUnits = units.map(u => {
+      let obj = {
+        number: u.number,
+        id: u._id,
+        overview_url: URL_CONSTRUCTOR['unit-overview'](territory.current.fragment._id.toString(), block.block._id.toString(), u.number),
+        subunits: [],
+        visits: (u.visits.length) ? true : false,
+        isdonotcall: u.isdonotcall,
+        tags: u.tags
+      };
+      // handle subunits
+      if(u.subunits){
+        // loop through subunits and gather subunit name, and construct overview url
+        // and push into subunits array on unit object
+        u.subunits.forEach(s => {
+          var subunitObj = {
+            name: s.name,
+            overview_url: URL_CONSTRUCTOR['unit-overview'](territory.current.fragment._id.toString(), block.block._id.toString(), u.number, s.name),
+            visits: (s.visits.length) ? true : false,
+            isdonotcall: s.isdonotcall,
+            tags: s.tags
+          };
+          obj.subunits.push(subunitObj);
+        });
+      }
+      return obj;
     });
 
     var renderVars = {
-      fragment: {
-        number: req.app.locals.territory.current.fragment.number,
-      },
-      block_ref,
+      units: formattedUnits
     };
 
-    res.render('Fragment/Block', renderVars);
+    res.render('Territory/BlockOverview', renderVars);
 
   };
 

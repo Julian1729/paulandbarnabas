@@ -4,7 +4,7 @@ append content
   .container.my-2
     nav(aria-label='breadcrumb')
       ol.breadcrumb
-        li.breadcrumb-item.active(aria-current="page") Fragment #{fragment_number}
+        li.breadcrumb-item.active(aria-current="page") Fragment #{render_vars.fragment.number}
         li.breadcrumb-item  Block
         li.breadcrumb-item Unit
 
@@ -12,6 +12,6 @@ append content
     ul
       each block in blocks
         li
-          a(href=block.block.url) #{block.hundred} #{block.street} (#{block.odd_even})
+          a(href=block.overview_url) #{block.hundred} #{block.street} (#{block.odd_even})
 
         

@@ -4,25 +4,25 @@ append content
   .container.my-2
     nav(aria-label='breadcrumb')
       ol.breadcrumb
-        li.breadcrumb-item Fragment #{fragment.number}
-        li.breadcrumb-item.active(aria-current="page")  #{block_ref.hundred} #{block_ref.street}
+        li.breadcrumb-item Fragment #{render_vars.fragment.number}
+        li.breadcrumb-item.active(aria-current="page")  #{render_vars.block.hundred} #{render_vars.block.street}
         li.breadcrumb-item Unit
         
   .container.text-center
-    h2 #{block_ref.hundred} #{block_ref.street}
-    h5= block_ref.odd_even
+    h2 #{render_vars.block.hundred} #{render_vars.block.street}
+    h5= render_vars.block.odd_even
     
   .container 
     ul.list-group
       //- Not DRY, needs to be optimized...classes are repeated twice
-      each unit in block_ref.block.units
+      each unit in units
         - var subunitTargetClass = `subunit-${unit.number}`
         - var classes = "list-group-item list-group-item-action align-items-center d-flex justify-content-between"
         if unit.isdonotcall
           - classes = classes + " list-group-item-danger"
         else if unit.iscalledon
           - classes = classes + " list-group-item-warning"
-        else if unit.visits.length
+        else if unit.visits
           - classes = classes + " list-group-item-success"
         
         li(class=classes, data-toggle=(unit.subunits.length ? 'collapse' : ''), data-target=(unit.subunits.length ? `.${subunitTargetClass}` : ''))
@@ -31,7 +31,7 @@ append content
           
           else  
             
-            a(href=unit.url)= unit.number
+            a(href=unit.overview_url)= unit.number
             
           each tag in unit.tags
             span.badge.badge-primary.badge-pill= tag
@@ -39,16 +39,15 @@ append content
         if unit.subunits.length
           each subunit in unit.subunits
             - var classes = `${subunitTargetClass} collapse list-group-item list-group-item-action`
-            - var subunit_url = `${unit.url}?subunit=${subunit.name}`
             if unit.isdonotcall
               - classes = classes + " list-group-item-danger"
             else if unit.iscalledon
               - classes = classes + " list-group-item-warning"
-            else if unit.visits.length
+            else if unit.visits
               - classes = classes + " list-group-item-success"
             
             li(class=classes)
-              a(href=subunit_url, style="display: block; margin-left: 20px; width: 1px; white-space: nowrap;")= subunit.name
+              a(href=subunit.overview_url, style="display: block; margin-left: 20px; width: 1px; white-space: nowrap;")= subunit.name
               each tag in unit.tags
                 span.badge.badge-primary.badge-pill= tag
             
