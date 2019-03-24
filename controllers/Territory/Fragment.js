@@ -34,10 +34,10 @@ var endpoints = {};
 
   middleware.findUserFragments = (req, res, next) => {
 
-    let territory = req.app.locals.territory.territory;
-    let assigned_fragments = territory.findUserFragments(req.app.locals.user.user_id);
+    let territory = res.locals.territory;
+    let assigned_fragments = territory.findUserFragments(req.session.user_id);
     // attach fragments to locals
-    req.app.locals.territory.assigned_fragments = assigned_fragments;
+    res.locals.user.assigned_fragments = assigned_fragments;
     return next();
 
   };
@@ -46,8 +46,8 @@ var endpoints = {};
 
     if(!req.params.fragment_id) return next();
 
-    let territory = req.app.locals.territory.territory;
-    let assigned_fragments = req.app.locals.territory.assigned_fragments;
+    let territory = res.locals.territory;
+    let assigned_fragments = res.locals.user.assigned_fragments;
 
     var fragment = assigned_fragments.find(f => {
       return f._id.equals(req.params.fragment_id);
@@ -60,8 +60,7 @@ var endpoints = {};
     }
 
     //init current object to hold currently requested assets
-    req.app.locals.territory.current = {};
-    req.app.locals.territory.current.fragment = fragment;
+    res.locals.requested.fragment = fragment;
 
     let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
 
@@ -73,27 +72,26 @@ var endpoints = {};
       overview_url: URL_CONSTRUCTOR['block-select'](fragment._id.toString())
     };
 
-
     return next();
 
   };
 
   middleware.findFragmentBlocks = (req, res, next) => {
 
-    var territory = req.app.locals.territory.territory;
-    let fragments = req.app.locals.territory.assigned_fragments;
+    var territory = res.locals.territory;
+    let fragments = res.locals.user.assigned_fragments;
 
     // init blank block map object
-    let blocks = req.app.locals.territory.block_map = {};
+    let blocks = res.locals.territory.block_map = {};
 
     fragments.forEach(f => {
       blocks[f.number] = territory.findBlocksById(f.blocks);
     });
 
-    let currentFragmentNumber = req.app.locals.territory.current.fragment.number;
+    let currentFragmentNumber = res.locals.requested.fragment.number;
 
     // reference requested fragment's assigned blocks as blocks
-    req.app.locals.territory.current.blocks = blocks[currentFragmentNumber];
+    res.locals.requested.blocks = blocks[currentFragmentNumber];
 
     return next();
 
@@ -102,20 +100,21 @@ var endpoints = {};
   middleware.findRequestedBlock = (req, res, next) => {
 
     let blockId = req.params.block_id;
+    let requested = res.locals.requested;
 
-    let block = req.app.locals.territory.current.blocks.find(b => {
+    let block = requested.blocks.find(b => {
       return b.block._id.equals(blockId);
     });
 
     // attach to locals
-    req.app.locals.territory.current.block = block;
+    res.locals.requested.block = block;
 
     // attach block ref to render_vars
     res.locals.render_vars.block = _.pick(block, ['street', 'hundred', 'odd_even', '_id', 'block._id']);
     let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
-    let territory = req.app.locals.territory;
+    let territory = res.locals.territory;
     // add block overview url to render_vars
-    res.locals.render_vars.block.overview_url = URL_CONSTRUCTOR['block-select'](territory.current.fragment._id.toString());
+    res.locals.render_vars.block.overview_url = URL_CONSTRUCTOR['block-select'](requested.fragment._id.toString());
 
     return next();
 
@@ -132,8 +131,8 @@ var endpoints = {};
   endpoints.fragmentOverview = (req, res) => {
 
     // find requested fragment
-    let fragment = req.app.locals.territory.current.fragment;
-    let blocks = req.app.locals.territory.current.blocks;
+    let fragment = res.locals.requested.fragment;
+    let blocks = res.locals.requested.blocks;
 
     var renderVars = {
       // Oakland: {id: 'asdfasdf', blocks: {hundred: 4700, odd_even: 'even'}}
@@ -162,12 +161,10 @@ var endpoints = {};
    */
   endpoints.blockSelect = (req, res) => {
 
-    let territory = req.app.locals.territory;
+    let requested = res.locals.requested;
     let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
 
-    let blocks = req.app.locals.territory.current.blocks;
-
-    console.log(blocks);
+    let blocks = res.locals.requested.blocks;
 
     // have following propertes street, hundred, odd_even, id, overview_url
     blocks = blocks.map(b => {
@@ -176,7 +173,7 @@ var endpoints = {};
         hundred: b.hundred,
         odd_even: b.odd_even,
         id: b._id,
-        overview_url: URL_CONSTRUCTOR['block-overview'](territory.current.fragment._id.toString(), b.block._id.toString())
+        overview_url: URL_CONSTRUCTOR['block-overview'](requested.fragment._id.toString(), b.block._id.toString())
       }
     });
 
@@ -193,8 +190,8 @@ var endpoints = {};
    */
   endpoints.blockOverview = (req, res) => {
 
-    let territory = req.app.locals.territory;
-    let block = territory.current.block;
+    let requested = res.locals.requested;
+    let block = requested.block;
     let units = block.block.units;
 
     let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
@@ -204,7 +201,7 @@ var endpoints = {};
       let obj = {
         number: u.number,
         id: u._id,
-        overview_url: URL_CONSTRUCTOR['unit-overview'](territory.current.fragment._id.toString(), block.block._id.toString(), u.number),
+        overview_url: URL_CONSTRUCTOR['unit-overview'](requested.fragment._id.toString(), block.block._id.toString(), u.number),
         subunits: [],
         visits: (u.visits.length) ? true : false,
         isdonotcall: u.isdonotcall,
@@ -217,7 +214,7 @@ var endpoints = {};
         u.subunits.forEach(s => {
           var subunitObj = {
             name: s.name,
-            overview_url: URL_CONSTRUCTOR['unit-overview'](territory.current.fragment._id.toString(), block.block._id.toString(), u.number, s.name),
+            overview_url: URL_CONSTRUCTOR['unit-overview'](requested.fragment._id.toString(), block.block._id.toString(), u.number, s.name),
             visits: (s.visits.length) ? true : false,
             isdonotcall: s.isdonotcall,
             tags: s.tags
