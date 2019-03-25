@@ -4,24 +4,28 @@ append content
   .container.my-2
     nav(aria-label='breadcrumb')
       ol.breadcrumb
-        li.breadcrumb-item Fragment #{fragment.number}
-        li.breadcrumb-item #{block_ref.hundred} #{block_ref.street}
+        li.breadcrumb-item Fragment #{render_vars.fragment.number}
+        li.breadcrumb-item #{hundred} #{street}
         if subunit
         
-          li.breadcrumb-item #{unit.unit.number} &#62; #{subunit.subunit.name}
+          li.breadcrumb-item #{number} &#62; #{name}
         
         else
           
-          li.breadcrumb-item= unit.unit.number
+          li.breadcrumb-item= number
           
   .container
     .row.flex-column.text-center
-      h1 #{unit.unit.number} #{block_ref.street}
+      h1 #{number} #{street}
       if subunit
-        h5= subunit.subunit.name
+        h5= name
+      else
+        
+        h6
+          i= name
         
     .row.align-items-center.d-flex.flex-column
-      a(href=unit.unit.number + "/householder-contacted").btn.btn-primary.btn-lg.mb-2 householder contacted
+      a(href= householder_contacted_url).btn.btn-primary.btn-lg.mb-2 householder contacted
       <button class="nav-item dropdown btn btn-secondary btn-sm" data-toggle="dropdown"> options
         <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="font-size: 62.5%">
           <a class="dropdown-item" href="#">add tag</a>
@@ -35,13 +39,13 @@ append content
         </div>
       </button>
       ul.list-group.list-group-horizontal
-        each tag in unit.unit.tags
+        each tag in tags
           li.list-group-item= tag
     .row
       h4 householders
       
     .row
-      each householder in unit.unit.householders
+      each householder in householders
         .card.mr-sm-2
           .card-header= householder.name
           .card-body 
@@ -64,7 +68,7 @@ append content
       h4 visits
     .row
       
-      each visit in unit.unit.visits
+      each visit in visits
         .card.mb-2
           .card-header= visit.contacted_by
           .card-body
@@ -77,10 +81,6 @@ append content
         
         p 
           small No visits found
-  
-  //- stringify unit ref
-  - var reference = subunit ? JSON.stringify(subunit.ref) : JSON.stringify(unit.ref);
-  input(type="hidden", value=reference)
             
             
               

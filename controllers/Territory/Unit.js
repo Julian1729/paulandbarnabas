@@ -18,44 +18,35 @@ var endpoints = {};
 middleware.findRequestedUnit = (req, res, next) => {
 
   let unitNumber = req.params.unit_number;
-  let block_ref = req.app.locals.territory.current.block;
-  let unit = block_ref.block.unit(unitNumber);
+
+  let requested = res.locals.requested;
+  let block_ref = requested.block;
+
+  // search for unit
+  let unit = null;
+
+  try {
+    unit = block_ref.block.unit(unitNumber);
+  } catch (e) {
+    if(e instanceof errors.UnitNotFound){
+      // could not find unit
+      return res.status(HttpStatus.NOT_FOUND).send();
+    }
+    throw e;
+  }
+
   let subunitParam = req.query.subunit || null;
 
-
-  // OPTIMIZE: this could be created only once, including subunit if applicable
-  // create unit reference
-  let unitObj = {
-    ref: {
-      street: block_ref.street,
-      hundred: block_ref.hundred,
-      odd_even: block_ref.odd_even,
-      unit: unit.number,
-    },
-    unit
-  };
-
   // attach to locals
-  req.app.locals.territory.current.unit = unitObj;
+  requested.unit = unit;
 
   // get subunit if "subunit" GET param
   if(subunitParam){
     // search for subunit in unit
     try {
       let subunit = unit.findSubunit(subunitParam);
-      // create subunit ref
-      let subunitObj = {
-        ref: {
-          street: block_ref.street,
-          hundred: block_ref.hundred,
-          odd_even: block_ref.odd_even,
-          unit: unit.number,
-          subunit: subunit.name,
-        },
-        subunit
-      };
       // attach to locals
-      req.app.locals.territory.current.subunit = subunitObj;
+      requested.subunit = subunit;
     } catch (e) {
       // send 404 if subunit not found
       if(e instanceof errors.SubunitNotFound){
@@ -75,22 +66,29 @@ middleware.findRequestedUnit = (req, res, next) => {
  */
 endpoints.overview = (req, res, next) => {
 
-  let user = Session.pickUserCredentials(req.session);
-  let fragment = req.app.locals.territory.current.fragment;
-  let block_ref = req.app.locals.territory.current.block;
-  let unit = req.app.locals.territory.current.unit;
-  let subunit = req.app.locals.territory.current.subunit || null;
+  let requested = res.locals.requested;
+  let fragment = requested.fragment;
+  let unit = requested.unit;
+  let subunit = requested.subunit || {};
+
+  let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
 
   let renderVars = {
-    fragment: {
-      number: fragment.number
-    },
-    block_ref,
-    unit,
-    subunit
+    subunit: _.isEmpty(subunit) ? false : true,
+    street: requested.block.street,
+    hundred: requested.block.hundred,
+    number: unit.number,
+    name: subunit.name || unit.name,
+    tags: subunit.tags || unit.tags,
+    householders: subunit.householders || unit.householders,
+    visits: subunit.visits || unit.visits,
+    notes: subunit.notes || unit.notes,
+    isdonotcall: subunit.isdonotcall || unit.isdonotcall,
+    language: subunit.language || unit.language,
+    householder_contacted_url: URL_CONSTRUCTOR['unit-add-visit'](unit.number)
   };
 
-  res.render('Fragment/Unit', renderVars);
+  res.render('Territory/UnitOverview', renderVars);
 
 };
 

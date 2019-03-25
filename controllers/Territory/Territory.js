@@ -39,9 +39,6 @@ middleware.initAssetCollection = (req, res, next) => {
       assigned_fragments: null
     });
 
-  console.log( JSON.stringify(res.locals, null, 2) );
-  console.log( JSON.stringify(req.session, null, 2) );
-
   return next();
 
 };
@@ -92,6 +89,8 @@ middleware.constructURLs = (req, res, next) => {
       return url;
 
     },
+
+    'unit-add-visit': (unit_number) => `./${unit_number}/householder-contacted`
 
   };
 
