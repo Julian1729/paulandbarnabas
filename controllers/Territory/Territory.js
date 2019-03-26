@@ -90,7 +90,7 @@ middleware.constructURLs = (req, res, next) => {
 
     },
 
-    'unit-add-visit': (unit_number) => `./${unit_number}/householder-contacted`
+    'unit-add-visit': (unit_number, subunit_name) => (!subunit_name ? `./${unit_number}/householder-contacted` : `./${unit_number}/householder-contacted?subunit=${encodeURIComponent(subunit_name)}`)
 
   };
 

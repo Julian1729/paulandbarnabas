@@ -5,6 +5,7 @@ const HttpStatus = require('http-status-codes');
 
 const TerritoryModel = require('../../models/Territory');
 const Session = require('../../session/session');
+const constants = require('../../config/constants');
 const errors = require('../../errors');
 const Utils = require('../../utils/utils');
 
@@ -35,10 +36,17 @@ middleware.findRequestedUnit = (req, res, next) => {
     throw e;
   }
 
-  let subunitParam = req.query.subunit || null;
-
   // attach to locals
   requested.unit = unit;
+  // attach unit render vars to locals
+  let render_vars = res.locals.render_vars;
+  render_vars.unit = {
+    number: unit.number,
+    name: unit.name,
+    id: unit._id
+  };
+
+  let subunitParam = req.query.subunit || null;
 
   // get subunit if "subunit" GET param
   if(subunitParam){
@@ -47,6 +55,12 @@ middleware.findRequestedUnit = (req, res, next) => {
       let subunit = unit.findSubunit(subunitParam);
       // attach to locals
       requested.subunit = subunit;
+      // attach unit render vars to locals
+      let render_vars = res.locals.render_vars;
+      render_vars.subunit = {
+        name: subunit.name,
+        id: subunit._id
+      };
     } catch (e) {
       // send 404 if subunit not found
       if(e instanceof errors.SubunitNotFound){
@@ -56,6 +70,8 @@ middleware.findRequestedUnit = (req, res, next) => {
       throw e;
     }
   }
+
+
 
   return next();
 
@@ -85,7 +101,7 @@ endpoints.overview = (req, res, next) => {
     notes: subunit.notes || unit.notes,
     isdonotcall: subunit.isdonotcall || unit.isdonotcall,
     language: subunit.language || unit.language,
-    householder_contacted_url: URL_CONSTRUCTOR['unit-add-visit'](unit.number)
+    householder_contacted_url: URL_CONSTRUCTOR['unit-add-visit'](unit.number, (subunit.name || null))
   };
 
   res.render('Territory/UnitOverview', renderVars);
@@ -97,14 +113,26 @@ endpoints.overview = (req, res, next) => {
  */
 endpoints.householderContacted = (req, res) => {
 
-  // let territory = req.app.locals.territory;
-  // let unit = territory.current.unit;
-  //
-  // let renderVars = {
-  //   unit
-  // };
+  let territory = res.locals.territory;
+  let requested = res.locals.requested;
+  let unit = requested.unit;
+  let subunit = requested.subunit || {};
 
-  res.send('HOUSEHOLDER CONTACTED!')
+  let street = requested.block.street;
+  let hundred = requested.block.hundred;
+
+  let rajax_url = `${constants.rajax_url}/territory/street/${street}/hundred/${hundred}/unit/${unit.number}/visit/add`;
+  if(_.isEmpty(subunit)) rajax_url = `${rajax_url}?subunit=${encodeURIComponent(subunit.name)}`;
+
+  let renderVars = {
+    rajax_url,
+    subunit: _.isEmpty(subunit) ? false : true,
+    householders: unit.householders.map(h => _.pick('name', 'gender')),
+    number: unit.number,
+    street
+  };
+
+  res.render('Territory/UnitHouseholderContacted', renderVars);
 
 };
 
