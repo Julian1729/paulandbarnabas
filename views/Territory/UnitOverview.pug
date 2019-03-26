@@ -5,14 +5,14 @@ append content
     nav(aria-label='breadcrumb')
       ol.breadcrumb
         li.breadcrumb-item Fragment #{render_vars.fragment.number}
-        li.breadcrumb-item #{hundred} #{street}
+        li.breadcrumb-item #{render_vars.block.hundred} #{render_vars.block.street}
         if subunit
         
-          li.breadcrumb-item #{number} &#62; #{name}
+          li.breadcrumb-item #{render_vars.unit.number} &#62; #{render_vars.subunit.name}
         
         else
           
-          li.breadcrumb-item= number
+          li.breadcrumb-item= render_vars.unit.number
           
   .container
     .row.flex-column.text-center
