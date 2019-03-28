@@ -22,6 +22,7 @@ const CONFIG = {
       'ap-createterritory',
       'ap-createfragment',
       'ap-managepublishers',
+      'territory-householdercontacted',
       'localize-constants'
     ],
     src: './public/assets/js/src/app.js',

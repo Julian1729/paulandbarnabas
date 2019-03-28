@@ -1,0 +1,86 @@
+extends ../ProtoBase
+
+append stylesheets
+  link(rel="stylesheet" href="https://unpkg.com/js-datepicker/dist/datepicker.min.css")
+
+append content
+  .container.my-2
+    nav(aria-label='breadcrumb')
+      ol.breadcrumb
+        li.breadcrumb-item Fragment #{render_vars.fragment.number}
+        li.breadcrumb-item #{render_vars.block.hundred} #{render_vars.block.street}
+        if subunit
+        
+          li.breadcrumb-item #{render_vars.unit.number} &#62; #{render_vars.subunit.name}
+        
+        else
+          
+          li.breadcrumb-item= render_vars.unit.number
+          
+  .container
+    form#add-visit-form
+      
+      #visit-form-errors
+      
+      .form-group
+        h4.my-0 contacted
+        small.text-muted who did you speak to?
+        .btn-group-toggle(data-toggle="buttons")
+          label(for="sjd").btn.btn-secondary.m-1 Tanya
+            input(type="checkbox" id="sjd" value="Tanya" name="householders.contacted[]")
+          label(for="sjf").btn.btn-secondary.m-1 Kareem
+            input(type="checkbox" id="sjf" value="Kereem" name="householders.contacted[]")
+          label(for="sjg").btn.btn-secondary.m-1 Shaneequa
+            input(type="checkbox" id="sjg" value="Shaneequa" name="householders.contacted[]")
+          label(for="sjg").btn.btn-info.m-1 new householder
+            input(type="checkbox" id="sjg" value="Shaneequa" name="householders.contacted[]")
+      
+      hr
+      
+      .form-group
+        h4.my-0 contacted by
+        small.text-muted who spoke to them?
+        
+        .input-group
+          input(type="text" placeholder="Brother Zealous" name="publisher.name").form-control
+        .input-group
+          small.text-muted will this publisher now be consistently returning on this unit?
+          .input-group
+            .btn-group.btn-group-toggle(data-toggle="buttons")
+              label.btn.btn-secondary no
+                input(type="radio" name="publisher.returning" value="no") 
+              label.btn.btn-secondary yes
+                input(type="radio" name="publisher.returning" value="yes") 
+          
+      hr
+      
+      .form-group
+        h4 visit details
+        .input-group
+          small.text-muted provide specific details about the conversation
+          small.text-muted topic of discussion, bible scriptures, level of interest
+        textarea(name="visit.details").form-control
+        .input-group
+          .form-row
+            .col
+              small.text-muted date and time
+              input(type="text", name="visit.date")#visit-date-picker
+            .col
+              small at
+              input(type="text", name="visit.time")#visit-time-picker
+      
+      button.btn.btn-primary(type="button" id="visit-form-submit") save visit
+      
+  
+  .row.my-3
+        
+  
+    
+  
+prepend scripts
+  script.
+    window.rajax_visit_url= "#{rajax_url}"
+
+append scripts
+  script(src="https://unpkg.com/js-datepicker")
+  script(src=constants.assets_url + '/js/dist/territory-householdercontacted.bundle.js', type="text/javascript")
