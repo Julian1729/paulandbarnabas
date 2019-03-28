@@ -122,7 +122,7 @@ endpoints.householderContacted = (req, res) => {
   let hundred = requested.block.hundred;
 
   let rajax_url = `${constants.rajax_url}/territory/street/${street}/hundred/${hundred}/unit/${unit.number}/visit/add`;
-  if(_.isEmpty(subunit)) rajax_url = `${rajax_url}?subunit=${encodeURIComponent(subunit.name)}`;
+  if(!_.isEmpty(subunit)) rajax_url = `${rajax_url}?subunit=${encodeURIComponent(subunit.name)}`;
 
   let renderVars = {
     rajax_url,

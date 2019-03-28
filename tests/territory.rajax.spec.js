@@ -276,8 +276,15 @@ describe('Territory Rajax', () => {
               if (err)
                 throw err;
               expect(res.body.data.id).to.exist;
-              visitIdToEdit = res.body.data.id;
-              return done();
+              TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
+                let oakland = territory.findStreet('Oakland');;
+                let hundred = oakland.findHundred(4500);
+                let unit = hundred.findUnit(4502);
+                expect(unit.visits).to.have.lengthOf(1);
+                visitIdToEdit = res.body.data.id;
+                return done();
+              }).catch(e => done(e));
+
             });
 
           });
