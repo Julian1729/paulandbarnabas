@@ -118,6 +118,8 @@ endpoints.householderContacted = (req, res) => {
   let unit = requested.unit;
   let subunit = requested.subunit || {};
 
+  let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
+
   let street = requested.block.street;
   let hundred = requested.block.hundred;
 
@@ -129,6 +131,7 @@ endpoints.householderContacted = (req, res) => {
     subunit: _.isEmpty(subunit) ? false : true,
     householders: unit.householders.map(h => _.pick('name', 'gender')),
     number: unit.number,
+    unit_overview_url: URL_CONSTRUCTOR['unit-overview'](requested.fragment._id.toString(), requested.block.block._id.toString(), unit.number, subunit.name),
     street
   };
 
