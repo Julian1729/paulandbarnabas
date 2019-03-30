@@ -47,4 +47,4 @@ const HouseholderContactedContraints = {
 
 };
 
-module.exports = (formData) => validate(formData, HouseholderContactedContraints, {fullMessages: false});
+module.exports = function(formData){ validate(formData, HouseholderContactedContraints, {fullMessages: false}) };
