@@ -250,6 +250,7 @@ endpoints.removeTag = (req, res) => {
 endpoints.addHouseholder = (req, res) => {
 
   let reqHouseholder = req.body.householder;
+  console.log(req.body);
   if(!reqHouseholder) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
 
   let territory = req.app.locals.territory;

@@ -123,11 +123,19 @@ endpoints.householderContacted = (req, res) => {
   let street = requested.block.street;
   let hundred = requested.block.hundred;
 
-  let rajax_url = `${constants.rajax_url}/territory/street/${street}/hundred/${hundred}/unit/${unit.number}/visit/add`;
-  if(!_.isEmpty(subunit)) rajax_url = `${rajax_url}?subunit=${encodeURIComponent(subunit.name)}`;
+  // OPTIMIZE: when new URL Constructor class is implemented,
+  // this needs to be optimized
+  let rajax_add_visit_url = `${constants.rajax_url}/territory/street/${street}/hundred/${hundred}/unit/${unit.number}/visit/add`;
+  if(!_.isEmpty(subunit)) rajax_add_visit_url += `?subunit=${encodeURIComponent(subunit.name)}`;
+
+  let rajax_add_householder_url = `${constants.rajax_url}/territory/street/${street}/hundred/${hundred}/unit/${unit.number}/householder/add`;
+  if(!_.isEmpty(subunit)) rajax_add_householder_url += `?subunit=${encodeURIComponent(subunit.name)}`;
+
+  let householer
 
   let renderVars = {
-    rajax_url,
+    rajax_add_visit_url,
+    rajax_add_householder_url,
     subunit: _.isEmpty(subunit) ? false : true,
     householders: unit.householders.map(h => _.pick('name', 'gender')),
     number: unit.number,

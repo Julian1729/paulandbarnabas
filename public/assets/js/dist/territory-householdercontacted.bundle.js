@@ -131,7 +131,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":28,"jquery":11}],3:[function(require,module,exports){
+},{"../../vendor/form2js":29,"jquery":11}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -35322,30 +35322,118 @@ module.exports = {page_error_modal, request_error_modal};
 /**
  * Territory - Householder Contacted
  */
-const $ = require('jquery');
 const moment = require('moment');
 const Promise = require('promise');
 const form2js = require('../../vendor/form2js');
 const timepicker = require('timepicker');
 
+// global version of jquery with bootstrap plugin enabled
+const w$ = window.jQuery;
+
+const $ = require('../../jquery/jquery');
 const errorModals = require('../modules/generic_modals');
 
 const validators = {
-  householder_contacted_form: require('../validators/HouseholderContacted')
+  householder_contacted_form: require('../validators/HouseholderContacted'),
+  new_householder_form: require('../validators/NewHouseholder'),
 };
 
 const DOM_CACHE = {
   $visit_form: $('#add-visit-form'),
   $visit_form_submit_button: $('#visit-form-submit'),
-  $form_error_container: $('#visit-form-errors')
+  $form_error_container: $('#visit-form-errors'),
+  $success_modal: $('#visit-added-modal'),
+  new_householder: {
+    button: w$('#new-householder-button'),
+    modal: w$('#new-householder-modal'),
+    save_button: $('#save-new-householder'),
+    error_container: $('#new-householder-form-errors'),
+    form: $('#new-householder-form'),
+  }
 };
 
 /**
- * Activate time and  date picker
+ * Configure new householder button and modal
+ */
+(function(elements){
+
+  var btn = elements.button;
+  var modal = elements.modal;
+  var saveBtn = elements.save_button;
+  var form = elements.form;
+
+  btn.on('click', showModal);
+
+  /**
+   * Show modal
+   */
+  function showModal(){
+
+    modal.modal('show');
+
+  }
+
+  // configure modal save button
+  saveBtn.on('click', saveNewHouseholder);
+
+  function saveNewHouseholder(){
+    // get form data
+    var formData = form2js(form[0]);
+    var validation = validators.new_householder_form(formData);
+    if(validation !== undefined){
+      return validationHandler(validation);
+    }
+    sendData(formData)
+      .done(function(r){
+        console.log(r);
+        form[0].reset();
+        modal.modal('close');
+      })
+      .fail(function(){
+        errorModals.request_error_modal.show();
+      });
+  }
+
+  function sendData(formData){
+    return $.ajax({
+      url: window.rajax_householder_url,
+      method: 'post',
+      data: JSON.stringify( {householder: formData.householder} ),
+      // data: {
+      //   householder: formData.householder
+      //   // name: formData.householder.name,
+      //   // gender: formData.householder.gender,
+      //   // email: formData.householder.email,
+      //   // phone_number: formData.householder.phone_number,
+      // },
+      dataType: 'json',
+
+    });
+  }
+
+  function validationHandler(validation){
+    var $container = elements.error_container;
+    $container.html('');
+    for (var name in validation) {
+      if (validation.hasOwnProperty(name)) {
+        var errorMessages = validation[name];
+        errorMessages.forEach(function(msg){
+          $container.append('<div class="alert alert-danger" role="alert">' + msg + '</div>')
+        });
+      }
+    }
+    // scroll to top
+    $("html, body").animate({ scrollTop: 0 }, "slow");
+  }
+
+}(DOM_CACHE.new_householder));
+
+/**
+ * Activate time and date picker
  */
 (function(){
 
-  $('#visit-time-picker').timepicker({useSelect: true});
+  $('#visit-time-picker').timepicker({ 'scrollDefault': 'now' , 'timeFormat': 'h:i A'});
 
   datepicker('#visit-date-picker', {
     startDate: new Date(),
@@ -35372,43 +35460,57 @@ const DOM_CACHE = {
     var formData = form2js(DOM_CACHE.$visit_form[0]);
     var validation = validators.householder_contacted_form(formData);
     if(validation !== undefined){
-      console.log(validation);
       // validation failed, display error messages
       return validationHandler(validation);
     }
     // send ajax request
-    sendData(formData);
+    sendData(formData)
+      .done(function(res){
+        // init and show success modal and send to unit overview page
+        if(res.data.id){
+          window.location.replace(window.unit_overview_url);
+        }else{
+          errorModals.page_error_modal.show();
+        }
+      })
+      .fail(function(jqXHR, textStatus, errorThrown){
+        // show error modal
+        errorModals.request_error_modals.show();
+      });
   }
 
 
-  function constructTimestamp(){
-
+  /**
+   * Use raw date and time to construct a UNIX timestamp
+   * @param  {String} date
+   * @param  {String} time
+   * @return {Number} timestamp
+   */
+  function constructTimestamp(date, time){
+    var combined = date + ' ' + time;
+    var timestamp = moment( date + ' ' + time, 'MMMM Do, YYYY h:mm A' ).valueOf();
+    return timestamp;
   }
 
   /**
    * Organize data to send
-   * @param  {[type]} formData Form data
+   * @param  {Object} formData Form data
    * @return {Promise}
    */
   function sendData(formData){
 
-    $.ajax({
+    var timestamp = constructTimestamp(formData.visit.date, formData.visit.time);
+    return $.ajax({
       url: window.rajax_visit_url,
       method: 'post',
       data: {
         householders_contacted: formData.householders.contacted,
         contacted_by: formData.publisher.name,
         details: formData.visit.details,
-        // timestamp: timestamp,
+        timestamp: timestamp,
         id: null
       },
-      success: function(r){
-        console.log(r);
-        return Promise.resolve();
-      },
-      error: function(){
-        errorModals.request_error_modal.show();
-      }
+      traditional: true
     });
 
   }
@@ -35430,7 +35532,7 @@ const DOM_CACHE = {
 
 }())
 
-},{"../../vendor/form2js":28,"../modules/generic_modals":25,"../validators/HouseholderContacted":27,"jquery":11,"moment":13,"promise":15,"timepicker":23}],27:[function(require,module,exports){
+},{"../../jquery/jquery":1,"../../vendor/form2js":29,"../modules/generic_modals":25,"../validators/HouseholderContacted":27,"../validators/NewHouseholder":28,"moment":13,"promise":15,"timepicker":23}],27:[function(require,module,exports){
 var validate = require('validate.js');
 const _ = require('lodash');
 
@@ -35480,9 +35582,32 @@ const HouseholderContactedContraints = {
 
 };
 
-module.exports = (formData) => validate(formData, HouseholderContactedContraints, {fullMessages: false});
+module.exports = function(formData){ return validate(formData, HouseholderContactedContraints, {fullMessages: false}) };
 
 },{"lodash":12,"validate.js":24}],28:[function(require,module,exports){
+const validate = require('validate.js');
+
+const NewHouseholderConstraints = {
+
+  'householder.name': {
+    presence: {
+      allowEmpty: false,
+      message: 'Please add the householder\'s name'
+    },
+  },
+
+  'householder.gender': {
+    presence: {
+      allowEmpty: false,
+      message: 'Please specify the householder\'s gender'
+    },
+  },
+
+};
+
+module.exports = function(formData){ return validate(formData, NewHouseholderConstraints); };
+
+},{"validate.js":24}],29:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *

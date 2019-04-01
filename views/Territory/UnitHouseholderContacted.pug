@@ -2,8 +2,40 @@ extends ../ProtoBase
 
 append stylesheets
   link(rel="stylesheet" href="https://unpkg.com/js-datepicker/dist/datepicker.min.css")
+  link(rel="stylesheet" href=constants.assets_url + '/css/src/vendor/jquery.timepicker.css')
 
 append content
+  .bootstrap-modals
+    //- new householder modal
+    .modal#new-householder-modal
+      .modal-dialog(role="document")
+        .modal-content
+          .modal-header
+            h5 Add new householder
+          .modal-body
+            form#new-householder-form
+              #new-householder-form-errors
+              .form-group
+                label name
+                input(type="text", name="householder.name").form-control
+              .form-group
+                label email
+                input(type="text", name="householder.email").form-control
+              .form-group
+                label phone number
+                input(type="text", name="householder.phone_number").form-control
+              .form-group
+                label gender
+                .input-group
+                  .btn-group.btn-group-toggle(data-toggle="buttons")
+                    label.btn.btn-secondary male
+                      input(type="radio" name="householder.gender" value="male") 
+                    label.btn.btn-secondary female
+                      input(type="radio" name="householder.gender" value="female")
+          .modal-footer
+            button.btn.btn-secondary(data-dismiss="modal") close
+            button.btn.btn-primary#save-new-householder save
+  
   .container.my-2
     nav(aria-label='breadcrumb')
       ol.breadcrumb
@@ -32,8 +64,7 @@ append content
             input(type="checkbox" id="sjf" value="Kereem" name="householders.contacted[]")
           label(for="sjg").btn.btn-secondary.m-1 Shaneequa
             input(type="checkbox" id="sjg" value="Shaneequa" name="householders.contacted[]")
-          label(for="sjg").btn.btn-info.m-1 new householder
-            input(type="checkbox" id="sjg" value="Shaneequa" name="householders.contacted[]")
+          button.btn.btn-info.m-1#new-householder-button new householder
       
       hr
       
@@ -61,13 +92,15 @@ append content
           small.text-muted topic of discussion, bible scriptures, level of interest
         textarea(name="visit.details").form-control
         .input-group
+          p.text-muted.w-100.my-2 date and time
           .form-row
             .col
-              small.text-muted date and time
               input(type="text", name="visit.date")#visit-date-picker
             .col
-              small at
+              p.text-muted at
+            .col
               input(type="text", name="visit.time")#visit-time-picker
+
       
       button.btn.btn-primary(type="button" id="visit-form-submit") save visit
       
@@ -79,7 +112,9 @@ append content
   
 prepend scripts
   script.
-    window.rajax_visit_url= "#{rajax_url}"
+    window.rajax_visit_url= "#{rajax_add_visit_url}"
+    window.rajax_householder_url = "#{rajax_add_householder_url}"
+    window.unit_overview_url= "#{unit_overview_url}"
 
 append scripts
   script(src="https://unpkg.com/js-datepicker")
