@@ -84,7 +84,7 @@ describe('Territory Rajax', () => {
 
       it('should add 3 units to 4500', (done) => {
 
-        authenticatedSession.post(`${hundred_base_url}/4500/units/add`).send({
+        let data = {
           units: [
             {
               number: 4515
@@ -95,7 +95,13 @@ describe('Territory Rajax', () => {
               subunits: ['Apt 1', 'Apt 2', 'Apt 3']
             }
           ]
-        }).expect(200).end((err, res) => {
+        };
+        let json = JSON.stringify(data);
+        authenticatedSession.post(`${hundred_base_url}/4500/units/add`)
+        .set('Content-Type', 'application/json')
+        .send(json)
+        .expect(200)
+        .end((err, res) => {
           if (err)
             return done(err);
 
@@ -108,9 +114,7 @@ describe('Territory Rajax', () => {
 
       it('should not add units to 4500 Oakland and return UnitsAlreadyExist error obj', (done) => {
 
-        authenticatedSession.post(`${hundred_base_url}/4500/units/add`)
-        // these units already exist
-          .send({
+        let data = {
           units: [
             {
               number: 4501
@@ -121,7 +125,16 @@ describe('Territory Rajax', () => {
               subunits: ['Apt 1', 'Apt 2', 'Apt 3']
             }
           ]
-        }).expect(200).end((err, res) => {
+        };
+
+        let json = JSON.stringify(data);
+
+        authenticatedSession.post(`${hundred_base_url}/4500/units/add`)
+        // these units already exist
+          .set('Content-Type', 'application/json')
+          .send(json)
+          .expect(200)
+          .end((err, res) => {
           if (err)
             return done(err);
 
@@ -136,9 +149,7 @@ describe('Territory Rajax', () => {
 
       it('should overwrite 3 units in 4500 Oakland', (done) => {
 
-        authenticatedSession.post(`${hundred_base_url}/4500/units/add?overwriteduplicates=true`)
-        // these units already exist
-          .send({
+        let data = {
           units: [
             {
               number: 4501
@@ -149,7 +160,16 @@ describe('Territory Rajax', () => {
               subunits: ['Apt 1', 'Apt 2', 'Apt 3']
             }
           ]
-        }).expect(200).end((err, res) => {
+        };
+
+        let json = JSON.stringify(data);
+
+        authenticatedSession.post(`${hundred_base_url}/4500/units/add?overwriteduplicates=true`)
+        // these units already exist
+          .set('Content-Type', 'application/json')
+          .send(json)
+          .expect(200)
+          .end((err, res) => {
           if (err)
             return done(err);
 
@@ -162,9 +182,7 @@ describe('Territory Rajax', () => {
 
       it('should skip adding 3 units in 4500 Oakland', (done) => {
 
-        authenticatedSession.post(`${hundred_base_url}/4500/units/add?skipduplicates=true`)
-        // these units already exist
-          .send({
+        let data = {
           units: [
             {
               number: 4501
@@ -175,7 +193,16 @@ describe('Territory Rajax', () => {
               subunits: ['Apt 1', 'Apt 2', 'Apt 3']
             }
           ]
-        }).expect(200).end((err, res) => {
+        };
+
+        let json = JSON.stringify(data);
+
+        authenticatedSession.post(`${hundred_base_url}/4500/units/add?skipduplicates=true`)
+        // these units already exist
+          .set('Content-Type', 'application/json')
+          .send(json)
+          .expect(200)
+          .end((err, res) => {
           if (err)
             return done(err);
 
@@ -255,7 +282,7 @@ describe('Territory Rajax', () => {
 
           it('should add a visit', (done) => {
 
-            authenticatedSession.post(`${unit_base_url}/4502/visit/add`).send({
+            let data = {
 
               householders_contacted: [
                 'Chandler Bing', 'Joey Tribbiani'
@@ -272,26 +299,34 @@ describe('Territory Rajax', () => {
 
               id: null
 
-            }).expect(200).end((err, res) => {
-              if (err)
-                throw err;
-              expect(res.body.data.id).to.exist;
-              TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
-                let oakland = territory.findStreet('Oakland');;
-                let hundred = oakland.findHundred(4500);
-                let unit = hundred.findUnit(4502);
-                expect(unit.visits).to.have.lengthOf(1);
-                visitIdToEdit = res.body.data.id;
-                return done();
-              }).catch(e => done(e));
+            };
 
-            });
+            let json = JSON.stringify(data);
+
+            authenticatedSession.post(`${unit_base_url}/4502/visit/add`)
+              .set('Content-Type', 'application/json')
+              .send(json)
+              .expect(200)
+              .end((err, res) => {
+                if (err)
+                  throw err;
+                expect(res.body.data.id).to.exist;
+                TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
+                  let oakland = territory.findStreet('Oakland');;
+                  let hundred = oakland.findHundred(4500);
+                  let unit = hundred.findUnit(4502);
+                  expect(unit.visits).to.have.lengthOf(1);
+                  visitIdToEdit = res.body.data.id;
+                  return done();
+                }).catch(e => done(e));
+
+              });
 
           });
 
           it('should add a visit to subunit (4505 Oakland Apt 1)', (done) => {
 
-            authenticatedSession.post(`${unit_base_url}/4505/visit/add?subunit=Apt+1`).send({
+            let data = {
 
               householders_contacted: [
                 'Chandler Bing', 'Joey Tribbiani'
@@ -308,18 +343,26 @@ describe('Territory Rajax', () => {
 
               id: null
 
-            }).expect(200).end((err, res) => {
-              if (err)
-                throw err;
-              TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
-                let oakland = territory.findStreet('Oakland');;
-                let hundred = oakland.findHundred(4500);
-                let unit = hundred.findUnit(4505);
-                let subunit = unit.findSubunit('Apt 1');
-                expect(subunit.visits).to.have.lengthOf(1);
-                return done();
-              }).catch(e => done(e));
-            });
+            };
+
+            let json = JSON.stringify(data);
+
+            authenticatedSession.post(`${unit_base_url}/4505/visit/add?subunit=Apt+1`)
+              .set('Content-Type', 'application/json')
+              .send(json)
+              .expect(200)
+              .end((err, res) => {
+                if (err)
+                  throw err;
+                TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
+                  let oakland = territory.findStreet('Oakland');;
+                  let hundred = oakland.findHundred(4500);
+                  let unit = hundred.findUnit(4505);
+                  let subunit = unit.findSubunit('Apt 1');
+                  expect(subunit.visits).to.have.lengthOf(1);
+                  return done();
+                }).catch(e => done(e));
+              });
 
           });
 
@@ -328,24 +371,37 @@ describe('Territory Rajax', () => {
           // makign two calls in one test this approach was taken
           it('should edit added visit', (done) => {
 
-            authenticatedSession.post(`${unit_base_url}/4502/visit/add`).send({householders_contacted: ['Monica Gellert'], contacted_by: 'Brittany Alston', details: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Suspendisse sit amet enim tristique, lacinia tortor ut, maximus dolor.
-                Proin dapibus facilisis lacinia. Morbi hendrerit dolor non metus auctor pharetra.
-                Maecenas in augue blandit, pharetra metus nec, vulputate ligula. Nulla gravida accumsan odio.`, timestamp: 1000251000, id: visitIdToEdit}).expect(200).end((err, res) => {
-              if (err)
-                throw err;
+            let data = {
+              householders_contacted: ['Monica Gellert'],
+              contacted_by: 'Brittany Alston',
+              details: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              Suspendisse sit amet enim tristique, lacinia tortor ut, maximus dolor.
+              Proin dapibus facilisis lacinia. Morbi hendrerit dolor non metus auctor pharetra.
+              Maecenas in augue blandit, pharetra metus nec, vulputate ligula. Nulla gravida accumsan odio.`,
+              timestamp: 1000251000, id: visitIdToEdit
+            };
 
-              // have to check that changes were made here
-              TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
-                let oakland = territory.findStreet('Oakland');;
-                let hundred = oakland.findHundred(4500);
-                let unit = hundred.findUnit(4502);
-                expect(unit.visits).to.have.lengthOf(1);
-                expect(unit.visits[0].householders_contacted).to.not.include('Chandler Bing');
-                expect(unit.visits[0].contacted_by).to.equal('Brittany Alston');
-                return done();
-              }).catch(e => done(e));
-            });
+            let json = JSON.stringify(data);
+
+            authenticatedSession.post(`${unit_base_url}/4502/visit/add`)
+              .set('Content-Type', 'application/json')
+              .send(json)
+              .expect(200)
+              .end((err, res) => {
+                if (err)
+                  throw err;
+
+                // have to check that changes were made here
+                TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
+                  let oakland = territory.findStreet('Oakland');;
+                  let hundred = oakland.findHundred(4500);
+                  let unit = hundred.findUnit(4502);
+                  expect(unit.visits).to.have.lengthOf(1);
+                  expect(unit.visits[0].householders_contacted).to.not.include('Chandler Bing');
+                  expect(unit.visits[0].contacted_by).to.equal('Brittany Alston');
+                  return done();
+                }).catch(e => done(e));
+              });
 
           });
 
@@ -373,7 +429,7 @@ describe('Territory Rajax', () => {
 
           it('should add 2 subunits to 4507 Oakland', (done) => {
 
-            authenticatedSession.post(`${unit_base_url}/4507/subunit/add`).send({
+            let data = {
               subunits: [
                 {
                   name: 'Apt 1'
@@ -381,22 +437,30 @@ describe('Territory Rajax', () => {
                   name: 'Apt 2'
                 }
               ]
-            }).expect(200).end((err, res) => {
-              if (err)
-                throw err;
-              expect(res.body.data.subunits).to.exist;
-              expect(res.body.data.subunits).to.have.lengthOf(2);
-              // WARNING: bad practice!
-              // set first subunit to var to be removed in next test
-              subunitId = res.body.data.subunits[0]._id;
-              TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
-                let oakland = territory.findStreet('Oakland');
-                let hundred = oakland.findHundred(4500);
-                let unit = hundred.findUnit(4507);
-                expect(unit.subunits).to.have.lengthOf(2);
-                return done();
-              }).catch(e => done(e));
-            });
+            };
+
+            let json = JSON.stringify(data);
+
+            authenticatedSession.post(`${unit_base_url}/4507/subunit/add`)
+              .set('Content-Type', 'application/json')
+              .send(json)
+              .expect(200)
+              .end((err, res) => {
+                if (err)
+                  throw err;
+                expect(res.body.data.subunits).to.exist;
+                expect(res.body.data.subunits).to.have.lengthOf(2);
+                // WARNING: bad practice!
+                // set first subunit to var to be removed in next test
+                subunitId = res.body.data.subunits[0]._id;
+                TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
+                  let oakland = territory.findStreet('Oakland');
+                  let hundred = oakland.findHundred(4500);
+                  let unit = hundred.findUnit(4507);
+                  expect(unit.subunits).to.have.lengthOf(2);
+                  return done();
+                }).catch(e => done(e));
+              });
 
           });
 
@@ -482,71 +546,95 @@ describe('Territory Rajax', () => {
 
           it('should add a householder to unit (4505 Oakland)', (done) => {
 
-            authenticatedSession.post(`${unit_base_url}/4505/householder/add`).send({
+            let data = {
               householder: {
                 name: 'Johnathan Doe',
                 gender: 'male'
               }
-            }).expect(200).end((err, res) => {
-              if (err)
-                throw err;
-              expect(res.body.data.householder._id).to.exist;
-              // set this housholder's id to be removed
-              householderToRemove = res.body.data.householder._id;
-              TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
-                let oakland = territory.findStreet('Oakland');
-                let hundred = oakland.findHundred(4500);
-                let unit = hundred.findUnit(4505);
-                expect(unit.householders).to.have.lengthOf(1);
-                expect(unit.householders[0].name).to.equal('Johnathan Doe');
-                return done();
-              }).catch(e => done(e));
-            });
+            };
+
+            let json = JSON.stringify(data);
+
+            authenticatedSession.post(`${unit_base_url}/4505/householder/add`)
+              .set('Content-Type', 'application/json')
+              .send(json)
+              .expect(200)
+              .end((err, res) => {
+                if (err)
+                  throw err;
+                expect(res.body.data.householder._id).to.exist;
+                // set this housholder's id to be removed
+                householderToRemove = res.body.data.householder._id;
+                TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
+                  let oakland = territory.findStreet('Oakland');
+                  let hundred = oakland.findHundred(4500);
+                  let unit = hundred.findUnit(4505);
+                  expect(unit.householders).to.have.lengthOf(1);
+                  expect(unit.householders[0].name).to.equal('Johnathan Doe');
+                  return done();
+                }).catch(e => done(e));
+              });
 
           });
 
           it('should add a householder to subunit (4505 Oakland > Apt 1)', (done) => {
 
-            authenticatedSession.post(`${unit_base_url}/4505/householder/add?subunit=Apt+1`).send({
+            let data = {
               householder: {
                 name: 'Johnathan Doe',
                 gender: 'male'
               }
-            }).expect(200).end((err, res) => {
-              if (err)
-                throw err;
-              expect(res.body.data.householder._id).to.exist;
-              TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
-                let oakland = territory.findStreet('Oakland');
-                let hundred = oakland.findHundred(4500);
-                let unit = hundred.findUnit(4505);
-                let subunit = unit.findSubunit('Apt 1');
-                expect(subunit.householders).to.have.lengthOf(1);
-                expect(subunit.householders[0].name).to.equal('Johnathan Doe');
-                return done();
-              }).catch(e => done(e));
-            });
+            };
+
+            let json = JSON.stringify(data);
+
+            authenticatedSession.post(`${unit_base_url}/4505/householder/add?subunit=Apt+1`)
+              .set('Content-Type', 'application/json')
+              .send(json)
+              .expect(200)
+              .end((err, res) => {
+                if (err)
+                  throw err;
+                expect(res.body.data.householder._id).to.exist;
+                TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
+                  let oakland = territory.findStreet('Oakland');
+                  let hundred = oakland.findHundred(4500);
+                  let unit = hundred.findUnit(4505);
+                  let subunit = unit.findSubunit('Apt 1');
+                  expect(subunit.householders).to.have.lengthOf(1);
+                  expect(subunit.householders[0].name).to.equal('Johnathan Doe');
+                  return done();
+                }).catch(e => done(e));
+              });
 
           });
 
           it('should remove a householder from unit (4505 Oakland)', (done) => {
 
-            authenticatedSession.post(`${unit_base_url}/4505/householder/remove?id=${householderToRemove.toString()}`).send({
+            let data = {
               householder: {
                 name: 'Johnathan Doe',
                 gender: 'male'
               }
-            }).expect(200).end((err, res) => {
-              if (err)
-                throw err;
-              TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
-                let oakland = territory.findStreet('Oakland');
-                let hundred = oakland.findHundred(4500);
-                let unit = hundred.findUnit(4505);
-                expect(unit.householders).to.have.lengthOf(0);
-                return done();
-              }).catch(e => done(e));
-            });
+            };
+
+            let json = JSON.stringify(data);
+
+            authenticatedSession.post(`${unit_base_url}/4505/householder/remove?id=${householderToRemove.toString()}`)
+              .set('Content-Type', 'application/json')
+              .send(json)
+              .expect(200)
+              .end((err, res) => {
+                if (err)
+                  throw err;
+                TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
+                  let oakland = territory.findStreet('Oakland');
+                  let hundred = oakland.findHundred(4500);
+                  let unit = hundred.findUnit(4505);
+                  expect(unit.householders).to.have.lengthOf(0);
+                  return done();
+                }).catch(e => done(e));
+              });
 
           });
 
@@ -558,38 +646,54 @@ describe('Territory Rajax', () => {
 
           it('should add a note to unit (4504 Oakland)', (done) => {
 
-            authenticatedSession.post(`${unit_base_url}/4504/note/add`).send({note: 'Lorem ipsum dolor sit amet', by: 'Dorothy Johnson'}).expect(200).end((err, res) => {
-              if (err)
-                throw err;
-              expect(res.body.data.note).to.exist;
-              // set this note's id to be removed
-              noteToRemove = res.body.data.note._id;
-              TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
-                let oakland = territory.findStreet('Oakland');
-                let hundred = oakland.findHundred(4500);
-                let unit = hundred.findUnit(4504);
-                expect(unit.notes).to.have.lengthOf(1);
-                return done();
-              }).catch(e => done(e));
-            });
+            let data = {note: 'Lorem ipsum dolor sit amet', by: 'Dorothy Johnson'};
+
+            let json = JSON.stringify(data);
+
+            authenticatedSession.post(`${unit_base_url}/4504/note/add`)
+              .set('Content-Type', 'application/json')
+              .send(json)
+              .expect(200)
+              .end((err, res) => {
+                if (err)
+                  throw err;
+                expect(res.body.data.note).to.exist;
+                // set this note's id to be removed
+                noteToRemove = res.body.data.note._id;
+                TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
+                  let oakland = territory.findStreet('Oakland');
+                  let hundred = oakland.findHundred(4500);
+                  let unit = hundred.findUnit(4504);
+                  expect(unit.notes).to.have.lengthOf(1);
+                  return done();
+                }).catch(e => done(e));
+              });
 
           });
 
           it('should add a note to subunit (4505 Oakland > Apt 2)', (done) => {
 
-            authenticatedSession.post(`${unit_base_url}/4505/note/add?subunit=Apt+2`).send({note: 'Lorem ipsum dolor sit amet', by: 'Dorothy Johnson'}).expect(200).end((err, res) => {
-              if (err)
-                throw err;
-              expect(res.body.data.note).to.exist;
-              TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
-                let oakland = territory.findStreet('Oakland');
-                let hundred = oakland.findHundred(4500);
-                let unit = hundred.findUnit(4505);
-                let subunit = unit.findSubunit('Apt 2');
-                expect(subunit.notes).to.have.lengthOf(1);
-                return done();
-              }).catch(e => done(e));
-            });
+            let data = {note: 'Lorem ipsum dolor sit amet', by: 'Dorothy Johnson'};
+
+            let json = JSON.stringify(data);
+
+            authenticatedSession.post(`${unit_base_url}/4505/note/add?subunit=Apt+2`)
+              .set('Content-Type', 'application/json')
+              .send(json)
+              .expect(200)
+              .end((err, res) => {
+                if (err)
+                  throw err;
+                expect(res.body.data.note).to.exist;
+                TerritoryModel.findByCongregation(seed_data.congregations[0]._id).then(territory => {
+                  let oakland = territory.findStreet('Oakland');
+                  let hundred = oakland.findHundred(4500);
+                  let unit = hundred.findUnit(4505);
+                  let subunit = unit.findSubunit('Apt 2');
+                  expect(subunit.notes).to.have.lengthOf(1);
+                  return done();
+                }).catch(e => done(e));
+              });
 
           });
 
