@@ -22,6 +22,7 @@ const DOM_CACHE = {
   $visit_form_submit_button: $('#visit-form-submit'),
   $form_error_container: $('#visit-form-errors'),
   $success_modal: $('#visit-added-modal'),
+  $householder_options: $("#householder-options"),
   new_householder: {
     button: w$('#new-householder-button'),
     modal: w$('#new-householder-modal'),
@@ -64,13 +65,29 @@ const DOM_CACHE = {
     }
     sendData(formData)
       .done(function(r){
-        console.log(r);
-        form[0].reset();
-        modal.modal('close');
+        if(r.data.householder){
+          console.log(r);
+          form[0].reset();
+          updateHouseholderOptions(r.data.householder);
+          modal.modal('hide');
+        }else{
+          elements.error_container.append('<div class="alert alert-danger" role="alert">Unable to save householder</div>');
+        }
       })
       .fail(function(){
-        errorModals.request_error_modal.show();
+        elements.error_container.append('<div class="alert alert-danger" role="alert">Unable to save householder</div>');
       });
+  }
+
+  /**
+   * Add householder to selections and make selected
+   * @param  {Object} householder Returned householder objet
+   */
+  function updateHouseholderOptions(householder){
+
+    var html = '<label class="btn btn-secondary m-1 active" for="' + householder._id.toString() + '">' + householder.name + '<input type="checkbox" checked="checked" id="sjg" value="' + householder.name + '" name="householders.contacted[]"/></label>';
+    DOM_CACHE.$householder_options.append(html);
+
   }
 
   function sendData(formData){
@@ -78,15 +95,7 @@ const DOM_CACHE = {
       url: window.rajax_householder_url,
       method: 'post',
       data: JSON.stringify( {householder: formData.householder} ),
-      // data: {
-      //   householder: formData.householder
-      //   // name: formData.householder.name,
-      //   // gender: formData.householder.gender,
-      //   // email: formData.householder.email,
-      //   // phone_number: formData.householder.phone_number,
-      // },
-      dataType: 'json',
-
+      contentType: "application/json"
     });
   }
 
@@ -179,17 +188,19 @@ const DOM_CACHE = {
   function sendData(formData){
 
     var timestamp = constructTimestamp(formData.visit.date, formData.visit.time);
+    var data = {
+      householders_contacted: formData.householders.contacted,
+      contacted_by: formData.publisher.name,
+      details: formData.visit.details,
+      timestamp: timestamp,
+      id: null
+    };
+    var json = JSON.stringify(data);
     return $.ajax({
       url: window.rajax_visit_url,
       method: 'post',
-      data: {
-        householders_contacted: formData.householders.contacted,
-        contacted_by: formData.publisher.name,
-        details: formData.visit.details,
-        timestamp: timestamp,
-        id: null
-      },
-      traditional: true
+      data: json,
+      contentType: "application/json"
     });
 
   }
