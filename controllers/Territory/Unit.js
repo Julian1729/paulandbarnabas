@@ -131,13 +131,11 @@ endpoints.householderContacted = (req, res) => {
   let rajax_add_householder_url = `${constants.rajax_url}/territory/street/${street}/hundred/${hundred}/unit/${unit.number}/householder/add`;
   if(!_.isEmpty(subunit)) rajax_add_householder_url += `?subunit=${encodeURIComponent(subunit.name)}`;
 
-  let householer
-
   let renderVars = {
     rajax_add_visit_url,
     rajax_add_householder_url,
     subunit: _.isEmpty(subunit) ? false : true,
-    householders: unit.householders.map(h => _.pick('name', 'gender')),
+    householders: unit.householders.map(h => _.pick(h, 'name', 'gender')),
     number: unit.number,
     unit_overview_url: URL_CONSTRUCTOR['unit-overview'](requested.fragment._id.toString(), requested.block.block._id.toString(), unit.number, subunit.name),
     street
