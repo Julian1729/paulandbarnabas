@@ -357,7 +357,7 @@ var streets =
               tags: [],
               householders: [],
               visits: [],
-              isdonotcall: false,
+              isdonotcall: true,
               language: null,
               notes: [],
               iscalledon: false
@@ -372,7 +372,7 @@ var streets =
               isdonotcall: false,
               language: null,
               notes: [],
-              iscalledon: false
+              iscalledon: true
             },
             {
               number: 4606,
