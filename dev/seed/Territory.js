@@ -401,8 +401,8 @@ var streets =
             {
               number: 4610,
               name: null,
-              subunits: ['no trespassing'],
-              tags: [],
+              subunits: [],
+              tags: ['no trespassing'],
               householders: [],
               visits: [],
               isdonotcall: false,
