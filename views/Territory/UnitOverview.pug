@@ -1,6 +1,51 @@
 extends ../ProtoBase
 
+append scripts
+  script(type="text/javascript").
+    var unitOptions = !{JSON.stringify(unitOptions)};
+  script(src=constants.assets_url + '/js/dist/territory-unitoverview.bundle.js' type="text/javascript")
+
 append content
+  .bootstrap-modals
+    
+    include ../inc/BootstrapModals.pug
+    
+    //- add tag modal
+    .modal#add-tag-modal
+      .modal-dialog(role="document")
+        .modal-content
+          .modal-header
+            h5 Add tag
+          .modal-body
+            form#add-tag-form
+              .form-errors
+              .form-group
+                label new tag
+                input(type="text", name="tag").form-control
+          .modal-footer
+            button.btn.btn-secondary(data-dismiss="modal") close
+            button.btn.btn-primary#add-tag-submit-btn add
+            
+    //- add note modal
+    .modal#add-note-modal
+      .modal-dialog(role="document")
+        .modal-content
+          .modal-header
+            h5 New note
+          .modal-body
+            form#add-note-form
+              .form-errors
+              .form-group
+                label note
+                input(type="text", name="note").form-control
+              .form-group
+                label by
+                input(type="text", name="note", value=user.first_name).form-control
+          .modal-footer
+            button.btn.btn-secondary(data-dismiss="modal") close
+            button.btn.btn-primary#add-note-submit-btn save
+    
+  
   .container.my-2
     nav(aria-label='breadcrumb')
       ol.breadcrumb
@@ -16,6 +61,11 @@ append content
           
   .container
     .row.flex-column.text-center
+      if isdonotcall
+        .alert.alert-danger(role="alert") this unit is a do not call
+      else if calledon
+        .alert.alert-warning(role="alert") this unit is currently being called on
+            
       h1 #{number} #{street}
       if subunit
         h5= name
@@ -26,19 +76,12 @@ append content
         
     .row.align-items-center.d-flex.flex-column
       a(href= householder_contacted_url).btn.btn-primary.btn-lg.mb-2 householder contacted
-      <button class="nav-item dropdown btn btn-secondary btn-sm" data-toggle="dropdown"> options
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="font-size: 62.5%">
-          <a class="dropdown-item" href="#">add tag</a>
-          <a class="dropdown-item" href="#">add note</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="#">mark as do not call</a>
-          <a class="dropdown-item" href="#">this unit is currently being visited</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="#">not interested</a>
-          <a class="dropdown-item" href="#">busy, call again</a>
-        </div>
-      </button>
-      ul.list-group.list-group-horizontal
+      button.nav-item.dropdown.btn.btn-secondary.btn-sm(data-toggle='dropdown') options
+        .dropdown-menu(aria-labelledby='navbarDropdown', style='font-size: 62.5%')
+          each option in options 
+            a.dropdown-item(id=option.id)= option.title
+
+      ul.my-2.list-group.list-group-horizontal
         each tag in tags
           li.list-group-item= tag
     .row
