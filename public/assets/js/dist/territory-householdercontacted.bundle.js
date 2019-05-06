@@ -131,7 +131,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":29,"jquery":11}],3:[function(require,module,exports){
+},{"../../vendor/form2js":28,"jquery":11}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -35301,25 +35301,6 @@ Promise.disableSynchronous = function() {
 
 },{}],25:[function(require,module,exports){
 /**
- * Base Modals
- * Page error, and request error modal, that are available on every page
- */
-const $ = require('../../jquery/jquery');
-
-var page_error_modal = $('#page-error-modal').pbmodal();
-var request_error_modal = $('#request-error-modal').pbmodal()
-
-// this was added to global namespace so that
-// they could be called even inside a jquery plugin
-window.GENERIC_MODALS = {
-  page_error_modal: page_error_modal,
-  request_error_modal: request_error_modal
-};
-
-module.exports = {page_error_modal, request_error_modal};
-
-},{"../../jquery/jquery":1}],26:[function(require,module,exports){
-/**
  * Territory - Householder Contacted
  */
 const moment = require('moment');
@@ -35331,7 +35312,6 @@ const timepicker = require('timepicker');
 const w$ = window.jQuery;
 
 const $ = require('../../jquery/jquery');
-const errorModals = require('../modules/generic_modals');
 
 const validators = {
   householder_contacted_form: require('../validators/HouseholderContacted'),
@@ -35339,6 +35319,7 @@ const validators = {
 };
 
 const DOM_CACHE = {
+  $errorModal: w$('#bootstrap-error-modal'),
   $visit_form: $('#add-visit-form'),
   $visit_form_submit_button: $('#visit-form-submit'),
   $form_error_container: $('#visit-form-errors'),
@@ -35479,12 +35460,12 @@ const DOM_CACHE = {
         if(res.data.id){
           window.location.replace(window.unit_overview_url);
         }else{
-          errorModals.page_error_modal.show();
+          DOM_CACHE.$errorModal.modal('show');
         }
       })
       .fail(function(jqXHR, textStatus, errorThrown){
         // show error modal
-        errorModals.request_error_modals.show();
+        DOM_CACHE.$errorModal.modal('show');
       });
   }
 
@@ -35543,7 +35524,7 @@ const DOM_CACHE = {
 
 }())
 
-},{"../../jquery/jquery":1,"../../vendor/form2js":29,"../modules/generic_modals":25,"../validators/HouseholderContacted":27,"../validators/NewHouseholder":28,"moment":13,"promise":15,"timepicker":23}],27:[function(require,module,exports){
+},{"../../jquery/jquery":1,"../../vendor/form2js":28,"../validators/HouseholderContacted":26,"../validators/NewHouseholder":27,"moment":13,"promise":15,"timepicker":23}],26:[function(require,module,exports){
 var validate = require('validate.js');
 const _ = require('lodash');
 
@@ -35595,7 +35576,7 @@ const HouseholderContactedContraints = {
 
 module.exports = function(formData){ return validate(formData, HouseholderContactedContraints, {fullMessages: false}) };
 
-},{"lodash":12,"validate.js":24}],28:[function(require,module,exports){
+},{"lodash":12,"validate.js":24}],27:[function(require,module,exports){
 const validate = require('validate.js');
 
 const NewHouseholderConstraints = {
@@ -35618,7 +35599,7 @@ const NewHouseholderConstraints = {
 
 module.exports = function(formData){ return validate(formData, NewHouseholderConstraints); };
 
-},{"validate.js":24}],29:[function(require,module,exports){
+},{"validate.js":24}],28:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *
@@ -35969,4 +35950,4 @@ module.exports = function(formData){ return validate(formData, NewHouseholderCon
 
 }));
 
-},{}]},{},[26]);
+},{}]},{},[25]);

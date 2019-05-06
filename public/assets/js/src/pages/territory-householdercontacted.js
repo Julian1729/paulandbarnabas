@@ -10,7 +10,6 @@ const timepicker = require('timepicker');
 const w$ = window.jQuery;
 
 const $ = require('../../jquery/jquery');
-const errorModals = require('../modules/generic_modals');
 
 const validators = {
   householder_contacted_form: require('../validators/HouseholderContacted'),
@@ -18,6 +17,7 @@ const validators = {
 };
 
 const DOM_CACHE = {
+  $errorModal: w$('#bootstrap-error-modal'),
   $visit_form: $('#add-visit-form'),
   $visit_form_submit_button: $('#visit-form-submit'),
   $form_error_container: $('#visit-form-errors'),
@@ -158,12 +158,12 @@ const DOM_CACHE = {
         if(res.data.id){
           window.location.replace(window.unit_overview_url);
         }else{
-          errorModals.page_error_modal.show();
+          DOM_CACHE.$errorModal.modal('show');
         }
       })
       .fail(function(jqXHR, textStatus, errorThrown){
         // show error modal
-        errorModals.request_error_modals.show();
+        DOM_CACHE.$errorModal.modal('show');
       });
   }
 

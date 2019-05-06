@@ -38,6 +38,12 @@ middleware.findRequestedUnit = (req, res, next) => {
 
   // attach to locals
   requested.unit = unit;
+
+  // add global to URL Constructor
+  let PBURLConstructor = res.locals.PBURLConstructor;
+
+  PBURLConstructor.setGlobal('unit_number', unit.number);
+
   // attach unit render vars to locals
   let render_vars = res.locals.render_vars;
   render_vars.unit = {
@@ -89,18 +95,16 @@ endpoints.overview = (req, res, next) => {
 
   let user = res.locals.user;
 
-  let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
+  let PBURLConstructor = res.locals.PBURLConstructor;
 
-  // create applicable unit options
-  // http://localhost:3000/rajax/territory/street/Oakland/hundred/4600/unit/4606/householder/add
-  let rajaxBase = `${constants.rajax_url}/territory/street/${requested.block.street}/hundred/${requested.block.hundred}/unit/${unit.number}`;
+  let subunitQueryParam = _.isEmpty(subunit) ? {} : {'subunit' : subunit.name};
 
   let unitOptions = {
 
     tags: {
       add: {
         title: 'add tag',
-        endpoint: `${rajaxBase}/tag/add`,
+        endpoint: PBURLConstructor.getRoute('add-tag').url(null, subunitQueryParam),
         id: 'option-tag-add'
       }
     },
@@ -108,7 +112,7 @@ endpoints.overview = (req, res, next) => {
     notes: {
       add: {
         title: 'add note',
-        endpoint: `${rajaxBase}/note/add`,
+        endpoint: PBURLConstructor.getRoute('add-note').url(null, subunitQueryParam),
         id: 'option-note-add'
       }
     },
@@ -116,12 +120,12 @@ endpoints.overview = (req, res, next) => {
     dnc: {
       mark: {
         title: 'mark as do not call',
-        endpoint: `${rajaxBase}/meta?dnc=1`,
+        endpoint: PBURLConstructor.getRoute('mark-dnc').url(null, subunitQueryParam),
         id: 'option-dnc-mark'
       },
       unmark: {
         title: 'unmark as do not call',
-        endpoint: `${rajaxBase}/meta?dnc=0`,
+        endpoint: PBURLConstructor.getRoute('unmark-dnc').url(null, subunitQueryParam),
         id: 'option-dnc-unmark'
       }
     },
@@ -130,13 +134,13 @@ endpoints.overview = (req, res, next) => {
 
       mark: {
         title: 'this unit is currently being consistently visited',
-        endpoint: `${rajaxBase}/meta?calledon=1`,
+        endpoint: PBURLConstructor.getRoute('mark-calledon').url(null, subunitQueryParam),
         id: 'option-calledon-mark'
       },
 
       unmark: {
         title: 'this unit is no longer being consistently visited',
-        endpoint: `${rajaxBase}/meta?calledon=1`,
+        endpoint: PBURLConstructor.getRoute('unmark-calledon').url(null, subunitQueryParam),
         id: 'option-calledon-unmark'
       },
 
@@ -146,7 +150,7 @@ endpoints.overview = (req, res, next) => {
 
       ni: {
         title: 'not interested',
-        endpoint: `${rajaxBase}/note/add/note`,
+        endpoint: PBURLConstructor.getRoute('add-note').url(null, subunitQueryParam),
         body: {
           note: 'Householder not interested.',
           by: `${user.first_name} ${user.last_name}`
@@ -156,7 +160,7 @@ endpoints.overview = (req, res, next) => {
 
       busy: {
         title: 'busy, call again',
-        endpoint: `${rajaxBase}/note/add/note`,
+        endpoint: PBURLConstructor.getRoute('add-note').url(null, subunitQueryParam),
         body: {
           note: 'Householder busy, call again.',
           by: `${user.first_name} ${user.last_name}`
@@ -192,7 +196,7 @@ endpoints.overview = (req, res, next) => {
     isdonotcall: subunit.isdonotcall || unit.isdonotcall,
     calledon: subunit.iscalledon || unit.iscalledon,
     language: subunit.language || unit.language,
-    householder_contacted_url: URL_CONSTRUCTOR['unit-add-visit'](unit.number, (subunit.name || null))
+    householder_contacted_url: PBURLConstructor.getRoute('unit-add-visit').url(null, subunitQueryParam)
   };
 
   res.render('Territory/UnitOverview', renderVars);
@@ -209,26 +213,20 @@ endpoints.householderContacted = (req, res) => {
   let unit = requested.unit;
   let subunit = requested.subunit || {};
 
-  let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
+  let PBURLConstructor = res.locals.PBURLConstructor;
 
   let street = requested.block.street;
   let hundred = requested.block.hundred;
 
-  // OPTIMIZE: when new URL Constructor class is implemented,
-  // this needs to be optimized
-  let rajax_add_visit_url = `${constants.rajax_url}/territory/street/${street}/hundred/${hundred}/unit/${unit.number}/visit/add`;
-  if(!_.isEmpty(subunit)) rajax_add_visit_url += `?subunit=${encodeURIComponent(subunit.name)}`;
-
-  let rajax_add_householder_url = `${constants.rajax_url}/territory/street/${street}/hundred/${hundred}/unit/${unit.number}/householder/add`;
-  if(!_.isEmpty(subunit)) rajax_add_householder_url += `?subunit=${encodeURIComponent(subunit.name)}`;
+  let subunitQueryParam = _.isEmpty(subunit) ? null : {'subunit': subunit.name};
 
   let renderVars = {
-    rajax_add_visit_url,
-    rajax_add_householder_url,
+    rajax_add_visit_url: PBURLConstructor.getRoute('add-visit').url(null, subunitQueryParam),
+    rajax_add_householder_url: PBURLConstructor.getRoute('add-householder').url(null, subunitQueryParam),
     subunit: _.isEmpty(subunit) ? false : true,
     householders: unit.householders.map(h => _.pick(h, 'name', 'gender')),
     number: unit.number,
-    unit_overview_url: URL_CONSTRUCTOR['unit-overview'](requested.fragment._id.toString(), requested.block.block._id.toString(), unit.number, subunit.name),
+    unit_overview_url: PBURLConstructor.getRoute('unit-overview').url(),
     street
   };
 

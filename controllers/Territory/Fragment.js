@@ -62,14 +62,15 @@ var endpoints = {};
     //init current object to hold currently requested assets
     res.locals.requested.fragment = fragment;
 
-    let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
+    let PBURLConstructor = res.locals.PBURLConstructor;
 
-    // ini fragment object on render_vars
-    // attach number and work_url
+    // add fragment_id global
+    PBURLConstructor.setGlobal('fragment_id', fragment._id.toString());
+
     res.locals.render_vars.fragment = {
       number: fragment.number,
       id: fragment._id,
-      overview_url: URL_CONSTRUCTOR['block-select'](fragment._id.toString())
+      overview_url: PBURLConstructor.getRoute('block-select').url()
     };
 
     return next();
@@ -111,10 +112,17 @@ var endpoints = {};
 
     // attach block ref to render_vars
     res.locals.render_vars.block = _.pick(block, ['street', 'hundred', 'odd_even', '_id', 'block._id']);
-    let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
+
+    let PBURLConstructor = res.locals.PBURLConstructor;
+
+    // add hundred, and streets as global
+    PBURLConstructor.setGlobal('street_name', block.street);
+    PBURLConstructor.setGlobal('hundred', block.hundred);
+    PBURLConstructor.setGlobal('block_id', block.block._id.toString());
+
     let territory = res.locals.territory;
     // add block overview url to render_vars
-    res.locals.render_vars.block.overview_url = URL_CONSTRUCTOR['block-select'](requested.fragment._id.toString());
+    res.locals.render_vars.block.overview_url = PBURLConstructor.getRoute('block-overview').url();
 
     return next();
 
@@ -162,9 +170,10 @@ var endpoints = {};
   endpoints.blockSelect = (req, res) => {
 
     let requested = res.locals.requested;
-    let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
 
     let blocks = res.locals.requested.blocks;
+
+    let PBURLConstructor = res.locals.PBURLConstructor;
 
     // have following propertes street, hundred, odd_even, id, overview_url
     blocks = blocks.map(b => {
@@ -173,7 +182,7 @@ var endpoints = {};
         hundred: b.hundred,
         odd_even: b.odd_even,
         id: b._id,
-        overview_url: URL_CONSTRUCTOR['block-overview'](requested.fragment._id.toString(), b.block._id.toString())
+        overview_url: PBURLConstructor.getRoute('block-overview').url({block_id: b.block._id.toString()})
       }
     });
 
@@ -194,14 +203,14 @@ var endpoints = {};
     let block = requested.block;
     let units = block.block.units;
 
-    let URL_CONSTRUCTOR = req.app.locals.URL_CONSTRUCTOR;
+    let PBURLConstructor = res.locals.PBURLConstructor;
     // format array of units to have following properties
     // number, id, overview_url, subunits .. overview_url
     let formattedUnits = units.map(u => {
       let obj = {
         number: u.number,
         id: u._id,
-        overview_url: URL_CONSTRUCTOR['unit-overview'](requested.fragment._id.toString(), block.block._id.toString(), u.number),
+        overview_url: PBURLConstructor.getRoute('unit-overview').url(),
         subunits: [],
         visits: (u.visits.length) ? true : false,
         isdonotcall: u.isdonotcall,
@@ -214,7 +223,7 @@ var endpoints = {};
         u.subunits.forEach(s => {
           var subunitObj = {
             name: s.name,
-            overview_url: URL_CONSTRUCTOR['unit-overview'](requested.fragment._id.toString(), block.block._id.toString(), u.number, s.name),
+            overview_url: PBURLConstructor.getRoute('unit-overview').url(null, {'subunit': s.name}),
             visits: (s.visits.length) ? true : false,
             isdonotcall: s.isdonotcall,
             tags: s.tags

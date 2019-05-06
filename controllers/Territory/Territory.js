@@ -2,6 +2,7 @@
  * Parent Territory Middlware
  */
 const sprintf = require('sprintf-js').sprintf
+const URLConstructor = require('dynamic-url-constructor');
 
 const TerritoryModel = require('../../models/Territory');
 const constants = require('../../config/constants');
@@ -61,52 +62,98 @@ middleware.findUserTerritory = (req, res, next) => {
 
 middleware.constructURLs = (req, res, next) => {
 
-  var territory_base_url = `${constants.base_url}/territory`;
+  let PBURLConstructor = new URLConstructor();
+  PBURLConstructor.setBase(constants.base_url);
 
-  let fragmentOverview = `${territory_base_url}/fragment/%1$s`;
-  let blockSelect = `${fragmentOverview}/blocks`;
-  let blockOverview = `${blockSelect}/%2$s`;
-  let unitOverview = `${blockOverview}/unit/%3$s`;
+  /**
+   * Page URLs
+   */
+  // aka fragment overview
+  PBURLConstructor.addRoute('block-select', '/territory/fragment/:fragment_id');
+  PBURLConstructor.addRoute('block-overview', '/territory/fragment/:fragment_id/blocks/:block_id');
+  PBURLConstructor.addRoute('unit-overview', '/territory/fragment/:fragment_id/blocks/:block_id/unit/:unit_number');
+  PBURLConstructor.addRoute('unit-add-visit', '/territory/fragment/:fragment_id/blocks/:block_id/unit/:unit_number/householder-contacted');
 
-  var URL_CONSTRUCTOR = {
+  /**
+   * Rajax endpoints
+   */
+  let rajaxBase = `/rajax/territory/street/:street_name/hundred/:hundred/unit/:unit_number`;
+  // Tags
+  PBURLConstructor.addRoute('add-tag', `${rajaxBase}/tag/add`);
+  // FIXME: add remove-tag
 
-    // fragment overview
-    'block-select': (fragment_id) => sprintf(blockSelect, fragment_id),
+  // Notes
+  PBURLConstructor.addRoute('add-note', `${rajaxBase}/note/add`);
+  // FIXME: add remove-note
 
-    // block overview
-    'block-overview': (fragment_id, block_id) => sprintf(blockOverview, fragment_id, block_id),
+  // Do Not Call
+  PBURLConstructor.addRoute('mark-dnc', `${rajaxBase}/meta?dnc=1`);
+  PBURLConstructor.addRoute('unmark-dnc', `${rajaxBase}/meta?dnc=0`);
 
-    // unit overview w/ support for optional subunit
-    'unit-overview': (fragment_id, block_id, unit_number, subunit_name) => {
+  // Is Called On
+  PBURLConstructor.addRoute('mark-calledon', `${rajaxBase}/meta/?calledon=1`);
+  PBURLConstructor.addRoute('unmark-calledon', `${rajaxBase}/meta/?calledon=0`);
 
-      let url = sprintf(unitOverview, fragment_id, block_id, unit_number);
+  // Add Householder
+  PBURLConstructor.addRoute('add-householder', `${rajaxBase}/householder/add`);
 
-      // if subunit name passed in, append to url
-      if(subunit_name){
-        url = `${url}?subunit=${encodeURIComponent(subunit_name)}`
-      };
+  // Add Visit
+  PBURLConstructor.addRoute('add-visit', `${rajaxBase}/visit/add`);
 
-      return url;
-
-    },
-
-    'unit-add-visit': (unit_number, subunit_name) => (!subunit_name ? `./${unit_number}/householder-contacted` : `./${unit_number}/householder-contacted?subunit=${encodeURIComponent(subunit_name)}`)
-
-  };
-
-  // attach to locals
-  req.app.locals.URL_CONSTRUCTOR = URL_CONSTRUCTOR;
+  res.locals.PBURLConstructor = PBURLConstructor;
 
   next();
 
-  // fragment work url -> block select page
-  // block work url -> block overview page
-  // unit overview url -> unit overview
-  // householder contacted url -> householder contacted
-  // options ->
-    // routes to send
-    // add tag...
-
 };
+
+// middleware.constructURLs = (req, res, next) => {
+//
+//   var territory_base_url = `${constants.base_url}/territory`;
+//
+//   let fragmentOverview = `${territory_base_url}/fragment/%1$s`;
+//   let blockSelect = `${fragmentOverview}/blocks`;
+//   let blockOverview = `${blockSelect}/%2$s`;
+//   let unitOverview = `${blockOverview}/unit/%3$s`;
+//
+//   var URL_CONSTRUCTOR = {
+//
+//     // fragment overview
+//     'block-select': (fragment_id) => sprintf(blockSelect, fragment_id),
+//
+//     // block overview
+//     'block-overview': (fragment_id, block_id) => sprintf(blockOverview, fragment_id, block_id),
+//
+//     // unit overview w/ support for optional subunit
+//     'unit-overview': (fragment_id, block_id, unit_number, subunit_name) => {
+//
+//       let url = sprintf(unitOverview, fragment_id, block_id, unit_number);
+//
+//       // if subunit name passed in, append to url
+//       if(subunit_name){
+//         url = `${url}?subunit=${encodeURIComponent(subunit_name)}`
+//       };
+//
+//       return url;
+//
+//     },
+//
+//     'unit-add-visit': (unit_number, subunit_name) => (!subunit_name ? `./${unit_number}/householder-contacted` : `./${unit_number}/householder-contacted?subunit=${encodeURIComponent(subunit_name)}`)
+//
+//   };
+//
+//   // attach to locals
+//   req.app.locals.URL_CONSTRUCTOR = URL_CONSTRUCTOR;
+//
+//   next();
+//
+//   // fragment work url -> block select page
+//   // block work url -> block overview page
+//   // unit overview url -> unit overview
+//   // householder contacted url -> householder contacted
+//   // options ->
+//     // routes to send
+//     // add tag...
+//
+// };
 
 module.exports = {middleware, endpoints};
