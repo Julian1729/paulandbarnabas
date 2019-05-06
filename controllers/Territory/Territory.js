@@ -2,10 +2,10 @@
  * Parent Territory Middlware
  */
 const sprintf = require('sprintf-js').sprintf
-const URLConstructor = require('dynamic-url-constructor');
 
 const TerritoryModel = require('../../models/Territory');
 const constants = require('../../config/constants');
+const PBURLConstructor = require('../../utils/PBURLConstructor');
 
 var middleware = {};
 var endpoints = {};
@@ -61,44 +61,6 @@ middleware.findUserTerritory = (req, res, next) => {
 };
 
 middleware.constructURLs = (req, res, next) => {
-
-  let PBURLConstructor = new URLConstructor();
-  PBURLConstructor.setBase(constants.base_url);
-
-  /**
-   * Page URLs
-   */
-  // aka fragment overview
-  PBURLConstructor.addRoute('block-select', '/territory/fragment/:fragment_id');
-  PBURLConstructor.addRoute('block-overview', '/territory/fragment/:fragment_id/blocks/:block_id');
-  PBURLConstructor.addRoute('unit-overview', '/territory/fragment/:fragment_id/blocks/:block_id/unit/:unit_number');
-  PBURLConstructor.addRoute('unit-add-visit', '/territory/fragment/:fragment_id/blocks/:block_id/unit/:unit_number/householder-contacted');
-
-  /**
-   * Rajax endpoints
-   */
-  let rajaxBase = `/rajax/territory/street/:street_name/hundred/:hundred/unit/:unit_number`;
-  // Tags
-  PBURLConstructor.addRoute('add-tag', `${rajaxBase}/tag/add`);
-  // FIXME: add remove-tag
-
-  // Notes
-  PBURLConstructor.addRoute('add-note', `${rajaxBase}/note/add`);
-  // FIXME: add remove-note
-
-  // Do Not Call
-  PBURLConstructor.addRoute('mark-dnc', `${rajaxBase}/meta?dnc=1`);
-  PBURLConstructor.addRoute('unmark-dnc', `${rajaxBase}/meta?dnc=0`);
-
-  // Is Called On
-  PBURLConstructor.addRoute('mark-calledon', `${rajaxBase}/meta/?calledon=1`);
-  PBURLConstructor.addRoute('unmark-calledon', `${rajaxBase}/meta/?calledon=0`);
-
-  // Add Householder
-  PBURLConstructor.addRoute('add-householder', `${rajaxBase}/householder/add`);
-
-  // Add Visit
-  PBURLConstructor.addRoute('add-visit', `${rajaxBase}/visit/add`);
 
   res.locals.PBURLConstructor = PBURLConstructor;
 
