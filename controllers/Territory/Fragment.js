@@ -210,7 +210,7 @@ var endpoints = {};
       let obj = {
         number: u.number,
         id: u._id,
-        overview_url: PBURLConstructor.getRoute('unit-overview').url(),
+        overview_url: PBURLConstructor.getRoute('unit-overview').url({unit_number: u.number}),
         subunits: [],
         visits: (u.visits.length) ? true : false,
         isdonotcall: u.isdonotcall,

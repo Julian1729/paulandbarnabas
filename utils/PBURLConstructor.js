@@ -12,7 +12,8 @@ PBURLConstructor.setBase(constants.base_url);
  * Page URLs
  */
 // aka fragment overview
-PBURLConstructor.addRoute('block-select', '/territory/fragment/:fragment_id');
+PBURLConstructor.addRoute('fragment-overview', '/territory/fragment/:fragment_id');
+PBURLConstructor.addRoute('block-select', '/territory/fragment/:fragment_id/blocks');
 PBURLConstructor.addRoute('block-overview', '/territory/fragment/:fragment_id/blocks/:block_id');
 PBURLConstructor.addRoute('unit-overview', '/territory/fragment/:fragment_id/blocks/:block_id/unit/:unit_number');
 PBURLConstructor.addRoute('unit-add-visit', '/territory/fragment/:fragment_id/blocks/:block_id/unit/:unit_number/householder-contacted');
