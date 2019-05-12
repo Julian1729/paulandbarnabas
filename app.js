@@ -1,6 +1,7 @@
 const path = require('path');
 const http = require('http');
 const yargs = require('yargs');
+const morgan = require('morgan');
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
@@ -60,6 +61,8 @@ app.set('views', __dirname + '/views');
    app.locals.moment = require('moment');
    next();
  });
+ // Morgan HTTP logger
+ app.use(morgan('tiny'));
  // // Express json
  // app.use(express.json());
 

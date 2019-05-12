@@ -27,6 +27,7 @@
     "moment": "^2.24.0",
     "mongoose": "^5.2.17",
     "mongoose-unique-validator": "^2.0.2",
+    "morgan": "^1.9.1",
     "pug": "^2.0.3",
     "rsvp": "^4.8.4",
     "sprintf-js": "^1.1.2",
