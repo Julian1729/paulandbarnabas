@@ -27,6 +27,7 @@ middleware.findUnit = function(req, res, next){
 
   try {
     unit = hundred.findUnit(reqUnit);
+    logger.debug(`Unit ${unit.number} found`);
   } catch (e) {
     if(e instanceof errors.UnitNotFound){
       return res.status(HttpStatus.NOT_FOUND).send();
@@ -60,6 +61,7 @@ middleware.findSubunit = function(req, res, next){
 
   try {
     subunit = unit.findSubunit(reqSubunit);
+    logger.debug(`Subunit ${subunit.name} found`);
   } catch (e) {
     if(e instanceof errors.SubunitNotFound){
       return res.status(HttpStatus.NOT_FOUND).send();

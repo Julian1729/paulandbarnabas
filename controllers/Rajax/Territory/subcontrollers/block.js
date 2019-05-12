@@ -24,6 +24,7 @@ middleware.findBlock = (req, res, next) =>{
   let block = territory.current.hundred[reqBlock];
   // attach to locals
   territory.current.block = block;
+  logger.debug(`${block.hundred} hundred found`);
   return next();
 };
 

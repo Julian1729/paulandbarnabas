@@ -20,6 +20,7 @@ middleware.findStreet = (req, res, next) => {
   try{
     street = territory.territory.findStreet(req.params.street_name);
     territory.current.street = street;
+    logger.debug(`Street ${req.params.street_name} found`);
   }catch(e){
     if(e instanceof errors.StreetNotFound){
       console.log(e.stack);

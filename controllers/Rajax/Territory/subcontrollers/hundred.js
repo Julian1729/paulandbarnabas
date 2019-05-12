@@ -59,6 +59,7 @@ var endpoints = {};
 
     try {
       var addedUnitCount = hundred.addUnits(reqAddUnits, options);
+      logger.debug(`${addedUnitCount} units added`);
     } catch (e) {
       if(e instanceof errors.UnitsAlreadyExist){
         return res.json({summary: {units_added: 0}, error: e});
