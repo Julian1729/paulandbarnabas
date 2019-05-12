@@ -1,38 +1,40 @@
+/**
+ * Winston logger configuration
+ */
+
+const appRoot = require('app-root-path');
 const winston = require('winston');
 
-/**
- * Winston logging configuration
- */
- const logger = winston.createLogger({
-     level: 'debug',
-     format: winston.format.combine(
-         winston.format.timestamp({
-           format: 'YYYY-MM-DD HH:mm:ss'
-         }),
-         winston.format.printf(info => {
-             return `${info.timestamp} ${info.level}: ${info.message}`;
-         })
-     ),
-     transports: [
-       new winston.transports.Console({
-         format: winston.format.combine(
-           winston.format.colorize(),
-           winston.format.printf(
-            info => `${info.timestamp} ${info.level}: ${info.message}`
-           )
-         )
-       }),
-       // new winston.transports.File({
-       //   filename: 'app.log',
-       //   handleExceptions: true,
-       //   format: winston.format.combine(
-       //     winston.format.colorize(),
-       //     winston.format.printf(
-       //      info => `${info.timestamp} ${info.level}: ${info.message}`
-       //     )
-       //   )
-       // })
-     ]
- });
+const logger = winston.createLogger({
+  level: 'debug',
+  format: winston.format.combine(
+    winston.format.timestamp({
+      format: 'YYYY-MM-DD HH:mm:ss'
+    }),
+  ),
+  transports: []
+});
 
- module.exports = logger;
+if (process.env.NODE_ENV !== 'production') {
+
+  logger.add(new winston.transports.Console({
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.printf(
+        info => `${info.timestamp} ${info.level}: ${info.message}`
+      ),
+    )
+  }));
+
+}else{
+
+  logger.add(new winston.transports.File({
+    filename: `${appRoot}/logs/pb.log`,
+    handleExceptions: true,
+    format: winston.format.json(),
+    level: 'info',
+  }));
+  
+}
+
+module.exports = logger;
