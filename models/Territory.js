@@ -128,16 +128,19 @@ const errors = require('../errors');
 
     var foundSubunit = _.find(this.subunits, ['name', name]);
     if(!foundSubunit) throw new errors.SubunitNotFound(name);
+    logger.debug(`Found subunit with name ${name}`);
     return foundSubunit;
 
   };
 
   unit_schema.methods.addSubunit = function(name){
     this.subunits.push({name: name});
+    logger.debug(`Added subunit with name ${name}`);
     return _.last(this.subunits);
   };
 
   unit_schema.methods.removeSubunit = function(id){
+    logger.debug(`Removing subunit with id ${id}`);
     return this.subunits.id(id).remove();
   };
 
@@ -164,6 +167,7 @@ const errors = require('../errors');
    function addHouseholder(name, gender, email, phone_number){
     let householder = {name, gender, email, phone_number};
     this.householders.push(householder);
+    logger.debug(`Added householder with name ${name}`);
     return _.last(this.householders);
    };
 
@@ -173,6 +177,7 @@ const errors = require('../errors');
     * @return {void}
     */
    function removeHouseholder(id){
+    logger.debug(`Removing householder with id ${id}`);
     // cast to object id
     this.householders.id(id).remove();
   };
@@ -193,6 +198,7 @@ const errors = require('../errors');
     if(visitObj._id !== null){
       let visit = this.visits.id(visitObj.id);
       if(visit) {
+        logger.debug(`Updated visit with id ${visitObj._id}`);
         // overwrite any different details
         return _.extend(visit, visitObj);
       }
@@ -200,11 +206,13 @@ const errors = require('../errors');
 
     // push brand new visit into array
     this.visits.push(visitObj);
+    logger.debug(`Added new visit`);
     // return new visit
     return _.last(this.visits);
   }
 
   function removeVisit(id){
+    logger.debug(`Removing visit with id ${id}`);
     return this.visits.id(id).remove();
   }
 
@@ -213,11 +221,14 @@ const errors = require('../errors');
     // if tag was already in there, remove it
     let newTag = _.last(this.tags);
     if(_.lastIndexOf(this.tags, newTag, (this.tags.length - 1))){
+      logger.debug(`${tag} already exists`);
       this.tags.pop();
     }
+    logger.debug(`Added "${tag}" tag`);
   }
 
   function removeTag(tag){
+    logger.debug(`Removing "${tag}" tag`);
     return this.tags.pull(tag);
   }
 
@@ -232,17 +243,19 @@ const errors = require('../errors');
     if(noteObj.id !== null){
       let note = this.notes.id(noteObj.id);
       if(note){
+        logger.debug(`Updated note with id ${noteObj.id}`);
         return _.extend(note, noteObj);
       }
     }
 
     this.notes.push(noteObj);
-
+    logger.debug(`Added new note`);
     return _.last(this.notes);
 
   }
 
   function removeNote(id){
+    logger.debug(`Removing note with id ${id}`);
     return this.notes.id(id).remove();
   }
 
@@ -888,11 +901,11 @@ var TerritorySchema = new Schema({
           if( hundred.odd._id.equals(blockId) ){
             blockRef.odd_even = 'odd';
             blockRef.block = hundred.odd;
-            logger.debug(`match for ${blockId.toString()} : (${hundred.hundred} ${street.name} odd)`)
+            // logger.log('verbose', `match for ${blockId.toString()} : (${hundred.hundred} ${street.name} odd)`)
           }else if( hundred.even._id.equals(blockId) ){
             blockRef.odd_even = 'even';
             blockRef.block = hundred.even;
-            logger.debug(`match for ${blockId.toString()} : (${hundred.hundred} ${street.name} even)`)
+            // logger.log('verbose', `match for ${blockId.toString()} : (${hundred.hundred} ${street.name} even)`)
           }
           // if block was found
           if(blockRef.block !== null){

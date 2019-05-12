@@ -20,6 +20,7 @@ var authenticate = (req, res, next) => {
         logger.debug('Creating test session...')
         Session.createSession(req, seedData.sessions.admin);
         Session.validate(session);
+        logger.debug('Sessioned Authorized w/ development credentials');
         // console.log('session from middlware', session);
         return next();
       }
