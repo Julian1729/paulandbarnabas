@@ -217,14 +217,14 @@ const errors = require('../errors');
   }
 
   function addTag(tag){
-    this.tags.push(tag);
-    // if tag was already in there, remove it
-    let newTag = _.last(this.tags);
-    if(_.lastIndexOf(this.tags, newTag, (this.tags.length - 1))){
-      logger.debug(`${tag} already exists`);
-      this.tags.pop();
+    // check for duplicate tag in array
+    let tagExists = this.tags.indexOf(tag);
+    if(tagExists !== -1){
+      return logger.debug(`${tag} already exists`);
     }
-    logger.debug(`Added "${tag}" tag`);
+    // add tag to array
+    this.tags.push(tag);
+    logger.debug(`"${tag}" tag added`);
   }
 
   function removeTag(tag){

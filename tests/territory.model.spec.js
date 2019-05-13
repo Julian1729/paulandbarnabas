@@ -1078,18 +1078,60 @@ describe('Territory Model', () => {
           var testTerritory = Territory(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
-              let street = territory.findStreet('Oakland');
-              let hundred = street.findHundred(4500);
-              let unit = hundred.findUnit(4502);
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var units = [
+                {
+                  number: 4506
+                }
+              ];
+              var addedUnits = hundred.addUnits(units);
+              expect(hundred.unitExists(4506)).to.be.true;
+              // add tags
+              var unit = hundred.findUnit(4506);
               unit.addTag('low steps');
-              expect(unit.tags).to.include('low steps');
+              expect(unit.tags).include('low steps');
               return territory.save();
             })
             .then(territory => {
-              let street = territory.findStreet('Oakland');
-              let hundred = street.findHundred(4500);
-              let unit = hundred.findUnit(4502);
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var unit = hundred.findUnit(4506);
               unit.addTag('low steps');
+              expect(unit.tags).to.include('low steps');
+              expect(unit.tags).to.have.lengthOf(1);
+              return done();
+            })
+            .catch(e => done(e));
+
+        });
+
+        it('should add two tags', (done) => {
+
+          var testTerritory = Territory(seed.territory.completed);
+          testTerritory.save()
+            .then(territory => {
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var units = [
+                {
+                  number: 4504
+                }
+              ];
+              var addedUnits = hundred.addUnits(units);
+              expect(hundred.unitExists(4504)).to.be.true;
+              // add tags
+              var unit = hundred.findUnit(4504);
+              unit.addTag('low steps');
+              expect(unit.tags).include('low steps');
+              return territory.save();
+            })
+            .then(territory => {
+              var street = territory.findStreet('Oakland');
+              var hundred = street.findHundred(4500);
+              var unit = hundred.findUnit(4504);
+              unit.addTag('anotherone');
+              expect(unit.tags).to.include('anotherone');
               expect(unit.tags).to.have.lengthOf(2);
               return done();
             })
