@@ -1,11 +1,11 @@
 /**
  * PB URL Routes
  */
-const URLConstructor = require('dynamic-url-constructor');
+var URLConstructor = require('dynamic-url-constructor');
 
-const constants = require('../config/constants');
+var constants = require('../config/constants');
 
-let PBURLConstructor = new URLConstructor();
+var PBURLConstructor = new URLConstructor();
 PBURLConstructor.setBase(constants.base_url);
 
 /**
@@ -21,7 +21,7 @@ PBURLConstructor.addRoute('unit-add-visit', '/territory/fragment/:fragment_id/bl
 /**
  * Rajax endpoints
  */
-let rajaxBase = `/rajax/territory/street/:street_name/hundred/:hundred/unit/:unit_number`;
+var rajaxBase = `/rajax/territory/street/:street_name/hundred/:hundred/unit/:unit_number`;
 // Tags
 PBURLConstructor.addRoute('add-tag', `${rajaxBase}/tag/add`);
 // FIXME: add remove-tag
