@@ -19,7 +19,8 @@
     },
     modals: {
       add_tag: w$('#add-tag-modal'),
-      add_note: w$('#add-note-modal')
+      add_note: w$('#add-note-modal'),
+      error: w$('#bootstrap-error-modal')
     }
   };
 
@@ -33,20 +34,18 @@
     // Button
     if(!btn) return;
 
-    btn.on('click', showModal);
-
-    function showModal(){
+    // show modal when option button clicked
+    btn.on('click', function (){
       modal.modal('show');
-    }
+    });
 
     // Modal
-    var $submitBtn = $('#add-tag-submit-btn');
+    var $saveBtn = $('#add-tag-submit-btn');
     var $tagForm = $('#add-tag-form');
     var $errorContainer = $tagForm.find('.form-errors');
     var $tagInput = $tagForm.find('input[name=tag]');
 
-    // attach event to button
-    $submitBtn.on('click', submit);
+    $saveBtn.on('click', submit);
 
     function submit(){
 
@@ -59,16 +58,14 @@
       sendData(tag)
         .done(function(r){
 
-          if(r.data.id){
-            console.log(r);
-          }else{
-            console.log('no');
-          }
+          // refresh page
+          window.location.reload(false);
 
         })
         .fail(function(){
 
-          console.log('this is error');
+          // show error modal
+          DOM_CACHE.modals.error.modal('show');
 
         });
 
@@ -77,9 +74,6 @@
     function sendData(tag){
 
       var url = window.unitOptions.tags.add.endpoint;
-      // construct url with parameter
-      // FIXME: this will not work for subunits because
-      // the param is not added
       url += '?tag=' + encodeURIComponent(tag);
       return $.ajax({
         url: url,
