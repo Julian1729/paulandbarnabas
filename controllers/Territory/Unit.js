@@ -104,7 +104,7 @@ endpoints.overview = (req, res, next) => {
     tags: {
       add: {
         title: 'add tag',
-        endpoint: PBURLConstructor.getRoute('add-tag').url(null, subunitQueryParam),
+        endpoint: PBURLConstructor.getRoute('add-tag').url(null, _.extend(subunitQueryParam, {'tag':'TAGHERE'})),
         id: 'option-tag-add'
       }
     },

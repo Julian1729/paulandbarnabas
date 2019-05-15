@@ -30478,9 +30478,14 @@ var isEmptyString = function(string){
   return (string.length === 0 || !string.trim());
 };
 
+var reloadPage = function(){
+  window.location.reload(false);
+};
+
 module.exports = {
   redirect: redirect,
-  isEmptyString: isEmptyString
+  isEmptyString: isEmptyString,
+  reloadPage: reloadPage,
 };
 
 },{}],20:[function(require,module,exports){

@@ -7,7 +7,7 @@ append scripts
 
 append content
   .bootstrap-modals
-    
+    include ../inc/BootstrapModals.pug
     //- add tag modal
     .modal#add-tag-modal
       .modal-dialog(role="document")
@@ -15,11 +15,11 @@ append content
           .modal-header
             h5 Add tag
           .modal-body
-            form#add-tag-form
-              .form-errors
+            form
+              .form-errors#add-tag-errors
               .form-group
                 label new tag
-                input(type="text", name="tag").form-control
+                input#add-tag-input(type="text" name="tag").form-control
           .modal-footer
             button.btn.btn-secondary(data-dismiss="modal") close
             button.btn.btn-primary#add-tag-submit-btn add
@@ -31,14 +31,14 @@ append content
           .modal-header
             h5 New note
           .modal-body
-            form#add-note-form
-              .form-errors
+            form
+              .form-errors#add-note-errors
               .form-group
                 label note
-                input(type="text", name="note").form-control
+                textarea(type="text", name="note").form-control#add-note-input
               .form-group
                 label by
-                input(type="text", name="note", value=user.first_name).form-control
+                input(type="text", name="note", value=user.first_name).form-control#add-note-by
           .modal-footer
             button.btn.btn-secondary(data-dismiss="modal") close
             button.btn.btn-primary#add-note-submit-btn save
@@ -122,6 +122,22 @@ append content
         
         p 
           small No visits found
+    
+    .row
+      h4 notes
+    .row  
+      each note in notes
+        .card.mb-2
+          .card-header= note.by
+          .card-body
+            .card-text
+              p= note.note
+      else 
+        
+        p 
+          small No notes
+    
+        
             
             
               
