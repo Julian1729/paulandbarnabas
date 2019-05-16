@@ -1,0 +1,37 @@
+.container.my-2
+  nav(aria-label='breadcrumb')
+    ol.breadcrumb
+      li.breadcrumb-item.active(aria-current="page")
+        
+        if render_vars.fragment
+                    
+            a(href=render_vars.fragment.overview_url) Fragment #{render_vars.fragment.number}
+          
+        else 
+          
+          a Fragment #{render_vars.fragment.number}
+        
+      li.breadcrumb-item  
+        if render_vars.block
+          
+          a(href=render_vars.block.overview_url) #{render_vars.block.hundred} #{render_vars.block.street}
+          
+        else 
+          
+          a Block 
+          
+      li.breadcrumb-item 
+        
+        if render_vars.unit 
+          
+          if subunit
+          
+            a(href=render_vars.subunit.overview_url) #{render_vars.unit.number} &#62; #{render_vars.subunit.name}
+          
+          else
+            
+            a(href=render_vars.unit.overview_url)= render_vars.unit.number
+  
+        else 
+          
+          a Unit

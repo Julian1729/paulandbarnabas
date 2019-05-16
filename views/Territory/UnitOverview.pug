@@ -44,18 +44,7 @@ append content
             button.btn.btn-primary#add-note-submit-btn save
     
   
-  .container.my-2
-    nav(aria-label='breadcrumb')
-      ol.breadcrumb
-        li.breadcrumb-item Fragment #{render_vars.fragment.number}
-        li.breadcrumb-item #{render_vars.block.hundred} #{render_vars.block.street}
-        if subunit
-        
-          li.breadcrumb-item #{render_vars.unit.number} &#62; #{render_vars.subunit.name}
-        
-        else
-          
-          li.breadcrumb-item= render_vars.unit.number
+  include ../inc/TerritoryBreadcrumb
           
   .container
     .row.flex-column.text-center

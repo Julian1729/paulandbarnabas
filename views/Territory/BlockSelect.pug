@@ -1,12 +1,7 @@
 extends ../ProtoBase 
 
 append content
-  .container.my-2
-    nav(aria-label='breadcrumb')
-      ol.breadcrumb
-        li.breadcrumb-item.active(aria-current="page") Fragment #{render_vars.fragment.number}
-        li.breadcrumb-item  Block
-        li.breadcrumb-item Unit
+  include ../inc/TerritoryBreadcrumb
 
   .container
     ul

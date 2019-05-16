@@ -50,7 +50,8 @@ middleware.findRequestedUnit = (req, res, next) => {
   render_vars.unit = {
     number: unit.number,
     name: unit.name,
-    id: unit._id
+    id: unit._id,
+    overview_url: PBURLConstructor.getRoute('unit-overview').url()
   };
 
   let subunitParam = req.query.subunit || null;
@@ -66,7 +67,8 @@ middleware.findRequestedUnit = (req, res, next) => {
       let render_vars = res.locals.render_vars;
       render_vars.subunit = {
         name: subunit.name,
-        id: subunit._id
+        id: subunit._id,
+        overview_url: PBURLConstructor.getRoute('unit-overview').url(null, {'subunit': subunit.name}),
       };
     } catch (e) {
       // send 404 if subunit not found
