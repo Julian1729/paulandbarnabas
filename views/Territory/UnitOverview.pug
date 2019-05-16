@@ -38,7 +38,7 @@ append content
                 textarea(type="text", name="note").form-control#add-note-input
               .form-group
                 label by
-                input(type="text", name="note", value=user.first_name).form-control#add-note-by
+                input(type="text", name="note", value=`${user.first_name} ${user.last_name}`).form-control#add-note-by
           .modal-footer
             button.btn.btn-secondary(data-dismiss="modal") close
             button.btn.btn-primary#add-note-submit-btn save
@@ -139,6 +139,7 @@ append content
           .card-body
             .card-text
               p= note.note
+          .card-footer.text-muted= moment(note.timestamp).format('MMMM DD, YYYY \\at hh:mm a')
       else 
         
         p 

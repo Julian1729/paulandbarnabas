@@ -1,6 +1,7 @@
 /**
  * Unit Pages Controller
  */
+const moment = require('moment');
 const HttpStatus = require('http-status-codes');
 
 const TerritoryModel = require('../../models/Territory');
@@ -181,6 +182,13 @@ endpoints.overview = (req, res, next) => {
     unitOptions.quicknotes.busy
   ];
 
+  // add timestamp to notes
+  let notes = subunit.notes || unit.notes;
+  notes.map(note => {
+    note.timestamp = note._id.getTimestamp();
+    return note;
+  });
+
   let renderVars = {
     options: validOptions,
     unitOptions,
@@ -192,7 +200,7 @@ endpoints.overview = (req, res, next) => {
     tags: subunit.tags || unit.tags,
     householders: subunit.householders || unit.householders,
     visits: subunit.visits || unit.visits,
-    notes: subunit.notes || unit.notes,
+    notes,
     isdonotcall: subunit.isdonotcall || unit.isdonotcall,
     calledon: subunit.iscalledon || unit.iscalledon,
     language: subunit.language || unit.language,
