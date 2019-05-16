@@ -78,10 +78,16 @@ append content
         .dropdown-menu(aria-labelledby='navbarDropdown', style='font-size: 62.5%')
           each option in options 
             a.dropdown-item(id=option.id)= option.title
-
-      ul.my-2.list-group.list-group-horizontal
+      h6.my-2 tags
+      ul.list-group.list-group-horizontal.unit-tags
         each tag in tags
           li.list-group-item= tag
+        
+        else 
+          p No tags
+  
+  hr
+  .container          
     .row
       h4 householders
       
@@ -104,13 +110,13 @@ append content
         p 
           small No householders found
 
-    
+    hr
     .row
       h4 visits
+    
     .row
-      
       each visit in visits
-        .card.mb-2
+        .card.my-3
           .card-header= visit.contacted_by
           .card-body
             .card-text
@@ -123,11 +129,12 @@ append content
         p 
           small No visits found
     
+    hr
     .row
       h4 notes
     .row  
       each note in notes
-        .card.mb-2
+        .card.my-3.mx-1
           .card-header= note.by
           .card-body
             .card-text

@@ -213,6 +213,7 @@ var endpoints = {};
         overview_url: PBURLConstructor.getRoute('unit-overview').url({unit_number: u.number}),
         subunits: [],
         visits: (u.visits.length) ? true : false,
+        iscalledon: u.iscalledon,
         isdonotcall: u.isdonotcall,
         tags: u.tags
       };
@@ -223,8 +224,9 @@ var endpoints = {};
         u.subunits.forEach(s => {
           var subunitObj = {
             name: s.name,
-            overview_url: PBURLConstructor.getRoute('unit-overview').url(null, {'subunit': s.name}),
+            overview_url: PBURLConstructor.getRoute('unit-overview').url({'unit_number': u.number}, {'subunit': s.name}),
             visits: (s.visits.length) ? true : false,
+            iscalledon: u.iscalledon,
             isdonotcall: s.isdonotcall,
             tags: s.tags
           };

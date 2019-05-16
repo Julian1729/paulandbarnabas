@@ -1,2 +1,17 @@
 html {
   font-size: 21px !important; }
+
+/**
+ * Override grey background from modal
+ */
+.modal {
+  background: none !important;
+  box-shadow: none !important; }
+
+/**
+ * Unit Overview page
+ * */
+ul.unit-tags {
+  font-size: 0.8em; }
+  ul.unit-tags li {
+    padding: 10px !important; }

@@ -25,16 +25,16 @@ html
     .wrapper
       block content
         
-    .modal-overlay#modal-overlay
       block modals
-        +modal('page-error-modal')
-          p Sorry, something went wrong. The developer has been made aware, please try again later.
-          .button-row.mini
-            button(data-action="close") okay
-        +modal('request-error-modal')
-          p Sorry, there was an error submitting your request. Please check your internet connection, and try again.
-          .button-row.mini
-            button(data-action="close") okay
+        .modal-overlay#modal-overlay
+          +modal('page-error-modal')
+            p Sorry, something went wrong. The developer has been made aware, please try again later.
+            .button-row.mini
+              button(data-action="close") okay
+          +modal('request-error-modal')
+            p Sorry, there was an error submitting your request. Please check your internet connection, and try again.
+            .button-row.mini
+              button(data-action="close") okay
         
         
     
