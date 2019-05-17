@@ -35544,12 +35544,12 @@ const HouseholderContactedContraints = {
     },
   },
 
-  'publisher.returning': {
-    presence: {
-      allowEmpty: false,
-      message: 'Please specify whether or not the publisher will be returning on householder'
-    },
-  },
+  // 'publisher.returning': {
+  //   presence: {
+  //     allowEmpty: false,
+  //     message: 'Please specify whether or not the publisher will be returning on householder'
+  //   },
+  // },
 
   'visit.details': {
     presence: {
