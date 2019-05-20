@@ -2,9 +2,10 @@
  * Rajax Hundred Controller
  */
 const HttpStatus = require('http-status-codes');
+const appRoot = require('app-root-path');
 
-const logger = require('../../../../utils/logger');
-const errors = require('../../../../errors');
+const logger = require(`${appRoot}/utils/logger`);
+const errors = require(`${appRoot}/errors`);
 
 var middleware = {};
 var endpoints = {};
