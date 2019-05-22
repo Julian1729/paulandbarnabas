@@ -1,22 +1,22 @@
 const {expect} = require('chai');
 const appRoot = require('app-root-path');
 
-const config = require(`${appRoot}/config/config`);
+// const config = require(`${appRoot}/config/config`);
 const Users = require('../seed/User');
-const User = require('../../models/User');
+const {UserModel} = require(`${appRoot}/models`);
 const {helpers} = require(`${appRoot}/utils`);
 
 describe('utils/helpers', () => {
 
-  it('should expose functions functions', () => {
+  it('should expose functions', () => {
     expect(helpers.isOdd).to.exist;
     expect(helpers.collectFormData).to.exist;
   });
 
   it('should delete all users in the User collection', (done) => {
 
-    helpers.clearCollection(User).then(() => {
-      User.find({}).then((users) => {
+    helpers.clearCollection(UserModel).then(() => {
+      UserModel.find({}).then((users) => {
         expect(users.length).to.equal(0);
         done();
       }).catch((e) => {
