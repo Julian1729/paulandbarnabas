@@ -1,4 +1,4 @@
-var validate = require('./ValidatorBase');
+var validate = require('./base');
 
 const LoginConstraints = {
   email: {

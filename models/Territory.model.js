@@ -2,9 +2,9 @@ const mongoose = require('./db');
 const Schema = mongoose.Schema;
 const {ObjectId} = require('mongodb');
 const _ = require('lodash');
+const appRoot = require('app-root-path');
 
-const logger = require('../utils/logger');
-const Utils = require('../utils/utils');
+const {helpers, logger} = require(`${appRoot}/utils`);
 const errors = require('../errors');
 
 /**
@@ -336,7 +336,7 @@ var hundred_schema = new Schema({
     */
   hundred_schema.methods.getUnitBlock = function(number){
     number = parseInt(number);
-    if(Utils.isOdd(number)){
+    if(helpers.isOdd(number)){
       return this.odd;
     }else{
       return this.even;

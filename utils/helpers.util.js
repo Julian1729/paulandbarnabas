@@ -4,6 +4,7 @@
 
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
+const appRoot = require('app-root-path');
 
 const clearCollection = (model) => {
 
@@ -86,5 +87,6 @@ module.exports = {
   bcryptPassword,
   camelCase,
   pascualCase,
-  isOdd
+  isOdd,
+
 };

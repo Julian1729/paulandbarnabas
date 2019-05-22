@@ -1,16 +1,23 @@
-const expect = require('expect.js');
+const {expect} = require('chai');
+const appRoot = require('app-root-path');
 
-const Users = require('./seed/User');
-const User = require('../models/User');
-const Utils = require('../utils/utils');
+const config = require(`${appRoot}/config/config`);
+const Users = require('../seed/User');
+const User = require('../../models/User');
+const {helpers} = require(`${appRoot}/utils`);
 
-describe('Utils', () => {
+describe('utils/helpers', () => {
+
+  it('should expose functions functions', () => {
+    expect(helpers.isOdd).to.exist;
+    expect(helpers.collectFormData).to.exist;
+  });
 
   it('should delete all users in the User collection', (done) => {
 
-    Utils.clearCollection(User).then(() => {
+    helpers.clearCollection(User).then(() => {
       User.find({}).then((users) => {
-        expect(users.length).to.be(0);
+        expect(users.length).to.equal(0);
         done();
       }).catch((e) => {
         done(e);
@@ -25,7 +32,7 @@ describe('Utils', () => {
       body: Users.validUser
     };
 
-    var data = Utils.collectFormData([
+    var data = helpers.collectFormData([
       'first_name',
       'last_name',
       'email',
@@ -33,7 +40,7 @@ describe('Utils', () => {
     ], mockRequest);
 
     expect(data).to.have.property('first_name');
-    expect(data.first_name).to.be.ok();
+    expect(data.first_name).to.exist;
 
   });
 
@@ -43,7 +50,7 @@ describe('Utils', () => {
       body: Users.incompleteUser
     };
 
-    var data = Utils.collectFormData([
+    var data = helpers.collectFormData([
       'first_name',
       'last_name',
       'email',
@@ -51,14 +58,14 @@ describe('Utils', () => {
     ], mockRequest);
 
     expect(data).to.have.property('first_name');
-    expect(data.first_name).to.be(null);
+    expect(data.first_name).to.not.exist;
 
   });
 
   it('should convert hyphenated string to camel case', () => {
 
     var string = 'this-is-test-string';
-    var camelCase = Utils.camelCase(string);
+    var camelCase = helpers.camelCase(string);
     expect(camelCase).to.equal('thisIsTestString');
 
   });
@@ -66,7 +73,7 @@ describe('Utils', () => {
   it('should convert spaced string to camel case', () => {
 
     var string = 'this is test string';
-    var camelCase = Utils.camelCase(string, ' ');
+    var camelCase = helpers.camelCase(string, ' ');
     expect(camelCase).to.equal('thisIsTestString');
 
   });
@@ -74,21 +81,21 @@ describe('Utils', () => {
   it('should convert to pascual case', () => {
 
     var string = 'this-is-test-string';
-    var PascualCase = Utils.pascualCase(string);
+    var PascualCase = helpers.pascualCase(string);
     expect(PascualCase).to.equal('ThisIsTestString');
 
   });
 
   it('should return true for odd number', () => {
 
-    var res = Utils.isOdd(7);
+    var res = helpers.isOdd(7);
     expect(res).to.be.true;
 
   });
 
   it('should return false for even number', () => {
 
-      var res = Utils.isOdd(2);
+      var res = helpers.isOdd(2);
       expect(res).to.be.false;
 
   });

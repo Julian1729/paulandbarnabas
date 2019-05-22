@@ -3,8 +3,8 @@ var
   Schema = mongoose.Schema,
   uniqueValidator = require('mongoose-unique-validator'),
   bcrypt = require('bcrypt'),
-  Utils = require('../Utils/Utils'),
-  logger = require('../utils/logger'),
+  appRoot = require('app-root-path'),
+  {helpers, logger} = require(`${appRoot}/utils`),
   _ = require('lodash');
 
 var UserSchema = new Schema({
@@ -59,7 +59,7 @@ UserSchema.pre('save', function(next){
     return next();
   }
 
-  Utils.bcryptPassword(user.password)
+  helpers.bcryptPassword(user.password)
   .then(function(hashedPassword) {
       user.password = hashedPassword;
       next();

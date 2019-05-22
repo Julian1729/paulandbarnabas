@@ -2,10 +2,10 @@
  * Session
  */
 const _ = require('lodash');
+const appRoot = require('app-root-path');
 
 const SessionValidator = require('../validators/SessionValidator');
 const {SessionUninitialized, SessionUnauthenticated} = require('../errors');
-const logger = require('../utils/logger');
 
 var createSession = (req, obj) => {
   var validate = SessionValidator(obj);

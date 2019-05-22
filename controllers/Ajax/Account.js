@@ -11,9 +11,8 @@ const LoginValidator = require('../../validators/LoginValidator');
 const UserModel = require('../../models/User');
 const constants = require('../../config/constants');
 const Session = require('../../session/session');
-const logger = require('../../utils/logger');
+const {logger, helpers} = require('../../utils');
 const {ajaxResponse} = require('./Base');
-const Utils = require('../../utils/utils');
 
 /**
  * Actions
@@ -24,7 +23,7 @@ const Utils = require('../../utils/utils');
   */
   var signUp = (req, res, next) => {
 
-    var signUpData = Utils.collectFormData([
+    var signUpData = helpers.collectFormData([
       'first_name',
       'last_name',
       'email',
@@ -76,7 +75,7 @@ const Utils = require('../../utils/utils');
   var login = (req, res, next) => {
 
     // collect data
-    var loginData = Utils.collectFormData([
+    var loginData = helpers.collectFormData([
       'email',
       'password'
     ], req);

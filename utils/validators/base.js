@@ -1,7 +1,7 @@
 var validate = require("validate.js");
 const RSVP = require('rsvp');
 
-const UserModel = require('../models/User');
+const UserModel = require('../../models/User');
 
 // Set promise object
 validate.Promise = RSVP.Promise;

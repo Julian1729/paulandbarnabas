@@ -11,8 +11,7 @@ const TerritoryModel = require('../../models/Territory');
 const {UserSession} = require('../../session/session');
 const UserModel = require('../../models/User');
 const {ajaxResponse} = require('./Base');
-const logger = require('../../utils/logger');
-const Utils = require('../../utils/utils');
+const {logger, helpers} = require('../../utils');
 const constants = require('../../config/config');
 const errors = require('../../errors');
 
@@ -25,7 +24,7 @@ var saveTerritory = (req, res, next) => {
     error: new errors.SessionUnauthenticated()
   }, HttpStatus.UNAUTHORIZED);
 
-  var territoryData = Utils.collectFormData([
+  var territoryData = helpers.collectFormData([
     'block_hundred',
     'odd_even',
     'units',

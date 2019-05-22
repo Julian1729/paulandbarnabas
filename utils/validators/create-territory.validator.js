@@ -8,7 +8,7 @@
  */
 const _ = require('lodash');
 
-const validate = require('./ValidatorBase');
+const validate = require('./base');
 
 var CreateTerritoryConstraints = {
   block_hundred: {

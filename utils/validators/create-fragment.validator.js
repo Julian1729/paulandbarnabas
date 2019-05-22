@@ -2,7 +2,7 @@
  * Validate fragment input from Create Fragment page
  */
 
-const validate = require('./ValidatorBase');
+const validate = require('./base');
 
 var CreateFragmentConstraints = {
   'fragment.number': {

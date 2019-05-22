@@ -3,7 +3,7 @@
  */
 
 const {SessionUninitialized, SessionUnauthenticated} = require('../errors');
-const validate  = require('./ValidatorBase');
+const validate  = require('./base');
 
 const required = {
   presence: {

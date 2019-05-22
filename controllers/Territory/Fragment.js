@@ -11,9 +11,8 @@ const TerritoryModel = require('../../models/Territory');
 const UserModel = require('../../models/User');
 const Session = require('../../session/session');
 const constants = require('../../config/constants');
-const logger = require(`${appRoot}/utils/logger`);
+const {logger} = require(`${appRoot}/utils`);
 const errors = require('../../errors');
-const Utils = require('../../utils/utils');
 
 var middleware = {};
 var endpoints = {};
