@@ -26,16 +26,16 @@ const CONFIG = {
       'territory-unitoverview',
       'localize-constants'
     ],
-    src: './public/assets/js/src/app.js',
-    inputDir: './public/assets/js/src/pages/',
-    outputDir: './public/assets/js/dist/',
+    src: './public/js/src/app.js',
+    inputDir: './public/js/src/pages/',
+    outputDir: './public/js/dist/',
     outputFile: 'bundle.js'
   },
   css: {
-    sass: './public/assets/css/src/**/*.sass',
-    outputDir: './public/assets/css/dist',
-    compiled: './public/assets/css/dist/*.css',
-    minifiedDir: './public/assets/css/dist/min'
+    sass: './public/css/src/**/*.sass',
+    outputDir: './public/css/dist',
+    compiled: './public/css/dist/*.css',
+    minifiedDir: './public/css/dist/min'
   }
 };
 
@@ -127,6 +127,6 @@ gulp.task('start', ['bundleAll', 'build-css-development'], function(){
       return tasks
     },
     ext: 'js pug sass',
-    ignore: ['public/assets/js/dist/*']
+    ignore: ['public/js/dist/*']
   });
 });

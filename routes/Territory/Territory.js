@@ -13,6 +13,6 @@ router.get('/', (req, res, next) => {
 /**
  * Main User Endpoint
  */
-router.use('/fragment/:fragment_id', require('./Fragment'));
+router.use('/fragment/:fragment_number', require('./Fragment'));
 
 module.exports = router;

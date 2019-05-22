@@ -19,13 +19,13 @@ router.get('/', controller.endpoints.fragmentOverview);
  */
 router.get('/blocks', controller.endpoints.blockSelect);
 // register middleware to find requested block
-router.all('/blocks/:block_id*', controller.middleware.findRequestedBlock);
-router.get('/blocks/:block_id', controller.endpoints.blockOverview);
+router.all('/block/:block_id*', controller.middleware.findRequestedBlock);
+router.get('/block/:block_id', controller.endpoints.blockOverview);
 
 /**
  * Delegate Unit CRUD to Unit router
  */
-router.use('/blocks/:block_id/unit/:unit_number', require('./Unit'));
+router.use('/block/:block_id/unit/:unit_number', require('./Unit'));
 
 
 module.exports = router;

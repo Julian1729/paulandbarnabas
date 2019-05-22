@@ -4,12 +4,14 @@
 
 const HttpStatus = require('http-status-codes');
 const _ = require('lodash');
+const appRoot = require('app-root-path');
 
 const controllerBase = require('../base');
 const TerritoryModel = require('../../models/Territory');
 const UserModel = require('../../models/User');
 const Session = require('../../session/session');
 const constants = require('../../config/constants');
+const logger = require(`${appRoot}/utils/logger`);
 const errors = require('../../errors');
 const Utils = require('../../utils/utils');
 
@@ -44,18 +46,19 @@ var endpoints = {};
 
   middleware.findRequestedFragment = (req, res, next) => {
 
-    if(!req.params.fragment_id) return next();
+    if(!req.params.fragment_number) return next();
 
     let territory = res.locals.territory;
     let assigned_fragments = res.locals.user.assigned_fragments;
 
     var fragment = assigned_fragments.find(f => {
-      return f._id.equals(req.params.fragment_id);
+      return f.number === (req.params.fragment_number * 1);
     });
 
     // if fragment is not found in user assigned fragments,
     // the user in not authorized to view that fragment
     if(!fragment){
+      logger.debug(`Fragment #${req.params.fragment_number} is not assigned to this user.`);
       return res.status(HttpStatus.UNAUTHORIZED).send();
     }
 
@@ -65,7 +68,7 @@ var endpoints = {};
     let PBURLConstructor = res.locals.PBURLConstructor;
 
     // add fragment_id global
-    PBURLConstructor.setGlobal('fragment_id', fragment._id.toString());
+    PBURLConstructor.setGlobal('fragment_number', fragment.number);
 
     res.locals.render_vars.fragment = {
       number: fragment.number,

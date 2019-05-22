@@ -1,18 +1,19 @@
 /**
- * Street Rajax Router
- * /rajax/territory/street
+ * Street Ajax Router
  */
 
 const express = require('express');
 const router = express.Router({mergeParams: true});
+const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
 
-const controller = require('../../../controllers/Rajax/Territory/subcontrollers/street');
+const {streetController} = require(`${appRoot}/controllers/ajax/territory/index`);
+const hundredRoute = require('./hundred.route');
 
 /**
  * Middleware
  */
-router.use(controller.middleware.findStreet);
+router.use(streetController.middleware.findStreet);
 
 /**
  * Endpoints
@@ -29,7 +30,7 @@ router.post('/remove', (req, res) => {
   res.status(HttpStatus.NOT_IMPLEMENTED).send(`NOT CONFIGURED: /street/${req.params.street_name}/remove`);
 });
 
-router.use('/hundred/:hundred', require('./hundred'));
+router.use('/hundred/:hundred', hundredRoute);
 
 // OPTIMIZE: add /hundred/add to add and remove hundreds
 

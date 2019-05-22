@@ -1,18 +1,20 @@
 /**
- * Hundred Rajax Router
- * /rajax/territory/street/:street_name/hundred/:hundred
+ * Hundred Ajax Router
  */
 
 const express = require('express');
 const router = express.Router({mergeParams: true});
+const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
 
-const controller = require('../../../controllers/Rajax/Territory/subcontrollers/hundred');
+const {hundredController} = require(`${appRoot}/controllers/ajax/territory/index`);
+const blockRoute = require('./block.route');
+const unitRoute = require('./unit.route');
 
 /**
  * Middleware
  */
- router.all('*', controller.middleware.findHundred);
+ router.all('*', hundredController.middleware.findHundred);
 
 /**
  * Endpoints
@@ -27,11 +29,11 @@ const controller = require('../../../controllers/Rajax/Territory/subcontrollers/
   });
 
   // Units
-  router.post('/units/add', controller.endpoints.addUnits);
+  router.post('/units/add', hundredController.endpoints.addUnits);
 
   // Delegate to block router
-  router.use('/block/:side', require('./block'));
+  router.use('/block/:side', blockRoute);
 
-  router.use('/unit/:unit_number', require('./unit'));
+  router.use('/unit/:unit_number', unitRoute);
 
 module.exports = router;
