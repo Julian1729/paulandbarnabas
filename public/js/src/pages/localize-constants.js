@@ -1,6 +1,6 @@
-const _ = require('lodash');
+var _ = require('lodash');
 
-var constants = require('../../../../../config/constants');
+var constants = require('../../../../config/constants');
 
 var PB_CONSTANTS = _.cloneDeep(constants);
 

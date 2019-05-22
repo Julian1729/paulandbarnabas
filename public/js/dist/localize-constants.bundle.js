@@ -20,7 +20,7 @@ var local = {
     salt_rounds: 10
   }
 };
-local.assets_url = local.base_url + "/assets";
+local.assets_url = local.base_url;
 local.ajax_url = local.base_url + "/ajax";
 local.fragment_url = local.base_url + "/territory/fragment";
 local.rajax_url = local.base_url + "/rajax"
@@ -17341,9 +17341,9 @@ process.umask = function() { return 0; };
 },{}],4:[function(require,module,exports){
 arguments[4][2][0].apply(exports,arguments)
 },{"dup":2}],5:[function(require,module,exports){
-const _ = require('lodash');
+var _ = require('lodash');
 
-var constants = require('../../../../../config/constants');
+var constants = require('../../../../config/constants');
 
 var PB_CONSTANTS = _.cloneDeep(constants);
 
@@ -17357,4 +17357,4 @@ unset.forEach(prop => {
 
 window.PB_CONSTANTS = PB_CONSTANTS;
 
-},{"../../../../../config/constants":1,"lodash":4}]},{},[5]);
+},{"../../../../config/constants":1,"lodash":4}]},{},[5]);
