@@ -4,7 +4,7 @@ prepend GLOBAL_PUG
   - var page_name = "ap-createterritory"
 
 append scripts
-  script(src=constants.base_url + "/assets/js/dist/ap-createterritory.bundle.js", type="text/javascript")
+  script(src=constants.base_url + "/js/dist/ap-createterritory.bundle.js", type="text/javascript")
 
 block templates
   //- subunit text input template
@@ -12,9 +12,9 @@ block templates
   
   .unit(data-number="")
     .info-row
-      img.remove(src=constants.base_url + "/assets/images/delete.png", alt="Delete unit", title="Delete unit")
+      img.remove(src=constants.base_url + "/images/delete.png", alt="Delete unit", title="Delete unit")
       span.number
-      img.add(src=constants.base_url + "/assets/images/add.png", alt="Add subunit", title="Add subunit")
+      img.add(src=constants.base_url + "/images/add.png", alt="Add subunit", title="Add subunit")
     .subunit-container
 
 append modals

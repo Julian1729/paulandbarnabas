@@ -1,4 +1,7 @@
+const appRoot = require('app-root-path');
+
 const mongoose = require('mongoose');
+const config = require(`${appRoot}/config/config`);
 
 // Add Promise functionality
 mongoose.Promise = global.Promise;

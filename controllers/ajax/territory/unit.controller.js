@@ -1,11 +1,12 @@
 /**
  * Rajax Unit Controller
  */
-const HttpStatus = require('http-status-codes');
-const appRoot = require('app-root-path');
 
-const {logger} = require(`${appRoot}/utils`);
+const appRoot = require('app-root-path');
+const HttpStatus = require('http-status-codes');
+
 const errors = require(`${appRoot}/errors`);
+const {logger} = require(`${appRoot}/utils`);
 
 var middleware = {};
 var endpoints = {};

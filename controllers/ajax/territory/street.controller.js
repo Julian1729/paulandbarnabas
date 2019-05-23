@@ -1,8 +1,8 @@
 /**
  * Rajax Street Controller
  */
-const HttpStatus = require('http-status-codes');
 const appRoot = require('app-root-path');
+const HttpStatus = require('http-status-codes');
 
 const {logger} = require(`${appRoot}/utils`);
 const errors = require(`${appRoot}/errors`);

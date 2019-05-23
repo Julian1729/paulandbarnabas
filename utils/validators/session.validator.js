@@ -1,8 +1,9 @@
 /**
  * Validate a Session object from req.session
  */
+const appRoot = require('app-root-path');
 
-const {SessionUninitialized, SessionUnauthenticated} = require('../errors');
+const {SessionUninitialized, SessionUnauthenticated} = require(`${appRoot}/errors`);
 const validate  = require('./base');
 
 const required = {

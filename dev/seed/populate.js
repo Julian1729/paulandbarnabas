@@ -2,15 +2,13 @@
  * Populate data file with seed data.
  */
 const yargs = require('yargs');
+const appRoot = require('app-root-path');
 
-const CongregationModel = require('../../models/Congregation');
-const UserModel = require('../../models/User');
-const TerritoryModel = require('../../models/Territory');
-const logger = require('../../utils/logger');
-const Utils = require('../../utils/utils');
-const CongregationSeed = require('./Congregation');
 const UserSeed = require('./User');
+const models = require(`${appRoot}/models`);
 const TerritorySeed = require('./Territory');
+const CongregationSeed = require('./Congregation');
+const {logger, helpers} = require(`${appRoot}/utils`);
 
 var seededData = require('./data');
 
@@ -28,16 +26,16 @@ var argv = yargs.argv;
 
 var retrieveData = async () => {
 
-  return CongregationModel.find({})
+  return models.CongregationModel.find({})
     // populate congregations
     .then(congregations => {
       seededData.congregations = congregations;
-      return UserModel.find({});
+      return models.UserModel.find({});
     })
     // populate users
     .then(users => {
       seededData.users = users;
-      return TerritoryModel.find({});
+      return models.TerritoryModel.find({});
     })
     // populate territories
     .then(territories => {
@@ -49,22 +47,22 @@ var retrieveData = async () => {
 
 var insertData = async () => {
 
-  return Utils.clearCollection(CongregationModel)
+  return helpers.clearCollection(models.CongregationModel)
     // Clear Congregation Collection
     // Clear User collection
     .then(r => {
       logger.debug('Congregation collection cleared');
-      return Utils.clearCollection(UserModel)
+      return helpers.clearCollection(models.UserModel)
     })
     // Clear User collection
     .then(r => {
       logger.debug('User collection cleared')
-      return Utils.clearCollection(TerritoryModel);
+      return helpers.clearCollection(models.TerritoryModel);
     })
     // Clear Territory collection
     .then(r => {
       logger.debug('Territory collection cleared');
-      return CongregationModel.create(CongregationSeed);
+      return models.CongregationModel.create(CongregationSeed);
     })
     // Save congregation
     .then(congregations => {
@@ -74,7 +72,7 @@ var insertData = async () => {
       UserSeed.forEach(user => {
         user.congregation = congregations[0]._id;
       });
-      return UserModel.create(UserSeed);
+      return models.UserModel.create(UserSeed);
     })
     // Save Users
     .then(users => {
@@ -83,7 +81,7 @@ var insertData = async () => {
       // Add congregation to territory obj
       var seedTerritory = TerritorySeed.territory;
       seedTerritory.congregation = seededData.congregations[0]._id;
-      return TerritoryModel.create(seedTerritory);
+      return models.TerritoryModel.create(seedTerritory);
     })
     // Add blocks to territory fragment
     .then(territory => {

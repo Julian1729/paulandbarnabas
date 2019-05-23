@@ -1,11 +1,8 @@
-/**
- * Parent Territory Middlware
- */
-const sprintf = require('sprintf-js').sprintf
+const appRoot = require('app-root-path');
+const _ = require('lodash');
 
-const TerritoryModel = require('../../models/Territory');
-const constants = require('../../config/constants');
-const PBURLConstructor = require('../../utils/PBURLConstructor');
+const {TerritoryModel} = require(`${appRoot}/models`);
+const {PBURLConstructor} = require(`${appRoot}/utils`);
 
 var middleware = {};
 var endpoints = {};

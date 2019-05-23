@@ -1,7 +1,8 @@
 var validate = require("validate.js");
 const RSVP = require('rsvp');
+const appRoot = require('app-root-path');
 
-const UserModel = require('../../models/User');
+const {UserModel} = require(`${appRoot}/models`);
 
 // Set promise object
 validate.Promise = RSVP.Promise;

@@ -7,7 +7,7 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const HttpStatus = require('http-status-codes');
 
-const publicPath = path.join(__dirname, '/public');
+const routes = require('./routes');
 const config = require('./config/config');
 const constants = require('./config/constants');
 
@@ -70,25 +70,22 @@ app.set('views', __dirname + '/views');
  * Express Routing
  */
  // Landing page (Login Page)
- app.use('/', require('./routes/Login') );
+ app.use('/', routes.loginRoute);
 
  // AJAX Requests
- app.use('/ajax', require('./routes/ajax'));
-
- // Rajax Requests
- app.use('/rajax', require('./routes/Rajax/Rajax'));
+ // app.use('/ajax', routes.ajax );
 
  // Sign Up
- app.use('/createaccount', require('./routes/CreateAccount'));
+ app.use('/createaccount', routes.createAccountRoute);
 
  // Dashboard
- app.use('/dashboard', require('./routes/Dashboard'));
+ app.use('/dashboard', routes.dashboardRoute);
 
  // Admin Panel
- app.use('/adminpanel', require('./routes/AdminPanel'));
+ app.use('/adminpanel', routes.adminPanelRoute);
 
  // User Territory CRUD
- app.use('/territory', require('./routes/Territory/Territory'));
+ app.use('/territory', routes.territoryRoute);
 
  // Error Handler
  app.use((err, req, res, next) => {
@@ -96,13 +93,13 @@ app.set('views', __dirname + '/views');
    console.error(err.stack);
    res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
 
- })
-
-
+ });
 
 // Start express server
 server.listen(process.env.PORT, ()=>{
+
   console.log(`"${constants.site_name}" live on port ${process.env.PORT}`);
+
 });
 
 module.exports = {app, server};

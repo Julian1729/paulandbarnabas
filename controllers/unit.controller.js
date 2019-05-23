@@ -1,14 +1,14 @@
 /**
  * Unit Pages Controller
  */
+const _ = require('lodash');
 const moment = require('moment');
+const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
 
-const TerritoryModel = require('../../models/Territory');
-const Session = require('../../session/session');
-const constants = require('../../config/constants');
-const errors = require('../../errors');
-const Utils = require('../../utils/utils');
+const errors = require(`${appRoot}/errors`);
+const {TerritoryModel} = require(`${appRoot}/models`);
+const constants = require(`${appRoot}/config/constants`);
 
 var middleware = {};
 var endpoints = {};

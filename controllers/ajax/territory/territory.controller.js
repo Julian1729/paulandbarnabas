@@ -1,9 +1,10 @@
 /**
  * Parent Territory Rajax router
  */
+const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
 
-const TerritoryModel = require('../../../models/Territory');
+const {TerritoryModel} = require(`${appRoot}/models`);
 
 var middleware = {};
 

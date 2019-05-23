@@ -1,8 +1,10 @@
-var Session = require('../../session/session');
-var errors = require('../../errors');
+const appRoot = require('app-root-path');
 var HttpStatus = require('http-status-codes');
-var seedData = require('../../dev/seed/data');
-var logger = require('../../utils/logger');
+
+var errors = require(`${appRoot}/errors`);
+var {logger} = require(`${appRoot}/utils`);
+var seedData = require(`${appRoot}/dev/seed/data`);
+var Session = require(`${appRoot}/session/session`);
 
 var authenticate = (req, res, next) => {
 

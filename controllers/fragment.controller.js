@@ -1,18 +1,13 @@
 /**
  * Fragment Controllers and Middleware;
  */
-
-const HttpStatus = require('http-status-codes');
 const _ = require('lodash');
 const appRoot = require('app-root-path');
+const HttpStatus = require('http-status-codes');
 
-const controllerBase = require('../base');
-const TerritoryModel = require('../../models/Territory');
-const UserModel = require('../../models/User');
-const Session = require('../../session/session');
-const constants = require('../../config/constants');
+const errors = require(`${appRoot}/errors`);
 const {logger} = require(`${appRoot}/utils`);
-const errors = require('../../errors');
+const {TerritoryModel, UserModel} = require(`${appRoot}/models`);
 
 var middleware = {};
 var endpoints = {};

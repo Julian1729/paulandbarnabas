@@ -1,25 +1,21 @@
 /**
  * Create Territory Ajax Controller
  */
-const HttpStatus = require('http-status-codes');
 const {ObjectId} = require('mongodb');
+const appRoot = require('app-root-path');
+const HttpStatus = require('http-status-codes');
 
-const {CongregationNotFound, FragmentNotFound, FormValidationError} = require('../../errors');
-const CreateTerritoryValidator = require('../../validators/CreateTerritory');
-const CreateFragmentValidator = require('../../validators/CreateFragment');
-const TerritoryModel = require('../../models/Territory');
-const {UserSession} = require('../../session/session');
-const UserModel = require('../../models/User');
-const {ajaxResponse} = require('./Base');
-const {logger, helpers} = require('../../utils');
-const constants = require('../../config/config');
-const errors = require('../../errors');
+const errors = require(`${appRoot}/errors`);
+const {logger, helpers} = require(`${appRoot}/utils`);
+const {TerritoryModel, UserModel} = require(`${appRoot}/models`);
+const {CongregationNotFound, FragmentNotFound, FormValidationError} = require(`${appRoot}/errors`);
+const {createTerritoryValidator, createFragmentValidator} = require(`${appRoot}/utils/validators`);
 
 var saveTerritory = (req, res, next) => {
 
   var congregationId = req.session.congregation || null;
 
-  if(congregationId === null) return ajaxResponse(res, {
+  if(congregationId === null) return helpers.ajaxResponse(res, {
     status: HttpStatus.UNAUTHORIZED,
     error: new errors.SessionUnauthenticated()
   }, HttpStatus.UNAUTHORIZED);
@@ -41,7 +37,7 @@ var saveTerritory = (req, res, next) => {
   var validation = CreateTerritoryValidator(territoryData);
   if(validation){
     logger.debug('validation error\n' + JSON.stringify(validation, null, 2))
-    return ajaxResponse(res, {
+    return helpers.ajaxResponse(res, {
       error: new FormValidationError(validation)
     })
   }
@@ -118,16 +114,16 @@ var saveTerritory = (req, res, next) => {
       return infoObj.territory.save();
     })
     .then(territory => {
-      return ajaxResponse(res);
+      return helpers.ajaxResponse(res);
     })
     .catch(e => {
       if(e instanceof CongregationNotFound || e instanceof FragmentNotFound){
-        return ajaxResponse(res, {
+        return helpers.ajaxResponse(res, {
           error: e
         });
       }else{
         logger.debug(e.stack);
-        return ajaxResponse(res, {
+        return helpers.ajaxResponse(res, {
           status: 500
         });
       }
@@ -157,7 +153,7 @@ var getStreetStats = (req, res, next) => {
         statObj.even_id = h.even._id;
         stats.push(statObj);
       });
-      return ajaxResponse(res, {
+      return helpers.ajaxResponse(res, {
         data: stats
       });
 
@@ -165,12 +161,12 @@ var getStreetStats = (req, res, next) => {
     .catch(e => {
 
       if(e instanceof errors.StreetNotFound){
-        return ajaxResponse(res, {
+        return helpers.ajaxResponse(res, {
           status: 500,
           error: e
         });
       }else{
-        return ajaxResponse(res, {
+        return helpers.ajaxResponse(res, {
           status: 500
         });
       }
@@ -186,12 +182,12 @@ var getFragments = (req, res, next) => {
 
   TerritoryModel.findOne({congregation: congregationId}, 'fragments')
     .then(result => {
-      return ajaxResponse(res, {
+      return helpers.ajaxResponse(res, {
         data: result.fragments
       });
     })
     .catch(e => {
-      return ajaxResponse(res, {
+      return helpers.ajaxResponse(res, {
         status: 500
       });
     })
@@ -206,19 +202,19 @@ var getStreets = (req, res, next) => {
   // find streets
   TerritoryModel.findByCongregation(congregationId)
     .then(territory => {
-      return ajaxResponse(res, {
+      return helpers.ajaxResponse(res, {
         data: territory.streets
       });
     })
     .catch(e => {
       if(e instanceof errors.TerritoryNotFound){
-        return ajaxResponse(res, {
+        return helpers.ajaxResponse(res, {
           status: 500,
           error: e
         });
       }
 
-      return ajaxResponse(res, {
+      return helpers.ajaxResponse(res, {
         status: 500
       });
 
@@ -256,7 +252,7 @@ var saveFragment = (req, res, next) => {
   // validate fragment
   var validation = CreateFragmentValidator(fragmentFormData);
   if(validation){
-    return ajaxResponse(res, {
+    return helpers.ajaxResponse(res, {
       error: new FormValidationError(validation)
     });
   }
@@ -288,7 +284,7 @@ var saveFragment = (req, res, next) => {
     })
     .then(territory => {
       // all done!
-      return ajaxResponse(res);
+      return helpers.ajaxResponse(res);
     })
     .catch(e => {
       throw e;
@@ -358,7 +354,7 @@ var getUnassignedFragments = (req, res, next) => {
         block_count: d.size
       });
     });
-    ajaxResponse(res, {
+    helpers.ajaxResponse(res, {
       data: fragments
     })
   })
@@ -421,7 +417,7 @@ var getAssignedFragments = (req, res, next) => {
           block_count: d.size
         });
       });
-      ajaxResponse(res, {
+      helpers.ajaxResponse(res, {
         data: fragments
       })
     })

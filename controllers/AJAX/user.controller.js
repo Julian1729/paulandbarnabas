@@ -2,9 +2,8 @@
  * User Ajax Controller
  */
 
-const UserModel = require('../../models/User');
-const {ajaxResponse} = require('./Base');
-const {UserSession} = require('../../session/session');
+const {UserModel} = require(`${appRoot}/models`);
+const {helpers} = require(`${appRoot}/utils`);
 
 /**
  * Get only names and ids of users
@@ -15,12 +14,12 @@ var getList = (req, res, next) => {
 
   UserModel.getUsersByCongregation(congregationId)
     .then(list => {
-      ajaxResponse(res, {
+      helpers.ajaxResponse(res, {
         data: list
       });
     })
     .catch(e => {
-      ajaxResponse(res, {
+      helpers.ajaxResponse(res, {
         status: 500
       });
     });

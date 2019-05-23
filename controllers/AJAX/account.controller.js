@@ -3,16 +3,16 @@
  *
  * Gateway to all modifications done to any user account
  */
+const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
 
-const {FormValidationError, InvalidCredentials, SessionUninitialized} = require('../../errors.js');
-const SignUpValidator = require('../../validators/SignUpValidator');
-const LoginValidator = require('../../validators/LoginValidator');
-const UserModel = require('../../models/User');
-const constants = require('../../config/constants');
-const Session = require('../../session/session');
-const {logger, helpers} = require('../../utils');
-const {ajaxResponse} = require('./Base');
+const UserModel = require(`${appRoot}/models`);
+const Session = require(`${appRoot}/session/session`);
+const {logger, helpers} = require(`${appRoot}/utils`);
+const constants = require(`${appRoot}/config/constants`);
+const {loginValidator, signupValidator} = require(`${appRoot}/utils/validators`);
+const {FormValidationError, InvalidCredentials, SessionUninitialized} = require(`${appRoot}/errors.js`);
+
 
 /**
  * Actions
@@ -33,7 +33,7 @@ const {ajaxResponse} = require('./Base');
       'password_confirm'
     ], req);
 
-    SignUpValidator(signUpData)
+    signupValidator(signUpData)
       .then( () => {
         var User = new UserModel(signUpData);
         User.save()
@@ -48,7 +48,7 @@ const {ajaxResponse} = require('./Base');
             });
 
             // send ajax response
-            return ajaxResponse(res, {
+            return helpers.ajaxResponse(res, {
               data: {
                 redirect: `${constants.base_url}/dashboard`
               }
@@ -56,13 +56,13 @@ const {ajaxResponse} = require('./Base');
           })
           .catch(e => {
             logger.log(`Error in saving user \n${e.stack}`);
-            return ajaxResponse(res, {
+            return helpers.ajaxResponse(res, {
               status: HttpStatus.INTERNAL_SERVER_ERROR
             });
           });
       })
       .catch((validationErrors) => {
-        return ajaxResponse(res, {
+        return helpers.ajaxResponse(res, {
           error: new FormValidationError(validationErrors)
         });
       });
@@ -81,10 +81,10 @@ const {ajaxResponse} = require('./Base');
     ], req);
 
     // validate input
-    var validation = LoginValidator(loginData);
+    var validation = loginValidator(loginData);
     if(validation){
       // validation failed, respond with error
-      return ajaxResponse(res, {
+      return helpers.ajaxResponse(res, {
         error: new FormValidationError(validation)
       });
     }
@@ -123,7 +123,7 @@ const {ajaxResponse} = require('./Base');
           isAdmin: false
         });
 
-        return ajaxResponse(res, {
+        return helpers.ajaxResponse(res, {
           data:{
             redirect: '/dashboard'
           }
@@ -133,14 +133,14 @@ const {ajaxResponse} = require('./Base');
 
         if(e instanceof InvalidCredentials || e instanceof SessionUninitialized){
           logger.debug(e.name + '\n' + JSON.stringify(e));
-          return ajaxResponse(res, {
+          return helpers.ajaxResponse(res, {
             error: e
           });
         }else{
           // if cannot discern specific error type, log error and return HTTP 500
           logger.debug(`Login controller failed. Error: ${e.message} \n ${e.stack}`);
           console.log(e.stack);
-          return ajaxResponse(res, {
+          return helpers.ajaxResponse(res, {
             status: HttpStatus.INTERNAL_SERVER_ERROR
           });
         }

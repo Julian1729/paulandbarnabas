@@ -1,10 +1,12 @@
-
-const TerritoryModels = require('../models/Territory');
-const Session = require('../session/session');
-const logger = require('../utils/logger');
+const _ = require('lodash');
+const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
-const controllerBase = require('./base');
+
+const {logger, PBURLConstructor} = require(`${appRoot}/utils`);
 const constants = require('../config/constants');
+const Session = require(`${appRoot}/session/session`);
+const {TerritoryModel} = require(`${appRoot}/models`);
+
 
 var land = (req, res, next) => {
 
@@ -18,11 +20,12 @@ var land = (req, res, next) => {
     'fragments': [],
   };
 
-  TerritoryModels.findByCongregation(user.congregation)
+  TerritoryModel.findByCongregation(user.congregation)
     .then(territory => {
 
       var fragments = territory.findUserFragments(user.user_id);
       fragments.forEach(f => {
+        let overview_url = PBURLConstructor.getRoute('fragment-overview').url({'fragment_number': f.number});
         // e.g. {number: 1, id: 'asdfasd', last_worked: (timestamp), block_count: 12, unit_count: 123}
         var fragmentStats = {
           number: null,
@@ -35,7 +38,7 @@ var land = (req, res, next) => {
         };
         fragmentStats.number = f.number;
         fragmentStats.id = f._id;
-        fragmentStats.url = `${constants.fragment_url}/${f._id.toString()}`;
+        fragmentStats.overview_url = overview_url;
         fragmentStats.assigned_on = _.last(f.assignment_history).on;
         fragmentStats.last_worked = _.last(f.worked);
         fragmentStats.block_count = f.blocks.length;
@@ -67,6 +70,6 @@ var land = (req, res, next) => {
 
 };
 
-module.exports = controllerBase.extend({
+module.exports = {
   land
-});
+};
