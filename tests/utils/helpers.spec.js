@@ -1,7 +1,7 @@
 const {expect} = require('chai');
 const appRoot = require('app-root-path');
 
-// const config = require(`${appRoot}/config/config`);
+const config = require(`${appRoot}/config/config`);
 const Users = require('../seed/User');
 const {UserModel} = require(`${appRoot}/models`);
 const {helpers} = require(`${appRoot}/utils`);
