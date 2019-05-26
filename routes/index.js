@@ -2,26 +2,16 @@
  * Routes index
  */
 
-const adminPanelRoute = require('./admin-panel.route');
+exports.adminPanelRoute = require('./admin-panel.route');
 
-const createAccountRoute = require('./create-account.route');
+exports.createAccountRoute = require('./create-account.route');
 
-const dashboardRoute = require('./dashboard.route');
+exports.dashboardRoute = require('./dashboard.route');
 
-const fragmentRoute = require('./fragment.route');
+exports.fragmentRoute = require('./fragment.route');
 
-const loginRoute = require('./login.route');
+exports.loginRoute = require('./login.route');
 
-const territoryRoute = require('./territory.route');
+exports.territoryRoute = require('./territory.route');
 
-const unitRoute = require('./unit.route');
-
-module.exports = {
-  adminPanelRoute,
-  createAccountRoute,
-  dashboardRoute,
-  fragmentRoute,
-  loginRoute,
-  territoryRoute,
-  unitRoute,
-};
+exports.unitRoute = require('./unit.route');

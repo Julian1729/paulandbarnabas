@@ -2,8 +2,8 @@
  * Winston logger configuration
  */
 
-const appRoot = require('app-root-path');
 const winston = require('winston');
+const appRoot = require('app-root-path');
 
 const logger = winston.createLogger({
   level: 'debug',
@@ -34,7 +34,7 @@ if (process.env.NODE_ENV !== 'production') {
     format: winston.format.json(),
     level: 'info',
   }));
-  
+
 }
 
 module.exports = logger;

@@ -2,11 +2,10 @@ const _ = require('lodash');
 const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
 
-const {logger, PBURLConstructor} = require(`${appRoot}/utils`);
 const constants = require('../config/constants');
 const Session = require(`${appRoot}/session/session`);
 const {TerritoryModel} = require(`${appRoot}/models`);
-
+const {logger, PBURLConstructor} = require(`${appRoot}/utils`);
 
 var land = (req, res, next) => {
 

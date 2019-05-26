@@ -1,20 +1,12 @@
 /**
  * Validators
  */
-const createFragmentValidator = require('./create-fragment.validator');
+exports.createFragmentValidator = require('./create-fragment.validator');
 
-const createTerritoryValidator = require('./create-territory.validator');
+exports.createTerritoryValidator = require('./create-territory.validator');
 
-const loginValidator = require('./login.validator');
+exports.loginValidator = require('./login.validator');
 
-const sessionValidator = require('./session.validator');
+exports.sessionValidator = require('./session.validator');
 
-const signupValidator = require('./signup.validator');
-
-module.exports = {
-  createFragmentValidator,
-  createTerritoryValidator,
-  loginValidator,
-  sessionValidator,
-  signupValidator,
-};
+exports.signupValidator = require('./signup.validator');

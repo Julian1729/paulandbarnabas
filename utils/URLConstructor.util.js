@@ -1,9 +1,10 @@
 /**
  * PB URL Routes
  */
+const appRoot = require('app-root-path');
 var URLConstructor = require('dynamic-url-constructor');
 
-var constants = require('../config/constants');
+var constants = require(`${appRoot}/config/constants`);
 
 var PBURLConstructor = new URLConstructor();
 PBURLConstructor.setBase(constants.base_url);

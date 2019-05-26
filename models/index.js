@@ -2,14 +2,8 @@
  * Models index
  */
 
-const CongregationModel = require('./Congregation.model');
+exports.CongregationModel = require('./Congregation.model');
 
-const TerritoryModel = require('./Territory.model');
+exports.TerritoryModel = require('./Territory.model');
 
-const UserModel = require('./User.model');
-
-module.exports = {
-  CongregationModel,
-  TerritoryModel,
-  UserModel
-};
+exports.UserModel = require('./User.model');

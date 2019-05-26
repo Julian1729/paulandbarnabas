@@ -2,26 +2,16 @@
  * Controller Index
  */
 
-const adminPanelController = require('./admin-panel.controller');
+exports.adminPanelController = require('./admin-panel.controller');
 
-const createAccountController = require('./create-account.controller');
+exports.createAccountController = require('./create-account.controller');
 
-const dashboardController = require('./dashboard.controller');
+exports.dashboardController = require('./dashboard.controller');
 
-const fragmentController = require('./fragment.controller');
+exports.fragmentController = require('./fragment.controller');
 
-const loginController = require('./login.controller');
+exports.loginController = require('./login.controller');
 
-const territoryController = require('./territory.controller');
+exports.territoryController = require('./territory.controller');
 
-const unitController = require('./unit.controller');
-
-module.exports = {
-  adminPanelController,
-  createAccountController,
-  dashboardController,
-  fragmentController,
-  loginController,
-  territoryController,
-  unitController,
-};
+exports.unitController = require('./unit.controller');

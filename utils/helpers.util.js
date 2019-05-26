@@ -2,8 +2,8 @@
  * Utility Functions
  */
 
-const bcrypt = require('bcrypt');
 const _ = require('lodash');
+const bcrypt = require('bcrypt');
 const appRoot = require('app-root-path');
 
 const clearCollection = (model) => {
