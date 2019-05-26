@@ -1,9 +1,10 @@
 const expect = require('expect.js');
+const appRoot = require('app-root-path');
 
-const SignUpValidator = require('../validators/SignUpValidator');
-const UserModel = require('../models/User');
-const Utils = require('../utils/utils');
-const Users = require('./seed/User');
+const {helpers} = require(`${appRoot}/utils`);
+const {UserModel} = require(`${appRoot}/models`);
+const Users = require(`${appRoot}/tests/seed/user.seed`);
+const {signupValidator} = require(`${appRoot}/utils/validators`);
 
 describe('User Validator', () => {
 
@@ -12,12 +13,12 @@ describe('User Validator', () => {
    */
   beforeEach((done) => {
     // remove all users from db before running test
-    Utils.clearCollection(UserModel).then(() => done()).catch((e) => done(e));
+    helpers.clearCollection(UserModel).then(() => done()).catch((e) => done(e));
   });
 
   it('should pass validation', (done) => {
 
-    SignUpValidator(Users.validUser)
+    signupValidator(Users.validUser)
       .then(() => {
         return done();
       })
@@ -30,7 +31,7 @@ describe('User Validator', () => {
 
   it('should not pass validation', (done) => {
 
-    SignUpValidator(Users.incompleteUser)
+    signupValidator(Users.incompleteUser)
       .then(() => {
         return done('should not have passed validation');
       })
@@ -46,7 +47,7 @@ describe('User Validator', () => {
 
   it('should fail password match', (done) => {
 
-    SignUpValidator(Users.passwordUnmatched)
+    signupValidator(Users.passwordUnmatched)
       .then(() => {
         throw new Error('should not have passed validation');
         return done();
@@ -67,7 +68,7 @@ describe('User Validator', () => {
     seedUser.save()
     .then((doc) => {
 
-      SignUpValidator(Users.validUser).then((data) => {
+      signupValidator(Users.validUser).then((data) => {
         throw new Error('should not have passed validation');
         return done();
       })

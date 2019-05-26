@@ -1,15 +1,14 @@
 const expect = require('expect.js');
 const chaiExpect = require('chai').expect;
 const {ObjectId} = require('mongodb');
+const appRoot = require('app-root-path');
 const session = require('supertest-session');
 
-
-const Congregation = require('../models/Congregation');
-const CongregationSeed = require('./seed/Congregation');
-const User = require('../models/User');
-const Utils = require('../utils/utils');
-const UserSeed = require('./seed/User');
-const {app} = require('../app');
+const {app} = require(`${appRoot}/app`);
+const {helpers} = require(`${appRoot}/utils`);
+const UserSeed = require(`${appRoot}/tests/seed/user.seed`);
+const {CongregationModel, UserModel} = require(`${appRoot}/models`);
+const CongregationSeed = require(`${appRoot}/tests/seed/congregation.seed`);
 
 describe('User Model', () => {
 
@@ -18,18 +17,17 @@ describe('User Model', () => {
    */
   beforeEach((done) => {
     // remove all users from db before running test
-    Utils.clearCollection(User).then(() => done()).catch((e) => done(e));
+    helpers.clearCollection(UserModel).then(() => done()).catch((e) => done(e));
   });
-
 
   /**
    * Ensure that a User can be saved to the db
    */
   it('should save user to the database', (done) => {
 
-      var user = new User(UserSeed.completeUser);
+      var user = new UserModel(UserSeed.completeUser);
       user.save().then((doc)=>{
-        User.find({}).then((users) => {
+        UserModel.find({}).then((users) => {
           expect(users.length).to.be(1);
           expect(users[0].first_name).to.eql(UserSeed.completeUser.first_name);
           return done();
@@ -45,9 +43,9 @@ describe('User Model', () => {
    */
   it('should hash the users password', (done) => {
 
-    var user = new User(UserSeed.completeUser);
+    var user = new UserModel(UserSeed.completeUser);
     user.save().then((doc)=>{
-      User.find({}).then((users) => {
+      UserModel.find({}).then((users) => {
         expect(users.length).to.be(1);
         expect(users[0].first_name).to.be(UserSeed.completeUser.first_name);
         expect(users[0].password).to.not.eql(UserSeed.completeUser.password);
@@ -64,14 +62,14 @@ describe('User Model', () => {
    */
   it('should not re-hash the users password', (done) => {
 
-    var user = new User(UserSeed.completeUser);
+    var user = new UserModel(UserSeed.completeUser);
     // Inject user into database
     user.save().then((doc)=>{
       expect(doc).to.be.ok();
       var ogPassword = doc.password
       var ogId = doc._id;
       // Find the user just entered and update first name only
-      User.findById(ogId).then((testUser) => {
+      UserModel.findById(ogId).then((testUser) => {
         //expect(users.length).to.eql(1);
         //var testUser = users[0];
         expect(testUser).to.be.ok();
@@ -95,14 +93,14 @@ describe('User Model', () => {
    */
   it('should re-hash the users password', (done) => {
 
-    var user = new User(UserSeed.completeUser);
+    var user = new UserModel(UserSeed.completeUser);
     // Inject user into database
     user.save().then((doc)=>{
       expect(doc).to.be.ok();
       var ogPassword = doc.password
       var ogId = doc._id;
       // Find the user just entered and update password
-      User.findById(ogId).then((testUser) => {
+      UserModel.findById(ogId).then((testUser) => {
         expect(testUser).to.be.ok();
         var newPasssword = 'thisisnewpassword';
         testUser.password = newPasssword;
@@ -120,7 +118,7 @@ describe('User Model', () => {
 
   it('should not enter extra information', (done) => {
 
-    var user = new User(UserSeed.completeUser);
+    var user = new UserModel(UserSeed.completeUser);
     user.save()
       .then(doc => {
         expect(doc).to.have.property('first_name');
@@ -133,7 +131,7 @@ describe('User Model', () => {
 
   it('should find all users that belong to certain congrgation', (done) => {
 
-    var seedCongregation = new Congregation(CongregationSeed.validCongregation);
+    var seedCongregation = new CongregationModel(CongregationSeed.validCongregation);
     // CREATE CONREGATION
     seedCongregation.save()
       // CREATE USERS WITH CONGREGATION REFERENCE
@@ -160,11 +158,11 @@ describe('User Model', () => {
           congregation: new ObjectId(congregation._id)
         };
 
-        return User.collection.insertMany([user1, user2]);
+        return UserModel.collection.insertMany([user1, user2]);
       })
       // ATTEMPT TO FIND USERS THAT BELONG TO CONGREGATION
       .then(users => {
-        User.find({congregation: seedCongregation._id})
+        UserModel.find({congregation: seedCongregation._id})
           .then(users => {
             chaiExpect(users).to.have.lengthOf(2);
             done();
@@ -185,7 +183,7 @@ describe('User Model', () => {
     beforeEach((done) => {
 
     // enter valid user into db
-    var user = new User(UserSeed.completeUser);
+    var user = new UserModel(UserSeed.completeUser);
     user.save()
       .then( user => {
 
@@ -211,7 +209,7 @@ describe('User Model', () => {
 
       var congregation = new ObjectId();
 
-      var user1 = new User({
+      var user1 = new UserModel({
         first_name: 'Julian',
         last_name: 'Hernandez',
         email: 'user1@example.com',
@@ -223,7 +221,7 @@ describe('User Model', () => {
         congregation: congregation
       });
 
-      var user2 = new User({
+      var user2 = new UserModel({
         first_name: 'Todd',
         last_name: 'Roberson',
         email: 'toddy@gmail.com',
@@ -239,7 +237,7 @@ describe('User Model', () => {
         })
         .then(user2 => {
           // FIND LIST
-          return User.getUsersByCongregation(congregation);
+          return UserModel.getUsersByCongregation(congregation);
         })
         .then(list => {
           chaiExpect(list).to.have.lengthOf(2);

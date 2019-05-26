@@ -4,8 +4,8 @@ const {ObjectId} = require('mongodb');
 const _ = require('lodash');
 const appRoot = require('app-root-path');
 
+const errors = require(`${appRoot}/errors`);
 const {helpers, logger} = require(`${appRoot}/utils`);
-const errors = require('../errors');
 
 /**
 * Subdocument Schemas
@@ -70,8 +70,6 @@ const errors = require('../errors');
       required: true
     }
   });
-
-
 
   var subunit_schema = new Schema({
     name: String,

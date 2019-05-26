@@ -79,7 +79,7 @@ const isOdd = (number) => {
   }
   return false;
 
-}
+};
 
 /**
  * Send back a standard JSON response to an ajax request

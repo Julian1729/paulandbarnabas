@@ -6,7 +6,7 @@ const fs = require('fs');
 const {expect} = require('chai');
 const appRoot = require('app-root-path');
 
-const logger = require('../utils/logger');
+const {logger} = require(`${appRoot}/utils`);
 
 
 describe('Logger', () => {

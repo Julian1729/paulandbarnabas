@@ -2,7 +2,7 @@ const {expect} = require('chai');
 const appRoot = require('app-root-path');
 
 const config = require(`${appRoot}/config/config`);
-const Users = require('../seed/User');
+const Users = require('../seed/user.seed');
 const {UserModel} = require(`${appRoot}/models`);
 const {helpers} = require(`${appRoot}/utils`);
 
@@ -11,6 +11,7 @@ describe('utils/helpers', () => {
   it('should expose functions', () => {
     expect(helpers.isOdd).to.exist;
     expect(helpers.collectFormData).to.exist;
+    expect(helpers.bcryptPassword).to.exist;
   });
 
   it('should delete all users in the User collection', (done) => {

@@ -1,17 +1,10 @@
 /**
- * Utilities
+ * Utilities index
  */
-const logger = require('./logger.util');
+exports.logger = require('./logger.util');
 
-const helpers = require('./helpers.util');
+exports.helpers = require('./helpers.util');
 
-const validators = require('./validators');
+exports.validators = require('./validators');
 
-const PBURLConstructor = require('./URLConstructor.util');
-
-module.exports = {
-  logger,
-  helpers,
-  validators,
-  PBURLConstructor,
-};
+exports.PBURLConstructor = require('./URLConstructor.util');

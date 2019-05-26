@@ -7,7 +7,7 @@
     "start": "node app.js",
     "start-watch": "nodemon --exec npm start",
     "start-gulp": "gulp start",
-    "test": "export NODE_ENV=testing && mocha tests/*.spec.js --exit"
+    "test": "export NODE_ENV=testing && mocha tests/**/*.spec.js --exit"
   },
   "engines": {
     "node": "9.9.0"

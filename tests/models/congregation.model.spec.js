@@ -1,7 +1,9 @@
 const expect = require('expect.js');
-const Utils = require('../utils/utils');
-const seed = require('./seed/Congregation');
-const Congregation = require('../models/Congregation');
+const appRoot = require('app-root-path');
+
+const {helpers} = require(`${appRoot}/utils`);
+const seed = require('../seed/congregation.seed');
+const {CongregationModel} = require(`${appRoot}/models`);
 
 
 describe('Congregation Model', () => {
@@ -11,15 +13,15 @@ describe('Congregation Model', () => {
    */
   beforeEach((done) => {
     // remove all users from db before running test
-    Utils.clearCollection(Congregation).then(() => done()).catch(e => done(e));
+    helpers.clearCollection(CongregationModel).then(() => done()).catch(e => done(e));
   });
 
 
   it('should save a congregation', done => {
-    var validCongregation = new Congregation(seed.validCongregation);
+    var validCongregation = new CongregationModel(seed.validCongregation);
     validCongregation.save().then(doc => {
       expect(doc).to.be.ok();
-      Congregation.find({}).then(congregations => {
+      CongregationModel.find({}).then(congregations => {
         expect(congregations.length).to.eql(1);
         expect(congregations[0].name).to.eql(seed.validCongregation.name);
         done();
@@ -29,7 +31,7 @@ describe('Congregation Model', () => {
   });
 
   it('should not save a congregation', (done) => {
-    var invalidCongregation = new Congregation(seed.invalidCongregation);
+    var invalidCongregation = new CongregationModel(seed.invalidCongregation);
     invalidCongregation.save().then(doc => {
       throw new Error('expected database query to fail');
       done();

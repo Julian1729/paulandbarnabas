@@ -1,11 +1,11 @@
-var
-  mongoose = require('./db'),
-  Schema = mongoose.Schema,
-  uniqueValidator = require('mongoose-unique-validator'),
-  bcrypt = require('bcrypt'),
-  appRoot = require('app-root-path'),
-  {helpers, logger} = require(`${appRoot}/utils`),
-  _ = require('lodash');
+const _ = require('lodash');
+const bcrypt = require('bcrypt');
+const appRoot = require('app-root-path');
+const uniqueValidator = require('mongoose-unique-validator');
+
+const mongoose = require('./db');
+const Schema = mongoose.Schema;
+const {helpers} = require(`${appRoot}/utils`);
 
 var UserSchema = new Schema({
   first_name: {

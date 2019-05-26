@@ -1,14 +1,14 @@
-const {expect} = require('chai');
 const _ = require('lodash');
-const {ObjectId} = require('mongodb');
+const {expect} = require('chai');
 const mongoose = require('mongoose');
+const {ObjectId} = require('mongodb');
+const appRoot = require('app-root-path');
 
-const Territory = require('../models/Territory');
-const User = require('../models/User');
-const seed = require('./seed/Territory');
-const seedUsers = require('./seed/User');
-const Utils = require('../utils/utils');
-const errors = require('../errors');
+const errors = require(`${appRoot}/errors`);
+const {helpers} = require(`${appRoot}/utils`);
+const seed = require(`${appRoot}/tests/seed/territory.seed`);
+const seedUsers = require(`${appRoot}/tests/seed/user.seed`);
+const {TerritoryModel, UserModel} = require(`${appRoot}/models`);
 
 
 describe('Territory Model', () => {
@@ -18,14 +18,14 @@ describe('Territory Model', () => {
    */
   beforeEach((done) => {
     // remove all users from db before running test
-    Utils.clearCollection(Territory).then(() => done()).catch((e) => done(e));
+    helpers.clearCollection(TerritoryModel).then(() => done()).catch((e) => done(e));
   });
 
 
   it('should store a Territory', (done) => {
-    var validTerritory = new Territory(seed.territory.valid);
+    var validTerritory = new TerritoryModel(seed.territory.valid);
     validTerritory.save().then(doc => {
-      Territory.find({}).then(docs => {
+      TerritoryModel.find({}).then(docs => {
         expect(docs).to.have.lengthOf(1);
         done();
       }).catch(e => done(e));
@@ -34,7 +34,7 @@ describe('Territory Model', () => {
   });
 
   it('should store a street into territory', (done) => {
-    var validTerritory = new Territory(seed.territory.valid);
+    var validTerritory = new TerritoryModel(seed.territory.valid);
     validTerritory.save().then(doc => {
       doc.streets.push(seed.streets.valid);
       doc.save().then(doc => {
@@ -47,9 +47,9 @@ describe('Territory Model', () => {
   });
 
   it('should store a street into territory (alt method)', (done) => {
-    var validTerritory = new Territory(seed.territory.valid);
+    var validTerritory = new TerritoryModel(seed.territory.valid);
     validTerritory.save().then(doc => {
-      Territory.findByIdAndUpdate(doc._id, {$set: {streets: seed.streets.valid}}, {new: true}).then(doc => {
+      TerritoryModel.findByIdAndUpdate(doc._id, {$set: {streets: seed.streets.valid}}, {new: true}).then(doc => {
         expect(doc).to.have.property('streets').with.lengthOf(1);
         done();
       })
@@ -59,9 +59,9 @@ describe('Territory Model', () => {
   });
 
   it('should not store a street into territory', (done) => {
-    var validTerritory = new Territory(seed.territory.valid);
+    var validTerritory = new TerritoryModel(seed.territory.valid);
     validTerritory.save().then(doc => {
-      Territory.findByIdAndUpdate(doc._id, {$set: {streets: seed.streets.invalid}}, {new: true, runValidators: true}).then(doc => {
+      TerritoryModel.findByIdAndUpdate(doc._id, {$set: {streets: seed.streets.invalid}}, {new: true, runValidators: true}).then(doc => {
         expect(doc).to.have.property('streets').with.lengthOf(0);
         done();
       })
@@ -77,7 +77,7 @@ describe('Territory Model', () => {
 
       it('should find Oakland street in territory', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var street = territory.findStreet('Oakland');
@@ -91,10 +91,10 @@ describe('Territory Model', () => {
 
       it('should find Territory by congregation id', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
-            Territory.findByCongregation(seed.territory.completed.congregation)
+            TerritoryModel.findByCongregation(seed.territory.completed.congregation)
               .then(congregation => {
                 expect(congregation).to.exist;
                 done();
@@ -107,10 +107,10 @@ describe('Territory Model', () => {
 
     it('should not find congregation by id and return error', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
-            Territory.findByCongregation(new ObjectId())
+            TerritoryModel.findByCongregation(new ObjectId())
               .then(congregation => {
                 done( new Error('this should not have passed'));
               })
@@ -124,7 +124,7 @@ describe('Territory Model', () => {
       });
 
       it('should find Oakland street', (done) => {
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var street = territory.findStreet('Oakland');
@@ -136,7 +136,7 @@ describe('Territory Model', () => {
       });
 
       it('should not find Okland street and return StreetNotFound error', (done) => {
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             try {
@@ -155,7 +155,7 @@ describe('Territory Model', () => {
 
         var newStreet = null;
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             newStreet = territory.addStreet('Wakeling');
@@ -176,7 +176,7 @@ describe('Territory Model', () => {
 
         var existingStreetName = null;
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             try{
@@ -203,7 +203,7 @@ describe('Territory Model', () => {
 
       it('should return true that Oakland Street exists', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var result = territory.streetExists('Oakland');
@@ -216,7 +216,7 @@ describe('Territory Model', () => {
 
       it('should return false that Wakeling street exists', (done) => {
 
-      var testTerritory = Territory(seed.territory.completed);
+      var testTerritory = TerritoryModel(seed.territory.completed);
       testTerritory.save()
         .then(territory => {
           var result = territory.streetExists('Wakeling');
@@ -229,7 +229,7 @@ describe('Territory Model', () => {
 
       it('should find and return Oakland street', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var oakland = territory.findStreet('Oakland');
@@ -242,7 +242,7 @@ describe('Territory Model', () => {
 
       it('should not find Wakeling street and throw error', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var nonExistentStreet = territory.findStreet('Wakeling');
@@ -260,7 +260,7 @@ describe('Territory Model', () => {
 
       it('should remove Oakland street', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var remove = territory.removeStreet('Oakland');
@@ -278,7 +278,7 @@ describe('Territory Model', () => {
     it('should return the correct block subdocuments', (done) => {
 
       var addedBlockIds = [];
-      var testTerritory = Territory(seed.territory.completed);
+      var testTerritory = TerritoryModel(seed.territory.completed);
       testTerritory.save()
         // add blocks to streets
         .then(territory => {
@@ -311,7 +311,7 @@ describe('Territory Model', () => {
 
       it('should return true that 4500 Oakland exists', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var oakland = territory.findStreet('Oakland');
@@ -324,7 +324,7 @@ describe('Territory Model', () => {
 
       it('should return false that 4600 Oakland exists', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var oakland = territory.findStreet('Oakland');
@@ -337,7 +337,7 @@ describe('Territory Model', () => {
 
       it('should find 4500 hundred of Oakland', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var oakland = territory.findStreet('Oakland');
@@ -350,7 +350,7 @@ describe('Territory Model', () => {
 
       it('should find 4500 hundred of Oakland when hundred passed as string', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var oakland = territory.findStreet('Oakland');
@@ -363,7 +363,7 @@ describe('Territory Model', () => {
 
       it('should not find 4600 of Oakland and throw error', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var oakland = territory.findStreet('Oakland');
@@ -380,7 +380,7 @@ describe('Territory Model', () => {
 
       it('should add 4600 hundred of Oakland', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var oakland = territory.findStreet('Oakland');
@@ -395,7 +395,7 @@ describe('Territory Model', () => {
 
       it('should not add 4500 hundred of Oakland', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var oakland = territory.findStreet('Oakland');
@@ -414,7 +414,7 @@ describe('Territory Model', () => {
 
       it('should remove 4500 Oakland', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var oakland = territory.findStreet('Oakland');
@@ -431,7 +431,7 @@ describe('Territory Model', () => {
 
       // it('should return all hundreds', (done) => {
       //
-      //   var testTerritory = Territory(seed.territory.completed);
+      //   var testTerritory = TerritoryModel(seed.territory.completed);
       //   testTerritory.save()
       //     .then(territory => {
       //       var hundreds = territory
@@ -448,7 +448,7 @@ describe('Territory Model', () => {
 
         it('should return true that 4502 Oakland exist', (done) => {
 
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
@@ -461,7 +461,7 @@ describe('Territory Model', () => {
         });
 
         it('should return false that 4504 exists', (done) => {
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
@@ -476,7 +476,7 @@ describe('Territory Model', () => {
 
           it('should find 4502 oakland', (done) => {
 
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               .then(territory => {
                 var street = territory.findStreet('Oakland');
@@ -493,7 +493,7 @@ describe('Territory Model', () => {
 
           it('should add tag to 4500 oakland', (done) => {
 
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               .then(territory => {
                 let street = territory.findStreet('Oakland');
@@ -509,7 +509,7 @@ describe('Territory Model', () => {
 
           it('should add a worked record to block with current timestamp', (done) => {
 
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               .then(territory => {
                 let street = territory.findStreet('Oakland');
@@ -527,7 +527,7 @@ describe('Territory Model', () => {
           // this doesn't test that it actaully enters the date specified
           // #justoolazy
           it('should add a worked record with passed in timestamp', (done) => {
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               .then(territory => {
                 let street = territory.findStreet('Oakland');
@@ -546,7 +546,7 @@ describe('Territory Model', () => {
         });
 
         it('should find unit 4502', (done) => {
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
@@ -560,7 +560,7 @@ describe('Territory Model', () => {
         });
 
         it('should not find unit 4504 and throw UnitNotFound error', (done) => {
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
@@ -581,7 +581,7 @@ describe('Territory Model', () => {
 
         it('should remove 4502 from Oakland', (done) => {
 
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
@@ -596,7 +596,7 @@ describe('Territory Model', () => {
 
         it('should add 2 units to 4500 Oakland', (done) => {
 
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
@@ -621,7 +621,7 @@ describe('Territory Model', () => {
 
         it('should add 2 units with subunits to 4500 Oakland', (done) => {
 
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
@@ -656,7 +656,7 @@ describe('Territory Model', () => {
               number: 4506
             }
           ];
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
@@ -693,7 +693,7 @@ describe('Territory Model', () => {
               number: 4506
             }
           ];
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
@@ -722,7 +722,7 @@ describe('Territory Model', () => {
               number: 4506
             }
           ];
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
@@ -752,7 +752,7 @@ describe('Territory Model', () => {
               number: 4506
             }
           ];
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
@@ -785,7 +785,7 @@ describe('Territory Model', () => {
               number: 4504,
               subunits: ["Apt 1", "Apt 2"]
             };
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
@@ -814,7 +814,7 @@ describe('Territory Model', () => {
               number: 4504,
               subunits: ["Apt 1", "Apt 2"]
             };
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
@@ -840,7 +840,7 @@ describe('Territory Model', () => {
 
         it('should add householder to unit', (done) => {
 
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               let street = territory.findStreet('Oakland');
@@ -864,7 +864,7 @@ describe('Territory Model', () => {
 
         it('should remove householder from unit', (done) => {
 
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               let street = territory.findStreet('Oakland');
@@ -903,7 +903,7 @@ describe('Territory Model', () => {
             timestamp: new Date().getTime()
           };
 
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               let street = territory.findStreet('Oakland');
@@ -932,7 +932,7 @@ describe('Territory Model', () => {
             timestamp: new Date().getTime()
           };
 
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               let street = territory.findStreet('Oakland');
@@ -975,7 +975,7 @@ describe('Territory Model', () => {
             timestamp: new Date().getTime()
           };
 
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               let street = territory.findStreet('Oakland');
@@ -1006,7 +1006,7 @@ describe('Territory Model', () => {
 
         it('should add a subunit', (done) => {
 
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               let street = territory.findStreet('Oakland');
@@ -1029,7 +1029,7 @@ describe('Territory Model', () => {
         it('should remove a subunit by id', (done) => {
 
           var idToRemove = null;
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               let street = territory.findStreet('Oakland');
@@ -1059,7 +1059,7 @@ describe('Territory Model', () => {
 
         it('should add tag to unit', (done) => {
 
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               let street = territory.findStreet('Oakland');
@@ -1075,7 +1075,7 @@ describe('Territory Model', () => {
 
         it('should not duplicate tag', (done) => {
 
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
@@ -1108,7 +1108,7 @@ describe('Territory Model', () => {
 
         it('should add two tags', (done) => {
 
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               var street = territory.findStreet('Oakland');
@@ -1141,7 +1141,7 @@ describe('Territory Model', () => {
 
         it('should remove tag from unit', (done) => {
 
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               let street = territory.findStreet('Oakland');
@@ -1169,7 +1169,7 @@ describe('Territory Model', () => {
             by: 'Brittany Alston',
             note: 'This is a general note'
           };
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               let street = territory.findStreet('Oakland');
@@ -1190,7 +1190,7 @@ describe('Territory Model', () => {
             by: 'Brittany Alston',
             note: 'This is a general note'
           };
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               let street = territory.findStreet('Oakland');
@@ -1229,7 +1229,7 @@ describe('Territory Model', () => {
             note: 'This is a general note'
           };
           var idToRemove = null;
-          var testTerritory = Territory(seed.territory.completed);
+          var testTerritory = TerritoryModel(seed.territory.completed);
           testTerritory.save()
             .then(territory => {
               let street = territory.findStreet('Oakland');
@@ -1262,7 +1262,7 @@ describe('Territory Model', () => {
 
           it('should add householder to subunit', (done) => {
 
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               .then(territory => {
                 let street = territory.findStreet('Oakland');
@@ -1287,7 +1287,7 @@ describe('Territory Model', () => {
 
           it('should remove householder from subunit', (done) => {
 
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               .then(territory => {
                 let street = territory.findStreet('Oakland');
@@ -1329,7 +1329,7 @@ describe('Territory Model', () => {
               timestamp: new Date().getTime()
             };
 
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               .then(territory => {
                 let street = territory.findStreet('Oakland');
@@ -1360,7 +1360,7 @@ describe('Territory Model', () => {
               timestamp: new Date().getTime()
             };
 
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               .then(territory => {
                 let street = territory.findStreet('Oakland');
@@ -1406,7 +1406,7 @@ describe('Territory Model', () => {
               timestamp: new Date().getTime()
             };
 
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               .then(territory => {
                 let street = territory.findStreet('Oakland');
@@ -1440,7 +1440,7 @@ describe('Territory Model', () => {
 
           it('should add tag to subunit', (done) => {
 
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               .then(territory => {
                 let street = territory.findStreet('Oakland');
@@ -1457,7 +1457,7 @@ describe('Territory Model', () => {
 
           it('should not duplicate tag', (done) => {
 
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               .then(territory => {
                 let street = territory.findStreet('Oakland');
@@ -1483,7 +1483,7 @@ describe('Territory Model', () => {
 
           it('should remove tag from subunit', (done) => {
 
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               .then(territory => {
                 let street = territory.findStreet('Oakland');
@@ -1513,7 +1513,7 @@ describe('Territory Model', () => {
               by: 'Brittany Alston',
               note: 'This is a general note'
             };
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               .then(territory => {
                 let street = territory.findStreet('Oakland');
@@ -1535,7 +1535,7 @@ describe('Territory Model', () => {
               by: 'Brittany Alston',
               note: 'This is a general note'
             };
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               .then(territory => {
                 let street = territory.findStreet('Oakland');
@@ -1577,7 +1577,7 @@ describe('Territory Model', () => {
               note: 'This is a general note'
             };
             var idToRemove = null;
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               .then(territory => {
                 let street = territory.findStreet('Oakland');
@@ -1618,7 +1618,7 @@ describe('Territory Model', () => {
 
       it('should find correct fragment', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var fragment = territory.findFragment(1);
@@ -1633,7 +1633,7 @@ describe('Territory Model', () => {
       // FIXME: THIS IS BROKEN!
       // it('should remove fragment', (done) => {
       //
-      //   var testTerritory = Territory(seed.territory.completed);
+      //   var testTerritory = TerritoryModel(seed.territory.completed);
       //   testTerritory.save()
       //     .then(territory => {
       //
@@ -1652,7 +1652,7 @@ describe('Territory Model', () => {
 
       it('should return true that fragment number 1 exists', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             expect(territory.fragmentNumberExists(1)).to.be.true;
@@ -1664,7 +1664,7 @@ describe('Territory Model', () => {
 
       it('should return false that fragment number 25 exists', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             expect(territory.fragmentNumberExists(25)).to.be.false;
@@ -1676,7 +1676,7 @@ describe('Territory Model', () => {
 
       it('should return a block map', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
 
@@ -1704,7 +1704,7 @@ describe('Territory Model', () => {
 
         var duplicateBlockId = null;
         var singleBlockId = null;
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           // assign block to fragment
           .then(territory => {
@@ -1731,7 +1731,7 @@ describe('Territory Model', () => {
 
         var duplicateBlockId = null;
         var singleBlockId = null;
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           // assign block to fragment
           .then(territory => {
@@ -1757,7 +1757,7 @@ describe('Territory Model', () => {
 
       it('should add one block to fragment 1', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           // assign block to fragment
           .then(territory => {
@@ -1779,7 +1779,7 @@ describe('Territory Model', () => {
       it('should skip existence check and add one block', (done) => {
 
         var duplicateBlock = null;
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           // assign block to fragment
           .then(territory => {
@@ -1805,7 +1805,7 @@ describe('Territory Model', () => {
 
       it('should not add any block to fragment and throw BlocksAlreadyAssignedToFragment error', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           // assign block to fragment
           .then(territory => {
@@ -1827,7 +1827,7 @@ describe('Territory Model', () => {
       it('should return true that fragment one has block', (done) => {
 
         var blockToFind = null;
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           // assign block to fragment
           .then(territory => {
@@ -1849,7 +1849,7 @@ describe('Territory Model', () => {
       it('should remove one block from fragment 1', (done) => {
 
         var blockToRemove = null;
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           // assign block to fragment
           .then(territory => {
@@ -1876,7 +1876,7 @@ describe('Territory Model', () => {
       it('should remove blocks from corresponding fragments', (done) => {
 
         var testBlock = null;
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           // assign block to fragment
           .then(territory => {
@@ -1910,16 +1910,16 @@ describe('Territory Model', () => {
 
         var theUser = null;
 
-        Utils.clearCollection(User)
+        helpers.clearCollection(UserModel)
           .then(() => {
 
             // enter user into db
-            return new User(seedUsers.validUser).save();
+            return new UserModel(seedUsers.validUser).save();
 
           })
           .then(user => {
             theUser = user;
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               // assign block to fragment
               .then(territory => {
@@ -1947,14 +1947,14 @@ describe('Territory Model', () => {
 
         var theUser = null;
 
-        Utils.clearCollection(User)
+        helpers.clearCollection(UserModel)
           .then(() => {
             // enter user into db
-            return new User(seedUsers.validUser).save();
+            return new UserModel(seedUsers.validUser).save();
           })
           .then(user => {
             theUser = user;
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               // assign block to fragment
               .then(territory => {
@@ -1978,7 +1978,7 @@ describe('Territory Model', () => {
       it('should unassign fragment by adding empty assignment', (done) => {
 
         var userId = new ObjectId().toString();
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           // assign block to fragment
           .then(territory => {
@@ -2002,7 +2002,7 @@ describe('Territory Model', () => {
 
       it('should normalize tags when saved', (done) => {
 
-        var testTerritory = Territory(seed.territory.completed);
+        var testTerritory = TerritoryModel(seed.territory.completed);
         testTerritory.save()
           .then(territory => {
             var block = territory.findStreet('Oakland').findHundred(4500).even;
@@ -2023,16 +2023,16 @@ describe('Territory Model', () => {
 
         var theUser = null;
 
-        Utils.clearCollection(User)
+        helpers.clearCollection(UserModel)
           .then(() => {
 
             // enter user into db
-            return new User(seedUsers.validUser).save();
+            return new UserModel(seedUsers.validUser).save();
 
           })
           .then(user => {
             theUser = user;
-            var testTerritory = Territory(seed.territory.completed);
+            var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
               // assign block to fragment
               .then(territory => {
@@ -2059,7 +2059,7 @@ describe('Territory Model', () => {
       // it('should return populated and referenced fragment blocks', (done) => {
       //
       //     var blocksToAdd = [];
-      //     var testTerritory = Territory(seed.territory.completed);
+      //     var testTerritory = TerritoryModel(seed.territory.completed);
       //     testTerritory.save()
       //       .then(territory => {
       //         var street = territory.findStreet('Oakland');
