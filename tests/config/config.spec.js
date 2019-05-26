@@ -28,10 +28,10 @@ describe('Configuration', () => {
   });
 
   it('should set testing variables', () => {
-    process.env.NODE_ENV = 'testing';
-    expect(process.env.NODE_ENV).to.eql('testing');
+    process.env.NODE_ENV = 'test';
+    expect(process.env.NODE_ENV).to.eql('test');
     const config = require(`${appRoot}/config/config`);
-    expect(process.env.NODE_ENV).to.eql('testing');
+    expect(process.env.NODE_ENV).to.eql('test');
     expect(process.env.MONGODB_URI).to.eql('mongodb://localhost:27017/PaulAndBarnabasTesting');
   });
 

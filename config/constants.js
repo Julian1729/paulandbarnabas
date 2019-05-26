@@ -1,6 +1,6 @@
 const _ = require('lodash');
 
-var universal = {
+const universal = {
 
   site_name: "Paul and Barnabas",
 
@@ -10,7 +10,7 @@ var universal = {
 
 };
 
-var local = {
+const local = {
   mode: "local",
   base_url: "http://localhost:3000",
   // base_url: "http://192.168.1.224:3000",
@@ -23,13 +23,13 @@ local.ajax_url = local.base_url + "/ajax";
 local.fragment_url = local.base_url + "/territory/fragment";
 local.rajax_url = local.base_url + "/rajax"
 
-var production = {
+const production = {
 
 };
 
-var loadConstants = () => {
+const loadConstants = () => {
   var env = process.env.NODE_ENV || 'development';
-  if(env === 'development' || env === 'testing'){
+  if(env === 'development' || env === 'test'){
     return _.extend({}, local, universal);
   }else if (env === 'production') {
     return _.extend({}, production, universal);
