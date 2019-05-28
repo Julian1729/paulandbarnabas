@@ -50,7 +50,9 @@
     "gulp-sass": "^4.0.2",
     "gulp-uglify": "^3.0.1",
     "mocha": "^5.2.0",
+    "mock-req-res": "^1.1.1",
     "pump": "^3.0.0",
+    "sinon": "^7.3.2",
     "supertest": "^3.3.0",
     "supertest-session": "^3.3.0",
     "vinyl-source-stream": "^2.0.0"
