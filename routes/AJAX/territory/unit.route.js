@@ -5,38 +5,6 @@
 const express = require('express');
 const router = express.Router({mergeParams: true});
 const appRoot = require('app-root-path');
-const HttpStatus = require('http-status-codes');
-
-const {unitController} = require(`${appRoot}/controllers/ajax/territory/index`);
-
-/**
- * Middleware
- */
-router.use(unitController.middleware.findUnit, unitController.middleware.findSubunit);
-
-/**
- * Endpoints
- */
-router.get('/test', (req, res) => {
-
-  let territory = req.app.locals.territory;
-  let unit = territory.current.unit;
-
-  if(req.query.subunit){
-    if(!territory.current.subunit){
-      console.log('no subunit');
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    }
-  }
-
-  if(!unit){
-    console.log('no unit');
-    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-  }
-
-  res.send();
-
-});
 
 // Visits
 router.post('/visit/add', unitController.endpoints.addVisit);
@@ -61,7 +29,5 @@ router.post('/note/remove', unitController.endpoints.removeNote);
 // Metadata
 // router.get('/meta', unitController.endpoints.meta);
 router.post('/meta', unitController.endpoints.meta);
-
-
 
 module.exports = router;

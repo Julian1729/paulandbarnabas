@@ -10,6 +10,7 @@ const HttpStatus = require('http-status-codes');
 const routes = require('./routes');
 const config = require('./config/config');
 const constants = require('./config/constants');
+const ajaxRouter = require('./ajax/routes/ajax-gateway-router');
 
 /**
  * Parse command line arguemnts with yargs
@@ -72,8 +73,8 @@ app.set('views', __dirname + '/views');
  // Landing page (Login Page)
  app.use('/', routes.loginRoute);
 
- // AJAX Requests
- // app.use('/ajax', routes.ajax );
+// AJAX Requests
+app.use('/ajax', ajaxRouter);
 
  // Sign Up
  app.use('/createaccount', routes.createAccountRoute);

@@ -6,7 +6,9 @@ var {logger} = require(`${appRoot}/utils`);
 var seedData = require(`${appRoot}/dev/seed/data`);
 var Session = require(`${appRoot}/session/session`);
 
-var authenticate = (req, res, next) => {
+// FIXME: method for authenticating regualar user, and for authenticating admin session
+
+exports.authenticate = (req, res, next) => {
 
   var session = req.session;
   try {
@@ -36,14 +38,9 @@ var authenticate = (req, res, next) => {
  * Attach session variables to req.locals
  * to make available to pug templates
  */
-var localizeSession =  (req, res, next) => {
+exports.localizeSession =  (req, res, next) => {
   let userCreds = Session.pickUserCredentials(req.session);
   res.locals.user = userCreds;
   req.app.locals.user = userCreds;
   next();
 };
-
-module.exports = [
-  authenticate,
-  localizeSession
-];
