@@ -6,9 +6,43 @@ class Session {
 
   constructor(req){
     this.requiredProps = ['first_name', 'last_name', 'user_id', 'congregation'];
-    this.session = req.session;
-    if(!this.session){
-      throw new SessionUninitialized(`No session object found on request object`);
+    this.req = req;
+    if(this.req.session){
+      this.session = this.req.session;
+    }
+  }
+
+  /**
+   * Check whether request has
+   * session property initialized
+   * @return {Boolean} [description]
+   */
+  hasSession(){
+    return Boolean(this.session);
+  }
+
+  /**
+   * Create session with required
+   * user information.
+   * @param  {Object} user User object from database
+   */
+  create(user){
+    if(!this.hasSession()){
+      this.req.session = {};
+      // attach session to instance
+      this.session = this.req.session;
+    }
+    this._user = user;
+    this.session = {
+      first_name: this.user.first_name,
+      last_name: this.user.last_name,
+      user_id: this.user._id,
+      congregation: this.user.congregation
+    };
+    // now validate session
+    let missingData = this.validate();
+    if(missingData.length){
+      throw new SessionUninitialized(`Missing ${missingData.join(', ')} on user object`);
     }
   }
 
@@ -18,6 +52,9 @@ class Session {
    * @return {Array} Array of invalid properties
    */
   validate(){
+    if(!this.hasSession()){
+      throw new SessionUninitialized('No session found on request object');
+    }
     let invalid = [];
     for (let prop of this.requiredProps) {
       if(!this.session[prop]){
@@ -56,21 +93,17 @@ class Session {
    * @return {Object} User name, id and congregation
    */
   get user(){
-    let user = {
-      first_name: this.session.first_name,
-      last_name: this.session.last_name,
-      user_id: this.session._id,
-      congregation: this.session.congregation,
-    };
-    return this.user;
+    return this._user;
   }
 
   /**
-   * Set user credentials
-   * @param  {Object} user User credentials
+   * Set user. Only to satisfy
+   * es6 standards of setter and getter pair.
+   * @param  {Object} user User
+   * @return {[type]}      [description]
    */
   set user(user){
-    this.user = user;
+    this._user = user;
   }
 
 }
