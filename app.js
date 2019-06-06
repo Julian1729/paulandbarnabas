@@ -27,7 +27,7 @@ var argv = yargs.argv;
 
 (async argv => {
    // Seed database if in development
-   if(process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'){
+   if(process.env.NODE_ENV === 'development'){
     var seed = (argv.seed || argv._[0] === 'seed');
     await require('./dev/seed/populate')(seed);
   }
