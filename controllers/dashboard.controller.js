@@ -3,7 +3,6 @@ const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
 
 const constants = require('../config/constants');
-const Session = require(`${appRoot}/session/session`);
 const {TerritoryModel} = require(`${appRoot}/models`);
 const {logger, PBURLConstructor} = require(`${appRoot}/utils`);
 

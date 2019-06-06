@@ -3,7 +3,6 @@ const router = express.Router({mergeParams: true});
 const appRoot = require('app-root-path');
 
 const {fragmentController} = require(`${appRoot}/controllers`);
-const protected = require(`${appRoot}/middleware/protected`);
 
 // OPTIMIZE: add middleware that authorizes user to access fragment
 // (is this fragment assigned to user?)

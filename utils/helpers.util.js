@@ -5,6 +5,7 @@
 const _ = require('lodash');
 const bcrypt = require('bcrypt');
 const appRoot = require('app-root-path');
+const HttpStatus = require('http-status-codes');
 
 const clearCollection = (model) => {
 

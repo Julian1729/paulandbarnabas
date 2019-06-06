@@ -1,5 +1,3 @@
-const {UserSession} = require('../session/session');
-
 const land = (req, res, next) => {
 
   res.render('AdminPanel/Land');

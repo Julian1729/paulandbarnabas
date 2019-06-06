@@ -81,35 +81,11 @@ UserSchema.statics.getUsersByCongregation = function(congregation){
 
 };
 
-// FIXME: should not accept congregation as arg, should get from session
 UserSchema.statics.findByID = function(congregation, id){
 
   return this.findOne({congregation: congregation, _id: id});
 
 };
-
-/**
- * Methods
- */
-
- /**
-  * Authenticate a user by checking passed in password or User object
-  * @param  {[Object or String]} password
-  * @return {[type]}
-  */
-  UserSchema.methods.authenticate = function(suspectedPassword){
-
-    var password = null;
-    if( _.isString(suspectedPassword) ){
-      password = suspectedPassword;
-    }else if (typeof suspectedPassword === 'object' && suspectedPassword.password) {
-      password = suspectedPassword.password;
-    }
-
-    // hash password
-    return bcrypt.compare(suspectedPassword, this.password);
-
-  };
 
 /**
  * Export

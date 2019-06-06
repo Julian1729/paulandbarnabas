@@ -7,8 +7,8 @@ const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
 
 const UserModel = require(`${appRoot}/models`);
-const Session = require(`${appRoot}/session/session`);
-const {logger, helpers} = require(`${appRoot}/utils`);
+const {logger, helpers, Session} = require(`${appRoot}/utils`);
+const {accountServices} = require(`${appRoot}/services`);
 const constants = require(`${appRoot}/config/constants`);
 const {loginValidator, signupValidator} = require(`${appRoot}/utils/validators`);
 const {FormValidationError, InvalidCredentials, SessionUninitialized} = require(`${appRoot}/errors.js`);
@@ -61,7 +61,7 @@ exports.signUp = (req, res, next) => {
 
     };
 
-exports.login = (req, res, next) => {
+exports.login = async (req, res, next) => {
 
     // collect data
     var loginData = helpers.collectFormData([
@@ -78,62 +78,27 @@ exports.login = (req, res, next) => {
       });
     }
 
-    // find user in database
-    UserModel.findOne({email: loginData.email})
-      .then(user => {
-        if(!user){
-          logger.debug(`Unable to find user with info: ${JSON.stringify(loginData)}`);
-          throw new InvalidCredentials();
-        }
-        logger.debug(`User found by email. User: ${user.first_name} ${user.last_name} (${user.email})`);
-        return user;
-      })
-      .then(user => {
-        // authenticate user
-        return user.authenticate(loginData.password)
-          .then( result => {
-            // user unable to be authenticated
-            if(!result){
-              throw new InvalidCredentials();
-            }
-            return user;
-          })
-          .catch(e => Promise.reject(e));
-      })
-      .then( user => {
-
-        // USER AUTHENTICATED
-        Session.createSession(req, {
-          first_name: user.first_name,
-          last_name: user.last_name,
-          user_id: user._id,
-          congregation: user.congregation,
-          authenticated: true,
-          isAdmin: false
-        });
-
+    let user = null;
+    try {
+      user = await accountServices.authenticateUserCredentials(loginData.email, loginData.password);
+    } catch (e) {
+      if(e instanceof InvalidCredentials){
+        console.log(e);
         return helpers.ajaxResponse(res, {
-          data:{
-            redirect: '/dashboard'
-          }
-        });
-      })
-      .catch(e => {
+          error: 'InvalidCredentials'
+        })
+      }
+    }
 
-        if(e instanceof InvalidCredentials || e instanceof SessionUninitialized){
-          logger.debug(e.name + '\n' + JSON.stringify(e));
-          return helpers.ajaxResponse(res, {
-            error: e
-          });
-        }else{
-          // if cannot discern specific error type, log error and return HTTP 500
-          logger.debug(`Login controller failed. Error: ${e.message} \n ${e.stack}`);
-          console.log(e.stack);
-          return helpers.ajaxResponse(res, {
-            status: HttpStatus.INTERNAL_SERVER_ERROR
-          });
-        }
+    // user authenticated, create session
+    let session = new Session(req);
+    session.create(user);
 
-      });
+    return helpers.ajaxResponse(res, {
+      data:{
+        redirect: '/dashboard'
+      }
+    });
+
 
   };
