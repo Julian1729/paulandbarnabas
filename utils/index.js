@@ -9,4 +9,6 @@ exports.validators = require('./validators');
 
 exports.Session = require('./Session');
 
+exports.AjaxResponse = require('./AjaxResponse');
+
 exports.PBURLConstructor = require('./URLConstructor.util');

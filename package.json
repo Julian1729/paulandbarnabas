@@ -18,6 +18,7 @@
     "app-root-path": "^2.2.1",
     "bcrypt": "^3.0.1",
     "body-parser": "^1.18.3",
+    "dot-prop": "^5.0.1",
     "dynamic-url-constructor": "^1.0.3",
     "express": "^4.16.3",
     "express-session": "^1.15.6",
@@ -53,6 +54,7 @@
     "mock-req-res": "^1.1.1",
     "pump": "^3.0.0",
     "sinon": "^7.3.2",
+    "sinon-chai": "^3.3.0",
     "supertest": "^3.3.0",
     "supertest-session": "^3.3.0",
     "vinyl-source-stream": "^2.0.0"
