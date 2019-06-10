@@ -117,37 +117,35 @@ describe('AjaxResponse', () => {
 
   });
 
-  describe('status', () => {
+  describe('error', () => {
 
-    it('should expose access to status codes', () => {
-
-      let res = mockResponse({});
-      let ajaxResponse = new AjaxResponse(res);
-      chai.expect(ajaxResponse.statusCodes.FORM_VALIDATION_ERROR).to.equal(3);
-
-    });
-
-    it('should set status code', () => {
+    it('should set error', () => {
 
       let res = mockResponse({});
       sinon.spy(res.send);
       let ajaxResponse = new AjaxResponse(res);
-      ajaxResponse.status(ajaxResponse.statusCodes.SERVER_ERROR);
+      ajaxResponse.error(ajaxResponse.errorTypes.FORM_VALIDATION_ERROR, 'This is the error message');
       ajaxResponse.send();
-      res.send.should.have.been.calledWith({data: {}, status: 2, error: {}});
+      res.send.should.have.been.calledWith({data:{}, error: {type: ajaxResponse.errorTypes.FORM_VALIDATION_ERROR, message: 'This is the error message'}});
 
     });
 
-    it('should throw error for invalid status code', () => {
+    it('should set error w/ additional props', () => {
 
       let res = mockResponse({});
+      sinon.spy(res.send);
       let ajaxResponse = new AjaxResponse(res);
-      try{
-        ajaxResponse.status(78);
-        throw 'Should have thrown error for invalid status code';
-      }catch(e){
-        e.should.exist;
-      }
+      ajaxResponse.error(ajaxResponse.errorTypes.FORM_VALIDATION_ERROR, 'This is the error message', {fields: ['one', 'two'], another: {this: 'one'}});
+      ajaxResponse.send();
+      res.send.should.have.been.calledWith({
+        data:{},
+        error: {
+          type: 2,
+          message: 'This is the error message',
+          fields: ['one', 'two'],
+          another: {this: 'one'}
+        }
+      });
 
     });
 
