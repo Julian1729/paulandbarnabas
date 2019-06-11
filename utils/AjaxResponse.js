@@ -18,21 +18,36 @@ class AjaxResponse{
     }
     this.res = res;
 
-    // define app status codes
-    const errorTypes = {
-
-      SERVER_ERROR: 1,
-
-      FORM_VALIDATION_ERROR: 2
-
-    };
-
-    this.errorTypes = errorTypes;
-
     this._payload = {
       data: {},
       error: {}
     };
+
+  }
+
+  set payload(payload){
+    this._payload = payload;
+  }
+
+  get payload(){
+    return this._payload;
+  }
+
+  /**
+   * Explicitly specify the error types
+   * that endpoint can respond with to
+   * lend to more readable code.
+   * @param {Array} errors Array of error types
+   */
+  set validErrors(errors){
+
+    this._validErrors = errors;
+
+  }
+
+  get validErrors(){
+
+    return this._validErrors;
 
   }
 
@@ -76,22 +91,13 @@ class AjaxResponse{
    * @param {Object} props Extra properties to add to error object
    */
   error(type, msg, props){
-
-    if(!_.find(Object.keys(this.errorTypes, type))){
-      throw new Error(`"${type}" is not a valid AjaxResponse error type.`);
+    if(_.indexOf(this.validErrors, type) === -1){
+      throw new Error(`"${type}" is not specified as a valid error for this endpoint.`)
     }
     this.payload.error.type = type;
     this.payload.error.message = msg;
     _.extend(this.payload.error, props);
 
-  }
-
-  set payload(payload){
-    this._payload = payload;
-  }
-
-  get payload(){
-    return this._payload;
   }
 
 }

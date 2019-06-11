@@ -117,30 +117,53 @@ describe('AjaxResponse', () => {
 
   });
 
-  describe('error', () => {
+  describe('validErrors', () => {
 
-    it('should set error', () => {
+    it('should set valid errors', () => {
 
       let res = mockResponse({});
       sinon.spy(res.send);
       let ajaxResponse = new AjaxResponse(res);
-      ajaxResponse.error(ajaxResponse.errorTypes.FORM_VALIDATION_ERROR, 'This is the error message');
-      ajaxResponse.send();
-      res.send.should.have.been.calledWith({data:{}, error: {type: ajaxResponse.errorTypes.FORM_VALIDATION_ERROR, message: 'This is the error message'}});
+      let errors = ['INVALID_CREDENTIALS', 'FORM_VALIDATION_ERROR'];
+      ajaxResponse.validErrors = errors;
+      chai.expect(ajaxResponse.validErrors).to.exist.and.to.have.lengthOf(2);
+      chai.expect(ajaxResponse.validErrors).to.include('INVALID_CREDENTIALS');
+      chai.expect(ajaxResponse.validErrors).to.include('FORM_VALIDATION_ERROR');
 
     });
+
+    it('should set throw error for using invalid errors', () => {
+
+      let res = mockResponse({});
+      sinon.spy(res.send);
+      let ajaxResponse = new AjaxResponse(res);
+      let errors = ['INVALID_CREDENTIALS', 'FORM_VALIDATION_ERROR'];
+      ajaxResponse.validErrors = errors;
+      try {
+        ajaxResponse.error('INVALID_FIELDS', 'The error message');
+        throw 'INVALID_FIELDS should not have passes as valid error';
+      } catch (e) {
+        e.should.exist;
+      }
+
+    });
+
+  });
+
+  describe('error', () => {
 
     it('should set error w/ additional props', () => {
 
       let res = mockResponse({});
       sinon.spy(res.send);
       let ajaxResponse = new AjaxResponse(res);
-      ajaxResponse.error(ajaxResponse.errorTypes.FORM_VALIDATION_ERROR, 'This is the error message', {fields: ['one', 'two'], another: {this: 'one'}});
+      ajaxResponse.validErrors = ['INVALID_CREDENTIALS', 'FORM_VALIDATION_ERROR'];
+      ajaxResponse.error('INVALID_CREDENTIALS', 'This is the error message', {fields: ['one', 'two'], another: {this: 'one'}});
       ajaxResponse.send();
       res.send.should.have.been.calledWith({
         data:{},
         error: {
-          type: 2,
+          type: 'INVALID_CREDENTIALS',
           message: 'This is the error message',
           fields: ['one', 'two'],
           another: {this: 'one'}
