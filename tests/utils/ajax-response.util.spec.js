@@ -13,10 +13,10 @@ describe('AjaxResponse', () => {
   it('should call send', () => {
 
     let res = mockResponse({});
-    sinon.spy(res.send);
+    sinon.spy(res.json);
     let ajaxResponse = new AjaxResponse(res);
     ajaxResponse.send();
-    res.send.should.have.been.calledWith(ajaxResponse.payload);
+    res.json.should.have.been.calledWith(ajaxResponse.payload);
 
   });
 
@@ -122,7 +122,7 @@ describe('AjaxResponse', () => {
     it('should set valid errors', () => {
 
       let res = mockResponse({});
-      sinon.spy(res.send);
+      sinon.spy(res.json);
       let ajaxResponse = new AjaxResponse(res);
       let errors = ['INVALID_CREDENTIALS', 'FORM_VALIDATION_ERROR'];
       ajaxResponse.validErrors = errors;
@@ -135,7 +135,7 @@ describe('AjaxResponse', () => {
     it('should set throw error for using invalid errors', () => {
 
       let res = mockResponse({});
-      sinon.spy(res.send);
+      sinon.spy(res.json);
       let ajaxResponse = new AjaxResponse(res);
       let errors = ['INVALID_CREDENTIALS', 'FORM_VALIDATION_ERROR'];
       ajaxResponse.validErrors = errors;
@@ -155,12 +155,12 @@ describe('AjaxResponse', () => {
     it('should set error w/ additional props', () => {
 
       let res = mockResponse({});
-      sinon.spy(res.send);
+      sinon.spy(res.json);
       let ajaxResponse = new AjaxResponse(res);
       ajaxResponse.validErrors = ['INVALID_CREDENTIALS', 'FORM_VALIDATION_ERROR'];
       ajaxResponse.error('INVALID_CREDENTIALS', 'This is the error message', {fields: ['one', 'two'], another: {this: 'one'}});
       ajaxResponse.send();
-      res.send.should.have.been.calledWith({
+      res.json.should.have.been.calledWith({
         data:{},
         error: {
           type: 'INVALID_CREDENTIALS',
@@ -175,13 +175,13 @@ describe('AjaxResponse', () => {
     it('should allow method chaining', () => {
 
       let res = mockResponse({});
-      sinon.spy(res.send);
+      sinon.spy(res.json);
       let ajaxResponse = new AjaxResponse(res);
       ajaxResponse.validErrors = ['INVALID_CREDENTIALS', 'FORM_VALIDATION_ERROR'];
       ajaxResponse
         .error('INVALID_CREDENTIALS', 'This is the error message')
         .send();
-      res.send.should.have.been.calledWith({data: {}, error: {type: 'INVALID_CREDENTIALS', message: 'This is the error message'}});
+      res.json.should.have.been.calledWith({data: {}, error: {type: 'INVALID_CREDENTIALS', message: 'This is the error message'}});
 
     });
 

@@ -55,7 +55,7 @@ class AjaxResponse{
    * Send JSON response
    */
   send(){
-    this.res.send(this.payload);
+    this.res.json(this.payload);
   }
 
   /**
