@@ -64,6 +64,7 @@ class AjaxResponse{
    */
   dataBase(dataBase){
     _.defaults(this._payload.data, dataBase);
+    return this;
   }
 
   /**
@@ -97,6 +98,7 @@ class AjaxResponse{
     this.payload.error.type = type;
     this.payload.error.message = msg;
     _.extend(this.payload.error, props);
+    return this;
 
   }
 

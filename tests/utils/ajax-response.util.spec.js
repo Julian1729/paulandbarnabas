@@ -179,7 +179,7 @@ describe('AjaxResponse', () => {
       let ajaxResponse = new AjaxResponse(res);
       ajaxResponse.validErrors = ['INVALID_CREDENTIALS', 'FORM_VALIDATION_ERROR'];
       ajaxResponse
-        .error('INVALID_CREDENTIALS', 'This is the error message');
+        .error('INVALID_CREDENTIALS', 'This is the error message')
         .send();
       res.send.should.have.been.calledWith({data: {}, error: {type: 'INVALID_CREDENTIALS', message: 'This is the error message'}});
 
