@@ -7,9 +7,9 @@ const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
 
 const UserModel = require(`${appRoot}/models`);
-const {logger, helpers, Session} = require(`${appRoot}/utils`);
 const {accountServices} = require(`${appRoot}/services`);
 const constants = require(`${appRoot}/config/constants`);
+const {logger, helpers, Session, AjaxResponse} = require(`${appRoot}/utils`);
 const {loginValidator, signupValidator} = require(`${appRoot}/utils/validators`);
 const {FormValidationError, InvalidCredentials, SessionUninitialized} = require(`${appRoot}/errors.js`);
 
@@ -62,6 +62,8 @@ exports.signUp = (req, res, next) => {
     };
 
 exports.login = async (req, res, next) => {
+
+
 
     // collect data
     var loginData = helpers.collectFormData([

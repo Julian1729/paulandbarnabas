@@ -172,6 +172,21 @@ describe('AjaxResponse', () => {
 
     });
 
+    it('should allow method chaining', () => {
+
+      let res = mockResponse({});
+      sinon.spy(res.send);
+      let ajaxResponse = new AjaxResponse(res);
+      ajaxResponse.validErrors = ['INVALID_CREDENTIALS', 'FORM_VALIDATION_ERROR'];
+      ajaxResponse
+        .error('INVALID_CREDENTIALS', 'This is the error message');
+        .send();
+      res.send.should.have.been.calledWith({data: {}, error: {type: 'INVALID_CREDENTIALS', message: 'This is the error message'}});
+
+    });
+
   });
+
+
 
 });
