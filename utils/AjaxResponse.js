@@ -81,6 +81,7 @@ class AjaxResponse{
       return dotProp.get(this.payload.data, dotNotation);
     }
     dotProp.set(this.payload.data, dotNotation, value);
+    return this;
   }
 
   /**

@@ -12,6 +12,7 @@ PBURLConstructor.setBase(constants.base_url);
 /**
  * Page URLs
  */
+PBURLConstructor.addRoute('dashboard', '/dashboard');
 // aka fragment overview
 PBURLConstructor.addRoute('fragment-overview', '/territory/fragment/:fragment_number');
 PBURLConstructor.addRoute('block-select', '/territory/fragment/:fragment_number/blocks');

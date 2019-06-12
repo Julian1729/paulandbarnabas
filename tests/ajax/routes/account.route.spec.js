@@ -10,19 +10,6 @@ const userSeed = require(`${appRoot}/tests/seed/user.seed`);
 
 describe('AJAX /account', () => {
 
-  // var authenticatedSession;
-  // beforeEach(done => {
-  //   initSession = session(app);
-  //   initSession.post('/ajax/account/login')
-  //   // use unhashed user seed data
-  //     .send({email: user_seed_data[0].email, password: user_seed_data[0].password}).expect(200).end(function(err) {
-  //     if (err)
-  //       return done(err);
-  //     authenticatedSession = initSession;
-  //     return done();
-  //   });
-  // });
-
   describe('/login', () => {
 
     it('should reach endpoint and authenticate credentials', async () => {
@@ -46,6 +33,68 @@ describe('AJAX /account', () => {
           expect(res.body).to.have.property('data')
           expect(res.body.data).to.have.property('redirect');
         });
+
+    });
+
+    it('should respond with INVALID_CREDENTIALS error', async () => {
+
+      await request(app)
+        .post('/ajax/account/login')
+        .send({
+          email: 'doesnotexist@none.com',
+          password: 'wrongpasswordto'
+        })
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.have.property('data')
+          expect(res.body.data).to.not.have.property('redirect');
+          expect(res.body.error.type).to.equal('INVALID_CREDENTIALS');
+        })
+
+    });
+
+    it('should respond with FORM_VALIDATION_ERROR error', async () => {
+
+      await request(app)
+        .post('/ajax/account/login')
+        .send({
+          email: '',
+          password: 'wrongpasswordto'
+        })
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.have.property('data')
+          expect(res.body.data).to.not.have.property('redirect');
+          expect(res.body.error.type).to.equal('FORM_VALIDATION_ERROR');
+          expect(res.body.error).to.have.property('validationErrors');
+          expect(res.body.error.validationErrors).to.have.property('email');
+        })
+
+      await request(app)
+        .post('/ajax/account/login')
+        .send({
+          email: '',
+          password: ''
+        })
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.have.property('data')
+          expect(res.body.data).to.not.have.property('redirect');
+          expect(res.body.error.type).to.equal('FORM_VALIDATION_ERROR');
+          expect(res.body.error).to.have.property('validationErrors');
+          expect(res.body.error.validationErrors).to.have.property('email');
+          expect(res.body.error.validationErrors).to.have.property('password');
+        })
+
+    });
+
+  });
+
+  describe('/signup', () => {
+
+    it('should succesfully signup user', (done) => {
+
+
 
     });
 

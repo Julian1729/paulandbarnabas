@@ -12,7 +12,7 @@ class TestFailed extends Error {
  constructor(message){
    super(message);
    this.name = 'TestFailed';
-   this.msg = message;
+   this.message = message;
  }
 
 }
@@ -26,7 +26,7 @@ class UserNotFound extends Error {
  constructor(message){
    super(message);
    this.name = 'UserNotFound';
-   this.msg = message;
+   this.message = message;
  }
 
 }
@@ -53,7 +53,7 @@ class InvalidCredentials extends Error {
   constructor(message){
     super();
     this.name = 'InvalidCredentials';
-    this.msg = message;
+    this.message = message;
   }
 }
 
@@ -62,7 +62,7 @@ class CongregationNotFound extends Error {
   constructor(message){
     super();
     this.name = 'CongregationNotFound';
-    this.msg = message;
+    this.message = message;
   }
 
 }
@@ -72,7 +72,7 @@ class NonExistentController extends Error {
   constructor(message){
     super();
     this.name = 'NonExistentController';
-    this.msg = message;
+    this.message = message;
   }
 
 }
@@ -82,7 +82,7 @@ class NonExistentAction extends Error {
   constructor(message){
     super();
     this.name = 'NonExistentAction';
-    this.msg = message;
+    this.message = message;
   }
 
 }
@@ -95,7 +95,7 @@ class SessionUninitialized extends Error {
   constructor(message){
     super();
     this.name = 'SessionUninitialized';
-    this.msg = message;
+    this.message = message;
   }
 
 }
@@ -105,7 +105,7 @@ class SessionUnauthenticated extends Error {
   constructor(message){
     super();
     this.name = 'SessionUnauthenticated';
-    this.msg = message;
+    this.message = message;
   }
 
 }
@@ -134,7 +134,7 @@ class TerritoryNotFound extends Error {
   constructor(message){
     super();
     this.name = 'TerritoryNotFound';
-    this.msg = message;
+    this.message = message;
   }
 }
 
@@ -142,7 +142,7 @@ class FragmentNotFound extends Error {
   constructor(message){
     super();
     this.name = 'FragmentNotFound';
-    this.msg = message;
+    this.message = message;
   }
 }
 

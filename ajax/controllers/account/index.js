@@ -9,8 +9,8 @@ const HttpStatus = require('http-status-codes');
 const UserModel = require(`${appRoot}/models`);
 const {accountServices} = require(`${appRoot}/services`);
 const constants = require(`${appRoot}/config/constants`);
-const {logger, helpers, Session, AjaxResponse} = require(`${appRoot}/utils`);
 const {loginValidator, signupValidator} = require(`${appRoot}/utils/validators`);
+const {logger, helpers, Session, AjaxResponse, PBURLConstructor} = require(`${appRoot}/utils`);
 const {FormValidationError, InvalidCredentials, SessionUninitialized} = require(`${appRoot}/errors.js`);
 
 exports.signUp = (req, res, next) => {
@@ -63,44 +63,41 @@ exports.signUp = (req, res, next) => {
 
 exports.login = async (req, res, next) => {
 
+  let ajaxRes = new AjaxResponse(res);
+  ajaxRes.validErrors = ['FORM_VALIDATION_ERROR', 'INVALID_CREDENTIALS'];
 
+  // collect data
+  var loginData = helpers.collectFormData([
+    'email',
+    'password'
+  ], req);
 
-    // collect data
-    var loginData = helpers.collectFormData([
-      'email',
-      'password'
-    ], req);
+  // validate input
+  var validation = loginValidator(loginData);
+  if(validation){
+    // validation failed, create ajax error and attach validation errors
+    ajaxRes.error('FORM_VALIDATION_ERROR', '', {validationErrors: validation});
+    return ajaxRes.send();
+  }
 
-    // validate input
-    var validation = loginValidator(loginData);
-    if(validation){
-      // validation failed, respond with error
-      return helpers.ajaxResponse(res, {
-        error: new FormValidationError(validation)
-      });
+  let user = null;
+  try {
+    user = await accountServices.authenticateUserCredentials(loginData.email, loginData.password);
+  } catch (e) {
+    if(e instanceof InvalidCredentials){
+      logger.verbose(e.message);
+      ajaxRes.error('INVALID_CREDENTIALS', 'Invalid user credentials');
+      return ajaxRes.send();
     }
+  }
 
-    let user = null;
-    try {
-      user = await accountServices.authenticateUserCredentials(loginData.email, loginData.password);
-    } catch (e) {
-      if(e instanceof InvalidCredentials){
-        console.log(e);
-        return helpers.ajaxResponse(res, {
-          error: 'InvalidCredentials'
-        })
-      }
-    }
+  // user authenticated, create session
+  let session = new Session(req);
+  session.create(user);
 
-    // user authenticated, create session
-    let session = new Session(req);
-    session.create(user);
+  let dashboardUrl = PBURLConstructor.getRoute('dashboard').url();
 
-    return helpers.ajaxResponse(res, {
-      data:{
-        redirect: '/dashboard'
-      }
-    });
-
-
+  return ajaxRes
+    .data('redirect', dashboardUrl)
+    .send();
   };
