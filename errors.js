@@ -57,6 +57,15 @@ class InvalidCredentials extends Error {
   }
 }
 
+class EmailAlreadyExists extends Error {
+  constructor(message, email){
+    super();
+    this.name = 'EmailAlreadyExists()';
+    this.email = email;
+    this.message = message;
+  }
+}
+
 class CongregationNotFound extends Error {
 
   constructor(message){
@@ -208,6 +217,7 @@ class SubunitNotFound extends Error {
    UserNotFound,
    FormValidationError,
    InvalidCredentials,
+   EmailAlreadyExists,
    CongregationNotFound,
    NonExistentController,
    NonExistentAction,

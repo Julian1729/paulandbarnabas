@@ -1,5 +1,6 @@
 const {expect} = require('chai');
 const request = require('supertest');
+const {ObjectId} = require('mongodb');
 const appRoot = require('app-root-path');
 const session = require('supertest-session');
 
@@ -7,6 +8,7 @@ const {app} = require(`${appRoot}/app`);
 const {helpers} = require(`${appRoot}/utils`);
 const {UserModel} = require(`${appRoot}/models`);
 const userSeed = require(`${appRoot}/tests/seed/user.seed`);
+const registrationSeed = require(`${appRoot}/tests/seed/registration.seed`);
 
 describe('AJAX /account', () => {
 
@@ -90,11 +92,70 @@ describe('AJAX /account', () => {
 
   });
 
-  describe('/signup', () => {
+  describe('/register', () => {
 
-    it('should succesfully signup user', (done) => {
+    beforeEach(async () => {
 
+      // clear user db
+      await helpers.clearCollection(UserModel);
 
+    });
+
+    it('should succesfully register user', async () => {
+
+      let registration = registrationSeed.valid;
+
+      await request(app)
+        .post('/ajax/account/register')
+        .send(registration)
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.have.property('data');
+          expect(res.body.error.type).to.not.exist;
+          expect(res.body.data).to.have.property('redirect');
+        });
+
+    });
+
+    it('should fail with UNREGISTERED_CONGREGATION', async () => {
+
+      let registration = {
+         first_name: 'Julian',
+         last_name: 'Hernandez',
+         email: 'hernandez.julian17@gmail.com',
+         email_confirm: 'hernandez.julian17@gmail.com',
+         phone_number: '(215)400-0468',
+         congregation_number: 55555,
+         title: 'Ministerial Servant',
+         password: 'newpasssword',
+         password_confirm: 'newpasssword',
+         congregation: new ObjectId()
+      };
+
+      await request(app)
+        .post('/ajax/account/register')
+        .send(registration)
+        .expect(200)
+        .expect(res => {
+          expect(res.body.error).to.exist;
+          expect(res.body.error.type).to.equal('UNREGISTERED_CONGREGATION');
+        });
+
+    });
+
+    it('should fail with FORM_VALIDATION_ERROR', async () => {
+
+      let registration = registrationSeed.decimalCongregationNumber;
+
+      await request(app)
+        .post('/ajax/account/register')
+        .send(registration)
+        .expect(200)
+        .expect(res => {
+          expect(res.body.error).to.exist;
+          expect(res.body.error.type).to.equal('FORM_VALIDATION_ERROR');
+          expect(res.body.error.validationErrors.congregation_number).to.exist;
+        });
 
     });
 

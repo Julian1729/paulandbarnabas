@@ -9,57 +9,58 @@ const HttpStatus = require('http-status-codes');
 const UserModel = require(`${appRoot}/models`);
 const {accountServices} = require(`${appRoot}/services`);
 const constants = require(`${appRoot}/config/constants`);
-const {loginValidator, signupValidator} = require(`${appRoot}/utils/validators`);
+const {loginValidator, registrationValidator} = require(`${appRoot}/utils/validators`);
 const {logger, helpers, Session, AjaxResponse, PBURLConstructor} = require(`${appRoot}/utils`);
-const {FormValidationError, InvalidCredentials, SessionUninitialized} = require(`${appRoot}/errors.js`);
+const {FormValidationError, InvalidCredentials, SessionUninitialized, EmailAlreadyExists, CongregationNotFound} = require(`${appRoot}/errors.js`);
 
-exports.signUp = (req, res, next) => {
+exports.register = async (req, res) => {
 
-    var signUpData = helpers.collectFormData([
-      'first_name',
-      'last_name',
-      'email',
-      'email_confirm',
-      'phone_number',
-      'password',
-      'password_confirm'
-    ], req);
+  let ajaxRes = new AjaxResponse(res);
+  ajaxRes.validErrors = ['FORM_VALIDATION_ERROR', 'SERVER_ERROR', 'UNREGISTERED_CONGREGATION'];
 
-    signupValidator(signUpData)
-      .then( () => {
-        var User = new UserModel(signUpData);
-        User.save()
-          .then((newUser) => {
-            Session.createSession(req, {
-              first_name: newUser.first_name,
-              last_name: newUser.last_name,
-              isAdmin: false,
-              congregation: dev.congregationId,
-              user_id: newUser._id,
-              authenticated: true
-            });
+  let registration = helpers.collectFormData([
+    'first_name',
+    'last_name',
+    'congregation_number',
+    'email',
+    'email_confirm',
+    'phone_number',
+    'password',
+    'password_confirm'
+  ], req);
 
-            // send ajax response
-            return helpers.ajaxResponse(res, {
-              data: {
-                redirect: `${constants.base_url}/dashboard`
-              }
-            });
-          })
-          .catch(e => {
-            logger.log(`Error in saving user \n${e.stack}`);
-            return helpers.ajaxResponse(res, {
-              status: HttpStatus.INTERNAL_SERVER_ERROR
-            });
-          });
-      })
-      .catch((validationErrors) => {
-        return helpers.ajaxResponse(res, {
-          error: new FormValidationError(validationErrors)
-        });
-      });
+  // validate form data
+  let validationErrors = registrationValidator(registration);
+  if(validationErrors){
+    return ajaxRes
+        .error('FORM_VALIDATION_ERROR', null, {validationErrors: validationErrors})
+        .send();
+  }
 
-    };
+  let registeredUser = null;
+  try{
+    registeredUser = await accountServices.registerUser(registration);
+  }catch(e){
+    if(e instanceof EmailAlreadyExists){
+      logger.verbose(e.message);
+      return ajaxRes
+          .error('FORM_VALIDATION_ERROR', e.message, {validationErrors: {email: 'Email already exists'}})
+          .send();
+    }
+    if(e instanceof CongregationNotFound){
+      logger.verbose(e.message);
+      return ajaxRes.error('UNREGISTERED_CONGREGATION', e.message).send();
+    }
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+  }
+
+  let session = new Session(req);
+  session.create(registeredUser);
+  ajaxRes.data('redirect', PBURLConstructor.getRoute('dashboard').url());
+  return ajaxRes.send();
+
+
+};
 
 exports.login = async (req, res, next) => {
 

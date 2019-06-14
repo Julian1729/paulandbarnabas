@@ -17,18 +17,23 @@ const SignUpConstraints = {
       allowEmpty: false
     }
   },
+  'congregation_number': {
+    presence: {
+      message: 'Please provide your congregation number',
+      allowEmpty: false
+    },
+    numericality: {
+      onlyInteger: true,
+      message: 'Please provide a valid congregation number'
+    }
+  },
   'email': {
-    // OPTIMIZE: custom validator to check if
-    // email has already been registered
     presence: {
       message: 'Please provide an email',
       allowEmpty: false
     },
     email: {
       message: 'Please provide a valid email'
-    },
-    emailAlreadyExists: {
-      message: 'Email is already in use'
     }
   },
   'email_confirm': {
@@ -74,5 +79,5 @@ const SignUpConstraints = {
 };
 
 module.exports = (user) => {
-  return validate.async(user, SignUpConstraints, {fullMessages: false});
+  return validate(user, SignUpConstraints, {fullMessages: false});
 };

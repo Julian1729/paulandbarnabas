@@ -13,6 +13,11 @@ var CongregationSchema = new Schema({
     type: String,
     required: true
   },
+  number: {
+    type: Number,
+    required: true,
+    unique: true
+  },
   territory: {
     type: Schema.Types.ObjectId,
     ref: 'Territory',
