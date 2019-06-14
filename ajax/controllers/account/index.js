@@ -90,6 +90,7 @@ exports.login = async (req, res, next) => {
       ajaxRes.error('INVALID_CREDENTIALS', 'Invalid user credentials');
       return ajaxRes.send();
     }
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
   }
 
   // user authenticated, create session
