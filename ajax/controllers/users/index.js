@@ -1,27 +1,28 @@
 /**
  * User Ajax Controller
  */
+const appRoot = require('app-root-path');
 
 const {UserModel} = require(`${appRoot}/models`);
-const {helpers} = require(`${appRoot}/utils`);
+const {helpers, AjaxResponse} = require(`${appRoot}/utils`);
+const {congregationServices} = require(`${appRoot}/services`);
 
 /**
  * Get only names and ids of users
  */
-exports.getList = (req, res, next) => {
+exports.list = async (req, res) => {
 
-  var congregationId = req.session.congregation;
+  let ajaxRes = new AjaxResponse(res);
 
-  UserModel.getUsersByCongregation(congregationId)
-    .then(list => {
-      helpers.ajaxResponse(res, {
-        data: list
-      });
-    })
-    .catch(e => {
-      helpers.ajaxResponse(res, {
-        status: 500
-      });
-    });
+  let congregationId = req.session.congregation;
+  let fields = req.query.fields || '';
+
+  let users = await congregationServices.getUsers(congregationId, fields);
+  // strip password from user objects
+  for (let user of users) {
+    user.password = undefined;
+  }
+
+  return ajaxRes.data('users', users).send();
 
 };

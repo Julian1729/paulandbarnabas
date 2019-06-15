@@ -8,4 +8,6 @@ const router = express.Router({mergeParams: true});
 
 router.use('/account', require('./account'));
 
+router.use('/users', require('./users'));
+
 module.exports = router;
