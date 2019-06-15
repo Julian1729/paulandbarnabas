@@ -66,7 +66,7 @@ app.set('views', __dirname + '/views');
  app.use(morgan('tiny', {
    // skip logging if in test mode
    skip: (req, res) => {
-     return process.env.NODE_ENV = 'test';
+     return process.env.NODE_ENV == 'test';
    }
  }));
  // // Express json
