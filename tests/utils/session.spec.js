@@ -138,6 +138,23 @@ describe('Session Class', () => {
 
     });
 
+    it('should actually attach session data to request', async () => {
+
+      await helpers.clearCollection(UserModel);
+      // insert user into db
+      let testUser = new UserModel(userSeed.validUser);
+      let user = await testUser.save();
+      let req = mockRequest({session: {}});
+      // attempt to create session
+      let session = new Session(req);
+      session.create(user);
+      expect(req.session).to.have.property('first_name');
+      expect(req.session).to.have.property('last_name');
+      expect(req.session).to.have.property('user_id');
+      expect(req.session).to.have.property('congregation');
+
+    });
+
     it('should create session on request with no session object', async () => {
 
       await helpers.clearCollection(UserModel);

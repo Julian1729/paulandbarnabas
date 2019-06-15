@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const appRoot = require('app-root-path');
 
 const {SessionUninitialized} = require(`${appRoot}/errors`);
@@ -32,13 +33,14 @@ class Session {
       // attach session to instance
       this.session = this.req.session;
     }
-    this._user = user;
-    this.session = {
+    this._user = user;;
+    let sessionData = {
       first_name: this.user.first_name,
       last_name: this.user.last_name,
       user_id: this.user._id,
       congregation: this.user.congregation
     };
+    _.assign(this.session, sessionData);
     // now validate session
     let missingData = this.validate();
     if(missingData.length){
