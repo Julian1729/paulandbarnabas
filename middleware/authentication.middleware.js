@@ -30,7 +30,7 @@ exports.ajaxSession = (req, res, next) => {
   try {
     let missing = session.validate();
     if(!session.isAuthenticated()){
-      throw new error.SessionUnauthenticated();
+      throw new errors.SessionUnauthenticated();
     }
   } catch (e) {
     if(e instanceof errors.SessionUninitialized || e instanceof errors.SessionUnauthenticated){
