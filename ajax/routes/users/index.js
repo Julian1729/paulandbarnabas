@@ -5,7 +5,7 @@ const appRoot = require('app-root-path');
 const {authentication} = require(`${appRoot}/middleware`);
 const {usersController} = require(`${appRoot}/ajax/controllers`);
 
-router.use(authentication.admin);
+router.use([authentication.ajaxSession, authentication.ajaxAdmin]);
 
 /**
  * Get list of users attached

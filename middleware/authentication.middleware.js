@@ -27,6 +27,7 @@ exports.session = (req, res, next) => {
 exports.ajaxSession = (req, res, next) => {
 
   let session = new Session(req);
+  console.log(req.session);
   try {
     let missing = session.validate();
     if(!session.isAuthenticated()){
