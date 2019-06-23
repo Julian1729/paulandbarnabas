@@ -55,7 +55,7 @@ exports.register = async (req, res) => {
   }
 
   let session = new Session(req);
-  session.create(registeredUser);
+  await session.create(registeredUser);
   ajaxRes.data('redirect', PBURLConstructor.getRoute('dashboard').url());
   return ajaxRes.send();
 
@@ -95,7 +95,7 @@ exports.login = async (req, res, next) => {
 
   // user authenticated, create session
   let session = new Session(req);
-  session.create(user);
+  await session.create(user);
 
   let dashboardUrl = PBURLConstructor.getRoute('dashboard').url();
 

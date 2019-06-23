@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const {expect} = require('chai');
 const request = require('supertest');
 const {ObjectId} = require('mongodb');
@@ -6,8 +7,9 @@ const session = require('supertest-session');
 
 const {app} = require(`${appRoot}/app`);
 const {helpers} = require(`${appRoot}/utils`);
-const {UserModel} = require(`${appRoot}/models`);
+const {UserModel, CongregationModel} = require(`${appRoot}/models`);
 const userSeed = require(`${appRoot}/tests/seed/user.seed`);
+const congregationSeed = require(`${appRoot}/tests/seed/congregation.seed`);
 const registrationSeed = require(`${appRoot}/tests/seed/registration.seed`);
 
 describe('AJAX /account', () => {
@@ -16,19 +18,27 @@ describe('AJAX /account', () => {
 
     it('should reach endpoint and authenticate credentials', async () => {
 
+      // seed db with congregation
+      await helpers.clearCollection(CongregationModel);
+      let seedCongregation = await CongregationModel.create(congregationSeed.validCongregation);
+
       // clear user db
       await helpers.clearCollection(UserModel);
-
       // add user to database
-      let seedUser = userSeed.validUser;
-      let testUser = new UserModel(seedUser);
-      let newUser = await testUser.save();
+      let testUser = _.clone(userSeed.validUser);
+      testUser.congregation = seedCongregation._id;
+      let seedUser = new UserModel(testUser);
+      let newUser = await seedUser.save();
+
+      // set congregation admin as user
+      seedCongregation.admin = seedUser._id;
+      await seedCongregation.save();
 
       await request(app)
         .post('/ajax/account/login')
         .send({
-          email: seedUser.email,
-          password: seedUser.password
+          email: testUser.email,
+          password: testUser.password
         })
         .expect(200)
         .expect((res) => {

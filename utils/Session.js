@@ -1,12 +1,14 @@
 const _ = require('lodash');
 const appRoot = require('app-root-path');
 
+const {userServices} = require(`${appRoot}/services`);
 const {SessionUninitialized} = require(`${appRoot}/errors`);
 
+// FIXME: the "authenticated" boolean is not being utilized in session creation
 class Session {
 
   constructor(req){
-    this.requiredProps = ['first_name', 'last_name', 'user_id', 'congregation'];
+    this.requiredProps = ['first_name', 'last_name', 'user_id', 'congregation', 'isAdmin'];
     this.req = req;
     if(this.req.session){
       this.session = this.req.session;
@@ -27,19 +29,23 @@ class Session {
    * user information.
    * @param  {Object} user User object from database
    */
-  create(user){
+  async create(user){
     if(!this.hasSession()){
       this.req.session = {};
       // attach session to instance
       this.session = this.req.session;
     }
-    this._user = user;;
+    this._user = user;
     let sessionData = {
       first_name: this.user.first_name,
       last_name: this.user.last_name,
       user_id: this.user._id,
-      congregation: this.user.congregation
+      congregation: this.user.congregation,
+      isAdmin: false
     };
+    if(await userServices.isAdmin(user)){
+      sessionData.isAdmin = true;
+    }
     _.assign(this.session, sessionData);
     // now validate session
     let missingData = this.validate();
@@ -59,7 +65,7 @@ class Session {
     }
     let invalid = [];
     for (let prop of this.requiredProps) {
-      if(!this.session[prop]){
+      if(!this.session.hasOwnProperty(prop) || this.session[prop] === undefined || this.session[prop] === null || this.session.prop === ''){
         invalid.push(prop);
       }
     }
@@ -86,9 +92,15 @@ class Session {
    * Check if user is congregation admin
    * @return {Boolean} [description]
    */
-  isAdmin(){
-    return this.session.isAdmin === true ? true : false;
+  get isAdmin(){
+    return (this.session.isAdmin && this.session.isAdmin === true) ? true : false;
   }
+
+  set isAdmin(isAdmin){
+    this.session.isAdmin = Boolean(isAdmin);
+  }
+
+
 
   /**
    * Get user credentials
