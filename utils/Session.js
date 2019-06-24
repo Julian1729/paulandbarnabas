@@ -41,6 +41,7 @@ class Session {
       last_name: this.user.last_name,
       user_id: this.user._id,
       congregation: this.user.congregation,
+      authenticated: true,
       isAdmin: false
     };
     if(await userServices.isAdmin(user)){

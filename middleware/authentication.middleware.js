@@ -27,7 +27,6 @@ exports.session = (req, res, next) => {
 exports.ajaxSession = (req, res, next) => {
 
   let session = new Session(req);
-  console.log(req.session);
   try {
     let missing = session.validate();
     if(!session.isAuthenticated()){
@@ -47,7 +46,7 @@ exports.ajaxSession = (req, res, next) => {
 exports.ajaxAdmin = (req, res, next) => {
 
   let session = new Session(req);
-  if(!session.isAdmin()){
+  if(!session.isAdmin){
     return res.status(HttpStatus.FORBIDDEN).send();
   }
   return next();
@@ -57,38 +56,12 @@ exports.ajaxAdmin = (req, res, next) => {
 exports.admin = (req, res, next) => {
 
   let session = new Session(req);
-  if(!session.isAdmin()){
+  if(!session.isAdmin){
     return res.redirect('/');
   }
   next();
 
 };
-
-// exports.authenticate = (req, res, next) => {
-//
-//   var session = req.session;
-//   try {
-//     Session.validate(session)
-//     logger.debug('Session Authorized');
-//     return next();
-//   } catch (e) {
-//     if(e instanceof errors.SessionUninitialized || e instanceof errors.SessionUnauthenticated){
-//       logger.debug('Sesssion Unauthorized');
-//       // if in dev mode...pass error to next to be caught by createDevSession
-//       // if(process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'testing'){
-//       if(process.env.NODE_ENV === 'development'){
-//         logger.debug('Creating test session...')
-//         Session.createSession(req, seedData.sessions.admin);
-//         Session.validate(session);
-//         logger.debug('Session Authorized w/ development credentials');
-//         // console.log('session from middlware', session);
-//         return next();
-//       }
-//       return res.redirect('/');
-//     }
-//   }
-//
-// };
 
 /**
  * Attach session variables to req.locals

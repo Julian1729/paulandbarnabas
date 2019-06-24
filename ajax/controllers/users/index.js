@@ -3,7 +3,6 @@
  */
 const appRoot = require('app-root-path');
 
-const {UserModel} = require(`${appRoot}/models`);
 const {helpers, AjaxResponse} = require(`${appRoot}/utils`);
 const {congregationServices} = require(`${appRoot}/services`);
 

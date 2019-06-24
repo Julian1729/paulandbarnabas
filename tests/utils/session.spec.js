@@ -175,6 +175,7 @@ describe('Session Class', () => {
       expect(req.session).to.have.property('user_id');
       expect(req.session).to.have.property('congregation');
       expect(req.session).to.have.property('isAdmin');
+      expect(req.session.isAdmin).to.be.true;
 
     });
 

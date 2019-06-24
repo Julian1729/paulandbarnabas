@@ -1,135 +1,212 @@
+const sinon = require('sinon');
 const _ = require('lodash');
-const {expect} = require('chai');
-const request = require('supertest');
-const {ObjectId} = require('mongodb');
+const chai = require('chai');
+const expect = chai.expect;
+const sinonChai = require('sinon-chai');
+chai.use(sinonChai);
+const HttpStatus = require('http-status-codes');
+const {mockResponse, mockRequest} = require('mock-req-res');
 const appRoot = require('app-root-path');
-const session = require('supertest-session');
 
-const {app} = require(`${appRoot}/app`);
-const {helpers} = require(`${appRoot}/utils`);
+const {helpers, AjaxResponse} = require(`${appRoot}/utils`);
 const {UserModel, CongregationModel} = require(`${appRoot}/models`);
+const registrationSeed = require(`${appRoot}/tests/seed/registration.seed`);
 const userSeed = require(`${appRoot}/tests/seed/user.seed`);
 const congregationSeed = require(`${appRoot}/tests/seed/congregation.seed`);
-const registrationSeed = require(`${appRoot}/tests/seed/registration.seed`);
+const accountController = require(`${appRoot}/ajax/controllers/account`);
 
-describe('AJAX /account', () => {
+describe('Account Controller', () => {
 
-  describe('/login', () => {
+let seedCongregation = null;
+let seedUser = null;
+// let authenticatedSession = null;
 
-    it('should reach endpoint and authenticate credentials', async () => {
+before(async () => {
 
-      // seed db with congregation
-      await helpers.clearCollection(CongregationModel);
-      let seedCongregation = await CongregationModel.create(congregationSeed.validCongregation);
+  // clear users collection
+  await helpers.clearCollection(UserModel);
+  // clear congregation collection
+  await helpers.clearCollection(CongregationModel);
+  // enter seed congregation
+  seedCongregation = await CongregationModel.create(congregationSeed.validCongregation);
+  // seed user to db
+  let seedUserData = {
+    first_name: 'Julian',
+    last_name: 'Hernandez',
+    email: 'hernandez.julian17@gmail.com',
+    phone_number: '(215)400-0468',
+    title: 'Ministerial Servant',
+    password: 'newpasssword',
+    congregation: seedCongregation._id
+  };
+  seedUser = await UserModel.create(seedUserData);
+  // set unsalted password as password
+  seedUser.rawPassword = seedUserData.password;
 
-      // clear user db
-      await helpers.clearCollection(UserModel);
-      // add user to database
-      let testUser = _.clone(userSeed.validUser);
-      testUser.congregation = seedCongregation._id;
-      let seedUser = new UserModel(testUser);
-      let newUser = await seedUser.save();
+  // set user one as congregation admin
+  seedCongregation.admin = seedUser._id;
+  await seedCongregation.save();
 
-      // set congregation admin as user
-      seedCongregation.admin = seedUser._id;
-      await seedCongregation.save();
+});
 
-      await request(app)
-        .post('/ajax/account/login')
-        .send({
-          email: testUser.email,
-          password: testUser.password
-        })
-        .expect(200)
-        .expect((res) => {
-          expect(res.body).to.have.property('data')
-          expect(res.body.data).to.have.property('redirect');
-        });
+  describe('login', () => {
 
-    });
+    before(() => {
 
-    it('should respond with INVALID_CREDENTIALS error', async () => {
-
-      await request(app)
-        .post('/ajax/account/login')
-        .send({
-          email: 'doesnotexist@none.com',
-          password: 'wrongpasswordto'
-        })
-        .expect(200)
-        .expect(res => {
-          expect(res.body).to.have.property('data')
-          expect(res.body.data).to.not.have.property('redirect');
-          expect(res.body.error.type).to.equal('INVALID_CREDENTIALS');
-        })
+      // set error as spy
+      sinon.spy(AjaxResponse.prototype, 'error');
 
     });
 
-    it('should respond with FORM_VALIDATION_ERROR error', async () => {
+    after(() => {
 
-      await request(app)
-        .post('/ajax/account/login')
-        .send({
-          email: '',
-          password: 'wrongpasswordto'
-        })
-        .expect(200)
-        .expect(res => {
-          expect(res.body).to.have.property('data')
-          expect(res.body.data).to.not.have.property('redirect');
-          expect(res.body.error.type).to.equal('FORM_VALIDATION_ERROR');
-          expect(res.body.error).to.have.property('validationErrors');
-          expect(res.body.error.validationErrors).to.have.property('email');
-        })
+      // restore original method
+      AjaxResponse.prototype.error.restore();
 
-      await request(app)
-        .post('/ajax/account/login')
-        .send({
-          email: '',
+    });
+
+    it('should login user', async () => {
+
+      let req = mockRequest({
+        body: {
+          email: seedUser.email,
+          password: seedUser.rawPassword
+        }
+      });
+      let res = mockResponse();
+
+      await accountController.login(req, res);
+      expect(AjaxResponse.prototype.error).to.not.have.been.called;
+      expect(req.session).to.not.be.empty;
+      expect(req.session).to.have.property('first_name');
+      expect(req.session).to.have.property('last_name');
+      expect(req.session).to.have.property('congregation');
+      expect(req.session).to.have.property('user_id');
+      expect(req.session).to.have.property('isAdmin');
+      expect(req.session.isAdmin).to.be.true;
+      expect(res.json).to.have.been.calledOnce;
+
+    });
+
+    it('should set form FORM_VALIDATION_ERROR', async () => {
+
+      let req = mockRequest({
+        body: {
+          email: seedUser.email,
           password: ''
-        })
-        .expect(200)
-        .expect(res => {
-          expect(res.body).to.have.property('data')
-          expect(res.body.data).to.not.have.property('redirect');
-          expect(res.body.error.type).to.equal('FORM_VALIDATION_ERROR');
-          expect(res.body.error).to.have.property('validationErrors');
-          expect(res.body.error.validationErrors).to.have.property('email');
-          expect(res.body.error.validationErrors).to.have.property('password');
-        })
+        }
+      });
+      let res = mockResponse();
+
+      await accountController.login(req, res);
+      expect(AjaxResponse.prototype.error).to.have.been.calledWith('FORM_VALIDATION_ERROR');
+      expect(res.json).to.have.been.calledOnce;
+
+    });
+
+    it('should set form FORM_VALIDATION_ERROR', async () => {
+
+      let req = mockRequest({
+        body: {
+          email: seedUser.email,
+          password: 'wrongpassword'
+        }
+      });
+      let res = mockResponse();
+
+      await accountController.login(req, res);
+      expect(AjaxResponse.prototype.error).to.have.been.calledWith('INVALID_CREDENTIALS');
+      expect(res.json).to.have.been.calledOnce;
 
     });
 
   });
 
-  describe('/register', () => {
+  describe('register', () => {
+
+    // before(() => {
+    //
+    //   // set error as spy
+    //   sinon.spy(AjaxResponse.prototype, 'error');
+    //
+    // });
+
+    afterEach(() => {
+
+      // restore original method
+      AjaxResponse.prototype.error.restore();
+
+    });
 
     beforeEach(async () => {
 
-      // clear user db
+      sinon.spy(AjaxResponse.prototype, 'error');
+
+      // clear user collection
       await helpers.clearCollection(UserModel);
 
     });
 
-    it('should succesfully register user', async () => {
+    it('should register a user', async () => {
 
-      let registration = registrationSeed.valid;
+      let registration = _.clone(registrationSeed.valid);
+      registration.congregation = seedCongregation._id;
 
-      await request(app)
-        .post('/ajax/account/register')
-        .send(registration)
-        .expect(200)
-        .expect(res => {
-          expect(res.body).to.have.property('data');
-          expect(res.body.error.type).to.not.exist;
-          expect(res.body.data).to.have.property('redirect');
-        });
+      let req = mockRequest({
+        body: registration
+      });
+      let res = mockResponse();
+
+      await accountController.register(req, res);
+
+      expect(AjaxResponse.prototype.error).to.not.have.been.called;
+      expect(req.session).to.not.be.empty;
+      expect(req.session).to.have.property('first_name');
+      expect(req.session).to.have.property('last_name');
+      expect(req.session).to.have.property('user_id');
+      expect(req.session).to.have.property('congregation');
+      expect(req.session).to.have.property('isAdmin');
 
     });
 
-    it('should fail with UNREGISTERED_CONGREGATION', async () => {
+    it('should return FORM_VALIDATION_ERROR', async () => {
 
-      let registration = {
+      let registration = _.clone(registrationSeed.passwordUnmatched);
+      registration.congregation = seedCongregation._id;
+
+      let req = mockRequest({
+        body: registration
+      });
+      let res = mockResponse();
+
+      await accountController.register(req, res);
+
+      expect(AjaxResponse.prototype.error).to.have.been.calledWith('FORM_VALIDATION_ERROR');
+
+    });
+
+    it('should return FORM_VALIDATION_ERROR for existing email', async () => {
+
+      await UserModel.create(userSeed.validUser);
+
+      let registration = _.clone(registrationSeed.valid);
+      registration.congregation = seedCongregation._id;
+
+      let req = mockRequest({
+        body: registration
+      });
+      let res = mockResponse();
+
+      await accountController.register(req, res);
+
+      expect(AjaxResponse.prototype.error).to.have.been.calledWith('FORM_VALIDATION_ERROR');
+
+    });
+
+    it('should return UNREGISTERED_CONGREGATION', async () => {
+
+      let req = mockRequest({
+        body: {
          first_name: 'Julian',
          last_name: 'Hernandez',
          email: 'hernandez.julian17@gmail.com',
@@ -139,33 +216,14 @@ describe('AJAX /account', () => {
          title: 'Ministerial Servant',
          password: 'newpasssword',
          password_confirm: 'newpasssword',
-         congregation: new ObjectId()
-      };
+        }
+      });
+      let res = mockResponse();
 
-      await request(app)
-        .post('/ajax/account/register')
-        .send(registration)
-        .expect(200)
-        .expect(res => {
-          expect(res.body.error).to.exist;
-          expect(res.body.error.type).to.equal('UNREGISTERED_CONGREGATION');
-        });
+      await accountController.register(req, res);
 
-    });
-
-    it('should fail with FORM_VALIDATION_ERROR', async () => {
-
-      let registration = registrationSeed.decimalCongregationNumber;
-
-      await request(app)
-        .post('/ajax/account/register')
-        .send(registration)
-        .expect(200)
-        .expect(res => {
-          expect(res.body.error).to.exist;
-          expect(res.body.error.type).to.equal('FORM_VALIDATION_ERROR');
-          expect(res.body.error.validationErrors.congregation_number).to.exist;
-        });
+      expect(AjaxResponse.prototype.error).to.have.been.calledOnceWith('UNREGISTERED_CONGREGATION');
+      expect(res.json).to.have.been.calledOnce;
 
     });
 

@@ -16,7 +16,7 @@ const {FormValidationError, InvalidCredentials, SessionUninitialized, EmailAlrea
 exports.register = async (req, res) => {
 
   let ajaxRes = new AjaxResponse(res);
-  ajaxRes.validErrors = ['FORM_VALIDATION_ERROR', 'SERVER_ERROR', 'UNREGISTERED_CONGREGATION'];
+  ajaxRes.validErrors = ['FORM_VALIDATION_ERROR', 'UNREGISTERED_CONGREGATION'];
 
   let registration = helpers.collectFormData([
     'first_name',
@@ -62,7 +62,7 @@ exports.register = async (req, res) => {
 
 };
 
-exports.login = async (req, res, next) => {
+exports.login = async (req, res) => {
 
   let ajaxRes = new AjaxResponse(res);
   ajaxRes.validErrors = ['FORM_VALIDATION_ERROR', 'INVALID_CREDENTIALS'];

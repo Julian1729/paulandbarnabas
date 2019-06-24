@@ -3,7 +3,7 @@
  */
 const appRoot = require('app-root-path');
 
-const {CongregationModel, UserModel} = require(`${appRoot}/models`);
+const UserModel = require(`${appRoot}/models/User.model`);
 
 /**
  * Get all users attached to a specific congregation
