@@ -3,7 +3,6 @@ let HttpStatus = require('http-status-codes');
 
 let errors = require(`${appRoot}/errors`);
 let {logger, Session, AjaxResponse} = require(`${appRoot}/utils`);
-let seedData = require(`${appRoot}/dev/seed/data`);
 
 exports.session = (req, res, next) => {
 

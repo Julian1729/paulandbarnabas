@@ -1,8 +1,9 @@
 /**
  * Territory Seed Data
  */
+const {ObjectId} = require('mongodb');
 
-var fragments =
+let fragments =
 [
   {
     number: 1,
@@ -18,7 +19,7 @@ var fragments =
   }
 ];
 
-var streets =
+let streets =
 [
   {
     name: 'Oakland',
@@ -788,10 +789,10 @@ var streets =
   }
 ];
 
-var territory = {
-  congregation: null,
+let territory1 = {
+  congregation: new ObjectId(),
   fragments: fragments,
   streets: streets
 };
 
-module.exports = {territory};
+module.exports = [territory1];
