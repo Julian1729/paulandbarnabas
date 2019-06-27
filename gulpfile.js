@@ -110,9 +110,16 @@ gulp.task('build-css-development', function(){
 });
 
 /**
+ * Set test env var
+ */
+gulp.task('set-development-env-var', function(){
+  return process.env.NODE_ENV = 'development';
+});
+
+/**
  * Run necessary build tasks, then watch for changes with nodemon
  */
-gulp.task('start', ['bundleAll', 'build-css-development'], function(){
+gulp.task('start', ['set-development-env-var', 'bundleAll', 'build-css-development'], function(){
   nodemon({
     script: 'app.js',
     tasks: function(changedFiles){
