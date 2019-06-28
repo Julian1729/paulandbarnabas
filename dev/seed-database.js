@@ -2,7 +2,6 @@
  * Populate data file with seed data.
  */
 const _ = require('lodash');
-const yargs = require('yargs');
 const appRoot = require('app-root-path');
 
 const models = require(`${appRoot}/models`);
@@ -17,28 +16,54 @@ const {logger, helpers} = require(`${appRoot}/utils`);
  */
 let cache = {};
 
-// parse command line arguments with args
-yargs
-  .option('seed', {
-    alias: 's',
-    describe: 'Wipe and seed database with data defined in dev/seed'
-  })
-  .help();
-// arguments
-const argv = yargs.argv;
+/**
+ * Set primary user after seed
+ */
+const setPrimaryUser = () => {
+
+  // set primary user as first user in user seed data
+  cache.primaryUser = _.find(cache.users, ['email', seedData.users[0].email]);
+  logger.info(`"${cache.primaryUser.first_name} ${cache.primaryUser.last_name}" set as primary user \nEmail: ${cache.primaryUser.email} Password: ${seedData.users[0].password}`);
+
+};
+
+/**
+ * Set primary congregation after seed
+ */
+const setPrimaryCongregation = () => {
+
+  // set primary congregation as congregation with #99499
+  cache.primaryCongregation = _.find(cache.congregations, ['number', 99499]);
+  logger.info(`"${cache.primaryCongregation.name}" #${cache.primaryCongregation.number} set as primary congregation`);
+
+};
+
+/**
+ * Set primary territory
+ */
+const setPrimaryTerritory = () => {
+
+  // find and set primary territory
+  cache.primaryTerritory = _.find(cache.territories, ['congregation', cache.primaryCongregation._id]);
+  logger.info(`Territory with id ${cache.primaryTerritory._id.toString()} attached to congregation #${cache.primaryCongregation.number}`);
+
+};
 
 const retrieveData = async () => {
 
   // retrieve seeded congregations
   cache.congregations = await models.CongregationModel.find({});
+  setPrimaryCongregation();
   // retrieve seeded users
   cache.users = await models.UserModel.find({});
+  setPrimaryUser();
   // retrieve seeded territories
   cache.territories = await models.TerritoryModel.find({});
+  setPrimaryTerritory();
 
 };
 
-var insertData = async () => {
+const insertData = async () => {
 
   // clear congregation collection
   await helpers.clearCollection(models.CongregationModel);
@@ -53,9 +78,7 @@ var insertData = async () => {
   // seed congregations
   cache.congregations = await models.CongregationModel.create(seedData.congregations);
   logger.info(`${cache.congregations.length} congregations seeded into database`);
-  // set primary congregation as congregation with #99499
-  cache.primaryCongregation = _.find(cache.congregations, ['number', 99499]);
-  logger.info(`"${cache.primaryCongregation.name}" #${cache.primaryCongregation.number} set as primary congregation`);
+  setPrimaryCongregation();
 
   // seed users
   // set congregation for users as first congregation entered
@@ -64,23 +87,20 @@ var insertData = async () => {
   });
   cache.users = await models.UserModel.create(seedData.users);
   logger.info(`${cache.users.length} users seeed into database`);
-  // set primary user as first user in user seed data
-  cache.primaryUser = _.find(cache.users, ['email', seedData.users[0].email]);
-  logger.info(`"${cache.primaryUser.first_name} ${cache.primaryUser.last_name}" set as primary user \nEmail: ${cache.primaryUser.email} Password: ${seedData.users[0].password}`);
+  setPrimaryUser();
 
   // set primary user as admin for primary congregation
   cache.primaryCongregation.admin = cache.primaryUser._id;
   cache.primaryCongregation = await cache.primaryCongregation.save();
   logger.info(`"${cache.primaryUser.first_name}" set as admin for congregation #${cache.primaryCongregation.number}`);
 
+
   // seed territories
-  // set congregation as primary congregation for primary territory (first one at 0 index)
+  // set territory congregation as primary congregation for primary territory (first one at 0 index)
   seedData.territories[0].congregation = cache.primaryCongregation._id;
   cache.territories = await models.TerritoryModel.create(seedData.territories);
   logger.info(`${cache.territories.length} territories seeded into database`);
-  // find and set primary territory
-  cache.primaryTerritory = _.find(cache.territories, ['congregation', cache.primaryCongregation._id]);
-  logger.info(`Territory with id ${cache.primaryTerritory._id.toString()} attached to congregation #${cache.primaryCongregation.number}`);
+  setPrimaryTerritory();
 
   // seed blocks and fragments
   // add 4500 and 4600 Oakland to fragment 1
@@ -113,22 +133,20 @@ var insertData = async () => {
 
 };
 
-let init = async (seed) => {
+const init = async (seed) => {
 
   logger.info(`Using database "${models[_.keys(models)[0]].db.name}"`);
 
-  if(seed){
+  if(seed === true){
     logger.info('Seeding database...');
     await insertData();
     logger.info('Database seeded');
   }else{
     logger.info('Caching seed data from db...');
     await retrieveData();
-    logger.infor('Finished caching data.');
+    logger.info('Finished caching data');
   }
 
 };
-
-if(argv.seed) return init(argv.seed);
 
 module.exports = {init, cache};

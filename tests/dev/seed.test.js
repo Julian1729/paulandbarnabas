@@ -75,4 +75,30 @@ describe('Seed', () => {
 
   });
 
+  describe('Cache', () => {
+
+    let seedData = null;
+    before(async () => {
+      // remove data from cache
+      delete require.cache[require.resolve(`${appRoot}/dev/seed-database.js`)];
+      seedData = require(`${appRoot}/dev/seed-database`);
+      expect(seedData.cache).to.be.empty;
+      // recache without seed
+      await seedData.init(false);
+    });
+
+
+    it('should have all assets and primary assets', () => {
+
+      expect(seedData.cache).to.have.property('congregations');
+      expect(seedData.cache).to.have.property('primaryCongregation');
+      expect(seedData.cache).to.have.property('users');
+      expect(seedData.cache).to.have.property('primaryUser');
+      expect(seedData.cache).to.have.property('territories');
+      expect(seedData.cache).to.have.property('primaryTerritory');
+
+    });
+
+  });
+
 });

@@ -8,6 +8,7 @@ const session = require('express-session');
 const HttpStatus = require('http-status-codes');
 
 const routes = require('./routes');
+const {logger} = require('./utils');
 const config = require('./config/config');
 const constants = require('./config/constants');
 const ajaxRouter = require('./ajax/routes/ajax-gateway-router');
@@ -22,22 +23,21 @@ yargs
   })
   .help();
 // Arguments
-var argv = yargs.argv;
-
+let argv = yargs.argv;
 
 (async argv => {
    // Seed database if in development
    if(process.env.NODE_ENV === 'development'){
-    var seed = (argv.seed || argv._[0] === 'seed');
-    await require('./dev/seed-database').init(true);
+    let seed = (argv.seed || argv._[0] === 'seed');
+    await require('./dev/seed-database').init(seed);
   }
 })(argv);
 
 /**
  * Create HTTP Server and Express
  */
-var app = express();
-var server = http.createServer(app);
+let app = express();
+let server = http.createServer(app);
 
 /**
  * Pug and View Engine
@@ -75,37 +75,37 @@ app.set('views', __dirname + '/views');
 /**
  * Express Routing
  */
- // Landing page (Login Page)
- app.use('/', routes.loginRoute);
+  // Landing page (Login Page)
+  app.use('/', routes.loginRoute);
 
-// AJAX Requests
-app.use('/ajax', ajaxRouter);
+  // AJAX Requests
+  app.use('/ajax', ajaxRouter);
 
- // Sign Up
- app.use('/createaccount', routes.createAccountRoute);
+  // Sign Up
+  app.use('/createaccount', routes.createAccountRoute);
 
- // Dashboard
- app.use('/dashboard', routes.dashboardRoute);
+  // Dashboard
+  app.use('/dashboard', routes.dashboardRoute);
 
- // Admin Panel
- app.use('/adminpanel', routes.adminPanelRoute);
+  // Admin Panel
+  app.use('/adminpanel', routes.adminPanelRoute);
 
- // User Territory CRUD
- app.use('/territory', routes.territoryRoute);
+  // User Territory CRUD
+  app.use('/territory', routes.territoryRoute);
 
- // Error Handler
- app.use((err, req, res, next) => {
+  // Error Handler
+  app.use((err, req, res, next) => {
 
-   console.error(err.stack);
+   console.error(err);
    res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
 
- });
+  });
 
-// Start express server
-server.listen(process.env.PORT, ()=>{
+  // Start express server
+  server.listen(process.env.PORT, ()=>{
 
-  console.log(`"${constants.site_name}" live on port ${process.env.PORT}`);
+    logger.info(`"${constants.site_name}" live on port ${process.env.PORT}`);
 
-});
+  });
 
 module.exports = {app, server};
