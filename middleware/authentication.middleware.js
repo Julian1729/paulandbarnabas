@@ -2,6 +2,7 @@ const appRoot = require('app-root-path');
 let HttpStatus = require('http-status-codes');
 
 let errors = require(`${appRoot}/errors`);
+let {cache} = require(`${appRoot}/dev/seed-database`);
 let {logger, Session, AjaxResponse} = require(`${appRoot}/utils`);
 
 exports.session = (req, res, next) => {
@@ -59,6 +60,18 @@ exports.admin = (req, res, next) => {
     return res.redirect('/');
   }
   next();
+
+};
+
+exports.devSessionAdmin = async (req, res, next) => {
+
+  if(process.env.NODE_ENV !== 'development') return next();
+
+
+  let session = new Session(req);
+  await session.create(cache.primaryUser);
+  logger.info(`Dev session initialized as "${cache.primaryUser.first_name} ${cache.primaryUser.last_name}" with admin abilites`);
+  return next();
 
 };
 
