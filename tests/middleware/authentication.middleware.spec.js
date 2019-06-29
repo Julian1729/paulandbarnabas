@@ -8,7 +8,7 @@ const HttpStatus = require('http-status-codes');
 const {mockResponse, mockRequest} = require('mock-req-res');
 const appRoot = require('app-root-path');
 
-const {Session, helpers} = require(`${appRoot}/utils`);
+const {Session, helpers, PBURLConstructor} = require(`${appRoot}/utils`);
 const {authentication} = require(`${appRoot}/middleware`);
 const userSeed = require(`${appRoot}/tests/seed/user.seed`);
 const sessionSeed = require(`${appRoot}/tests/seed/session.seed`);
@@ -190,6 +190,36 @@ describe('Authenticate Middleware', () => {
       expect(next).to.have.been.called;
 
       Session.prototype.create.restore();
+
+    });
+
+  });
+
+  describe('loggedInRedirect', () => {
+
+    it('should redirect to dashboard', () => {
+
+      let res = mockResponse();
+      let req = mockRequest({session: {authenticated: true}});
+      let next = sinon.stub();
+
+      authentication.loggedInRedirect(req, res, next);
+
+      expect(res.redirect).to.have.been.calledOnce;
+      expect(next).to.not.have.been.called;
+
+    });
+
+    it('should not redirect to dashboard', () => {
+
+      let res = mockResponse();
+      let req = mockRequest({session: {}});
+      let next = sinon.stub();
+
+      authentication.loggedInRedirect(req, res, next);
+
+      expect(res.redirect).to.not.have.been.called;
+      expect(next).to.have.been.calledOnce;
 
     });
 

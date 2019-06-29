@@ -4,7 +4,7 @@ let HttpStatus = require('http-status-codes');
 
 let errors = require(`${appRoot}/errors`);
 let {cache} = require(`${appRoot}/dev/seed-database`);
-let {logger, Session, AjaxResponse} = require(`${appRoot}/utils`);
+let {logger, Session, AjaxResponse, PBURLConstructor} = require(`${appRoot}/utils`);
 
 exports.session = (req, res, next) => {
 
@@ -71,6 +71,16 @@ exports.devSessionAdmin = async (req, res, next) => {
   let session = new Session(req);
   await session.create(cache.primaryUser);
   logger.info(`Dev session initialized as "${cache.primaryUser.first_name} ${cache.primaryUser.last_name}" with admin abilites`);
+  return next();
+
+};
+
+exports.loggedInRedirect = (req, res, next) => {
+
+  let session = new Session(req);
+
+  if(session.isAuthenticated() === true) return res.redirect(PBURLConstructor.getRoute('dashboard').url());
+
   return next();
 
 };
