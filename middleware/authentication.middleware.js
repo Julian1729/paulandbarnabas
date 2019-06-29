@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const appRoot = require('app-root-path');
 let HttpStatus = require('http-status-codes');
 
@@ -17,7 +18,7 @@ exports.session = (req, res, next) => {
     if(e instanceof errors.SessionUninitialized || e instanceof errors.SessionUnauthenticated){
       return res.redirect('/');
     }
-    next(e);
+    return next(e);
   }
 
   next();
@@ -36,7 +37,7 @@ exports.ajaxSession = (req, res, next) => {
     if(e instanceof errors.SessionUninitialized || e instanceof errors.SessionUnauthenticated){
       return res.status(HttpStatus.UNAUTHORIZED).send();
     }
-    next(e);
+    return next(e);
   }
 
   next();
@@ -59,14 +60,13 @@ exports.admin = (req, res, next) => {
   if(!session.isAdmin){
     return res.redirect('/');
   }
-  next();
+  return next();
 
 };
 
 exports.devSessionAdmin = async (req, res, next) => {
 
   if(process.env.NODE_ENV !== 'development') return next();
-
 
   let session = new Session(req);
   await session.create(cache.primaryUser);
@@ -80,8 +80,6 @@ exports.devSessionAdmin = async (req, res, next) => {
  * to make available to pug templates
  */
 exports.localizeSession =  (req, res, next) => {
-  let userCreds = Session.pickUserCredentials(req.session);
-  res.locals.user = userCreds;
-  req.app.locals.user = userCreds;
-  next();
+  res.locals.user = _.pick(req.session, ['first_name', 'last_name', 'user_id', 'congregation', 'isAdmin']);
+  return next();
 };

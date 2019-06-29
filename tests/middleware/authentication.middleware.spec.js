@@ -1,4 +1,5 @@
 const sinon = require('sinon');
+const _ = require('lodash');
 const chai = require('chai');
 const expect = chai.expect;
 var sinonChai = require('sinon-chai');
@@ -7,9 +8,12 @@ const HttpStatus = require('http-status-codes');
 const {mockResponse, mockRequest} = require('mock-req-res');
 const appRoot = require('app-root-path');
 
-const {Session} = require(`${appRoot}/utils`);
+const {Session, helpers} = require(`${appRoot}/utils`);
 const {authentication} = require(`${appRoot}/middleware`);
+const userSeed = require(`${appRoot}/tests/seed/user.seed`);
 const sessionSeed = require(`${appRoot}/tests/seed/session.seed`);
+const {UserModel, CongregationModel} = require(`${appRoot}/models`);
+const congregationSeed = require(`${appRoot}/tests/seed/congregation.seed`);
 
 describe('Authenticate Middleware', () => {
 
@@ -129,7 +133,7 @@ describe('Authenticate Middleware', () => {
     before(async () => {
 
       // cache database seed
-      await seedDatabase.init(false);
+      await seedDatabase.init(true);
       // og env
       ogEnv = process.env.NODE_ENV;
 
@@ -186,6 +190,48 @@ describe('Authenticate Middleware', () => {
       expect(next).to.have.been.called;
 
       Session.prototype.create.restore();
+
+    });
+
+  });
+
+  describe('localizeSession', () => {
+
+    let seedUser = null;
+
+    before(async () => {
+
+      await helpers.clearCollection(CongregationModel);
+      await helpers.clearCollection(UserModel);
+
+      let seedCongregation = await CongregationModel.create(congregationSeed.validCongregation);
+
+      let seedUserData = _.clone(userSeed.validUser);
+      seedUserData.congregation = seedCongregation._id;
+
+      seedUser = await UserModel.create(seedUserData);
+
+    });
+
+    it('should add user credentials to locals', async () => {
+
+      let res = mockResponse({locals: {}});
+      let req = mockRequest();
+      let next = sinon.stub();
+
+      // create test session w/ seed user
+      let session = new Session(req);
+
+      await session.create(seedUser);
+
+      authentication.localizeSession(req, res, next);
+
+      expect(res.locals).to.have.property('user');
+      expect(res.locals.user).to.have.property('first_name');
+      expect(res.locals.user).to.have.property('last_name');
+      expect(res.locals.user).to.have.property('user_id');
+      expect(res.locals.user).to.have.property('isAdmin');
+      expect(res.locals.user).to.have.property('congregation');
 
     });
 
