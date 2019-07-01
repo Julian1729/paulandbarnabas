@@ -5,17 +5,16 @@ const express = require('express');
 const router = express.Router({mergeParams: true});
 const appRoot = require('app-root-path');
 
-const {userMiddleware} = require(`${appRoot}/middleware`);
+const {territoryController} = require(`${appRoot}/ajax/controllers/territory`);
+const {territoryMiddleware, authenticationMiddleware} = require(`${appRoot}/middleware`);
 
-router.use(userMiddleware.findTerritory);
+router.use(territoryMiddleware.findTerritory);
 
 /**
  * Save or update territory
  */
 // FIXME: authenticate as admin
-router.post('/save-territory', () => {
-  res.status(501).send();
-});
+router.post('/save-territory', authenticationMiddleware.session, authenticationMiddleware.admin, territoryController.saveTerritory);
 
 /**
  * Save or update a fragment

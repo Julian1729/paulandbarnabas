@@ -4,8 +4,24 @@
 const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
 
-const {logger} = require(`${appRoot}/utils`);
 const errors = require(`${appRoot}/errors`);
+const {logger} = require(`${appRoot}/utils`);
+const {TerritoryModel} = require(`${appRoot}/models`);
+
+exports.findTerritory = async (req, res, next) => {
+
+  let territory = await TerritoryModel.findByCongregation(req.session.congregation);
+
+  if(!territory) throw new errors.TerritoryNotFound(`Territory for congregation with id ${req.session.congregation} not found`);
+
+  res.locals.territory = territory;
+
+  // init current object
+  res.locals.territory.current = {};
+
+  return next();
+
+};
 
 exports.findRequestedStreet = (req, res, next) => {
 

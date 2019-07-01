@@ -1,1 +1,3 @@
-exports.authentication = require('./authentication.middleware');
+exports.authenticationMiddleware = require('./authentication.middleware');
+
+exports.territoryMiddleware = require('./territory.middleware');
