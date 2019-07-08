@@ -9,7 +9,7 @@ const {mockResponse, mockRequest} = require('mock-req-res');
 const appRoot = require('app-root-path');
 
 const {Session, helpers, PBURLConstructor} = require(`${appRoot}/utils`);
-const {authentication} = require(`${appRoot}/middleware`);
+const {authenticationMiddleware} = require(`${appRoot}/middleware`);
 const userSeed = require(`${appRoot}/tests/seed/user.seed`);
 const sessionSeed = require(`${appRoot}/tests/seed/session.seed`);
 const {UserModel, CongregationModel} = require(`${appRoot}/models`);
@@ -25,7 +25,7 @@ describe('Authenticate Middleware', () => {
       let req = mockRequest({session: sessionSeed.valid});
       let next = sinon.stub();
 
-      authentication.session(req, res, next);
+      authenticationMiddleware.session(req, res, next);
       expect(res.send).to.not.have.been.called;
       expect(next).to.have.been.calledOnce;
 
@@ -37,7 +37,7 @@ describe('Authenticate Middleware', () => {
       let req = mockRequest({session: {}});
       let next = sinon.stub();
 
-      authentication.admin(req, res, next);
+      authenticationMiddleware.admin(req, res, next);
       expect(res.redirect).to.have.been.calledOnceWith('/');
 
     });
@@ -52,7 +52,7 @@ describe('Authenticate Middleware', () => {
       let req = mockRequest({session: sessionSeed.valid});
       let next = sinon.stub();
 
-      authentication.ajaxSession(req, res, next);
+      authenticationMiddleware.ajaxSession(req, res, next);
       expect(res.send).to.not.have.been.called;
       expect(next).to.have.been.calledOnce;
 
@@ -64,7 +64,7 @@ describe('Authenticate Middleware', () => {
       let req = mockRequest({});
       let next = sinon.stub();
 
-      authentication.ajaxSession(req, res, next);
+      authenticationMiddleware.ajaxSession(req, res, next);
       expect(res.status).to.have.been.calledOnce;
       expect(res.status).to.have.been.calledWith(HttpStatus.UNAUTHORIZED);
 
@@ -80,7 +80,7 @@ describe('Authenticate Middleware', () => {
       let req = mockRequest({session: sessionSeed.admin});
       let next = sinon.stub();
 
-      authentication.admin(req, res, next);
+      authenticationMiddleware.admin(req, res, next);
       expect(next).to.have.been.calledOnce;
 
     });
@@ -91,7 +91,7 @@ describe('Authenticate Middleware', () => {
       let req = mockRequest({session: sessionSeed.valid});
       let next = sinon.stub();
 
-      authentication.admin(req, res, next);
+      authenticationMiddleware.admin(req, res, next);
       expect(res.redirect).to.have.been.calledOnceWith('/');
 
     });
@@ -106,7 +106,7 @@ describe('Authenticate Middleware', () => {
       let req = mockRequest({session: sessionSeed.admin});
       let next = sinon.stub();
 
-      authentication.ajaxAdmin(req, res, next);
+      authenticationMiddleware.ajaxAdmin(req, res, next);
       expect(res.send).to.not.have.been.called;
       expect(next).to.have.been.calledOnce;
 
@@ -118,7 +118,7 @@ describe('Authenticate Middleware', () => {
       let req = mockRequest({session: sessionSeed.valid});
       let next = sinon.stub();
 
-      authentication.ajaxAdmin(req, res, next);
+      authenticationMiddleware.ajaxAdmin(req, res, next);
       expect(res.status).to.have.been.calledOnce;
       expect(res.status).to.have.been.calledWith(HttpStatus.FORBIDDEN);
 
@@ -157,7 +157,7 @@ describe('Authenticate Middleware', () => {
 
       sinon.spy(Session.prototype, 'create');
 
-      await authentication.devSessionAdmin(req, res, next);
+      await authenticationMiddleware.devSessionAdmin(req, res, next);
       expect(Session.prototype.create).to.have.been.called;
       expect(req.session).to.not.be.empty;
       expect(req.session).to.have.property('first_name');
@@ -184,7 +184,7 @@ describe('Authenticate Middleware', () => {
 
       sinon.spy(Session.prototype, 'create');
 
-      await authentication.devSessionAdmin(req, res, next);
+      await authenticationMiddleware.devSessionAdmin(req, res, next);
       expect(Session.prototype.create).to.not.have.been.called;
       expect(req).to.not.have.property('session');
       expect(next).to.have.been.called;
@@ -203,7 +203,7 @@ describe('Authenticate Middleware', () => {
       let req = mockRequest({session: {authenticated: true}});
       let next = sinon.stub();
 
-      authentication.loggedInRedirect(req, res, next);
+      authenticationMiddleware.loggedInRedirect(req, res, next);
 
       expect(res.redirect).to.have.been.calledOnce;
       expect(next).to.not.have.been.called;
@@ -216,7 +216,7 @@ describe('Authenticate Middleware', () => {
       let req = mockRequest({session: {}});
       let next = sinon.stub();
 
-      authentication.loggedInRedirect(req, res, next);
+      authenticationMiddleware.loggedInRedirect(req, res, next);
 
       expect(res.redirect).to.not.have.been.called;
       expect(next).to.have.been.calledOnce;
@@ -254,7 +254,7 @@ describe('Authenticate Middleware', () => {
 
       await session.create(seedUser);
 
-      authentication.localizeSession(req, res, next);
+      authenticationMiddleware.localizeSession(req, res, next);
 
       expect(res.locals).to.have.property('user');
       expect(res.locals.user).to.have.property('first_name');

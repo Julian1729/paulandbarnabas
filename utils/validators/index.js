@@ -1,7 +1,7 @@
 /**
  * Validators
  */
-exports.createFragmentValidator = require('./create-fragment.validator');
+exports.saveFragmentValidator = require('./save-fragment.validator');
 
 exports.createTerritoryValidator = require('./create-territory.validator');
 

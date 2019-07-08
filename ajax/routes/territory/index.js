@@ -8,13 +8,12 @@ const appRoot = require('app-root-path');
 const {territoryController} = require(`${appRoot}/ajax/controllers/territory`);
 const {territoryMiddleware, authenticationMiddleware} = require(`${appRoot}/middleware`);
 
-router.use(territoryMiddleware.findTerritory);
+router.use(territoryMiddleware.findTerritory,  authenticationMiddleware.session);
 
 /**
  * Save or update territory
  */
-// FIXME: authenticate as admin
-router.post('/save-territory', authenticationMiddleware.session, authenticationMiddleware.admin, territoryController.saveTerritory);
+router.post('/save-territory', authenticationMiddleware.admin, territoryController.createBlock);
 
 /**
  * Save or update a fragment

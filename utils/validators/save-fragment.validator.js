@@ -10,7 +10,7 @@ var CreateFragmentConstraints = {
       allowEmpty: false
     }
   },
-  'fragment.data': {
+  'fragment.blocks': {
     presence: {
       allowEmpty: false
     }

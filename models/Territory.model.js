@@ -492,6 +492,7 @@ var streets_schema = new Schema({
      * Add a hundred to street.
      * @param  {mixed} hundred Strings will be parsed into Number
      * @return {Object} New Hundred
+     * // FIXME: add option to skip existence check
      */
     streets_schema.methods.addHundred = function(hundred){
       hundred = parseInt(hundred);

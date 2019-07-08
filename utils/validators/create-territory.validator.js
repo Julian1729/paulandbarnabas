@@ -20,6 +20,10 @@ var CreateTerritoryConstraints = {
   odd_even: {
     presence: {
       allowEmpty: false
+    },
+    inclusion: {
+      within: ['odd', 'even'],
+      message: 'Please specify whether this block is odd, or even'
     }
   },
 

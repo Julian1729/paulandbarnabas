@@ -9,21 +9,26 @@ const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
 
 const errors = require(`${appRoot}/errors`);
-const {logger, helpers} = require(`${appRoot}/utils`);
+const {territoryServices} = require(`${appRoot}/services`);
 const {TerritoryModel, UserModel} = require(`${appRoot}/models`);
+const {logger, helpers, AjaxResponse} = require(`${appRoot}/utils`);
 const {CongregationNotFound, FragmentNotFound, FormValidationError} = require(`${appRoot}/errors`);
-const {createTerritoryValidator, createFragmentValidator} = require(`${appRoot}/utils/validators`);
+const {createTerritoryValidator, saveFragmentValidator} = require(`${appRoot}/utils/validators`);
 
-exports.saveTerritory = (req, res, next) => {
+/**
+ * Save new territory into congregation
+ * territory object. No units are overwritten,
+ * they are simply skipped if they already exist.
+ * OPTIMIZE: implement check if units already exist,
+ * send back request with info asking admin if
+ * they would like to overwrite.
+ */
+exports.saveBlock = async (req, res) => {
 
-  var congregationId = req.session.congregation || null;
+  let ajaxRes = new AjaxResponse(res);
+  ajaxRes.validErrors = ['FORM_VALIDATION_ERROR'];
 
-  if(congregationId === null) return helpers.ajaxResponse(res, {
-    status: HttpStatus.UNAUTHORIZED,
-    error: new errors.SessionUnauthenticated()
-  }, HttpStatus.UNAUTHORIZED);
-
-  var territoryData = helpers.collectFormData([
+  let formData = helpers.collectFormData([
     'block_hundred',
     'odd_even',
     'units',
@@ -34,107 +39,25 @@ exports.saveTerritory = (req, res, next) => {
   ], req);
 
   // consolidate street name
-  territoryData.street_name = territoryData.street || territoryData.new_street_name;
+  formData.street_name = formData.street || formData.new_street_name;
 
-  // VALIDATE INPUT
-  var validation = CreateTerritoryValidator(territoryData);
-  if(validation){
-    logger.debug('validation error\n' + JSON.stringify(validation, null, 2))
-    return helpers.ajaxResponse(res, {
-      error: new FormValidationError(validation)
-    })
+  // validate form data
+  let validationErrors = createTerritoryValidator(formData);
+  if(validationErrors){
+    return ajaxRes.error('FORM_VALIDATION_ERROR', null, {validationErrors: validationErrors}).send();
   }
 
-  // OPTIMIZE: Use and finish commented code below to send back a summary of what was updated
-  // to be display inside of success modal.
+  let territoryDoc = res.locals.territory;
 
-  // var summary = {};
-  // _.defaults(summary, {
-  //   hundred: territoryData.block_hundred,
-  //   odd_even: territoryData.odd_even
-  //   street: {
-  //     new: false,
-  //     name: null
-  //   },
-  //   fragmentassignment
-  // });
+  let newUnitCount = await territoryServices.saveBlock(territoryDoc, formData.street_name, formData.block_hundred, formData.odd_even, formData.units, (formData.fragment_unassigned === 'on' ? formData.fragment_assignment : null));
 
-  TerritoryModel.findByCongregation(congregationId)
-    // SEARCH FOR STREET IN DB, CREATE IT IF IT DOESN'T EXIST
-    .then(territory => {
-
-      // preserve references to prominent
-      // documents within territory
-      var infoObj = {
-        territory
-      };
-      // attempt to add street
-      try {
-        infoObj.street = territory.addStreet(territoryData.street_name);
-        logger.debug(`${territoryData.street_name} has been created`);
-      } catch (e) {
-        if(e instanceof errors.StreetAlreadyExists){
-          logger.debug(`${territoryData.street_name} street already exists`);
-          infoObj.street = territory.findStreet(territoryData.street_name);
-        }else{
-          throw e;
-        }
-      } finally {
-        return infoObj;
-      }
-    })
-
-    // FIND HUNDRED AND INSERT UNITS
-    .then(infoObj => {
-
-      try {
-        infoObj.hundred = infoObj.street.addHundred(territoryData.block_hundred);
-        logger.debug(`${territoryData.block_hundred} of ${infoObj.street.name} created`);
-      } catch (e) {
-        if(e instanceof errors.HundredAlreadyExists){
-          infoObj.hundred = infoObj.street.findHundred(territoryData.block_hundred);
-          logger.debug(`${territoryData.block_hundred} of ${infoObj.street.name} exists`);
-        }else{
-          throw e;
-        }
-      } finally {
-        infoObj.block = infoObj.hundred[territoryData.odd_even];
-        infoObj.hundred.addUnits(territoryData.units, {skipDuplicates: true});
-        return infoObj;
-      }
-
-    })
-    // UPDATE FRAGMENT ASSIGNMENT
-    .then(infoObj => {
-      // assign block to fragment if the "leave fragment unassigned" button is not checked
-      if(territoryData.fragment_unassigned !== "on"){
-        var fragment = infoObj.territory.findFragment(territoryData.fragment_assignment);
-        fragment.assignBlocks([infoObj.block._id], infoObj.territory);
-        logger.debug(`Block assigned to fragment #${territoryData.fragment_assignment}`);
-      }else{
-        logger.debug(`Block left unassigned`);
-      }
-      return infoObj.territory.save();
-    })
-    .then(territory => {
-      return helpers.ajaxResponse(res);
-    })
-    .catch(e => {
-      if(e instanceof CongregationNotFound || e instanceof FragmentNotFound){
-        return helpers.ajaxResponse(res, {
-          error: e
-        });
-      }else{
-        logger.debug(e.stack);
-        return helpers.ajaxResponse(res, {
-          status: 500
-        });
-      }
-    });
+  ajaxRes.data('units_created', newUnitCount);
+  if(formData.fragment_assignment) ajaxRes.data('fragment_assignment', formData.fragment_assignment);
+  return ajaxRes.send();
 
 };
 
-exports.getStreetStats = (req, res, next) => {
+exports.getStreetStats = (req, res) => {
 
 
   // var congregationId = dev.congregationId; // FIXME: this should come from session
@@ -178,7 +101,7 @@ exports.getStreetStats = (req, res, next) => {
 
 };
 
-exports.getFragments = (req, res, next) => {
+exports.getFragments = (req, res) => {
 
   // var congregationId = dev.congregationId; // FIXME: this should come from session
   var congregationId = req.session.congregation;
@@ -197,7 +120,7 @@ exports.getFragments = (req, res, next) => {
 
 };
 
-exports.getStreets = (req, res, next) => {
+exports.getStreets = (req, res) => {
 
   // var congregationId = dev.congregationId; // FIXME: this should come from session
   var congregationId = req.session.congregation;
@@ -225,78 +148,33 @@ exports.getStreets = (req, res, next) => {
 
 };
 
-exports.saveFragment = (req, res, next) => {
+/**
+ * Save or create a fragment on
+ * territory object.
+ */
+exports.saveFragment = async (req, res) => {
 
-  var congregation = req.session.congregation;
-  var fragmentFormData = req.body;
-  // fragmentFormData e.g
-    // "fragment": {
-    //   "number": "34",
-    //   "assignment": "5c5a640585445f61eaf2147d",
-    //   "data": [
-    //     {
-    //       "name": "Wakeling",
-    //       "blocks": [
-    //         {
-    //           "hundred": 1200,
-    //           "odd_even": "odd",
-    //           "id": "5c5a640585445f61eaf21493"
-    //         },
-    //         {
-    //           "hundred": 1200,
-    //           "odd_even": "even",
-    //           "id": "5c5a640585445f61eaf2149e"
-    //         }
-    //       ]
-    //     }
-    //   ]
-    // }
+  let ajaxRes = new AjaxResponse(res);
+  ajaxRes.validErrors = ['FORM_VALIDATION_ERROR'];
 
-  // validate fragment
-  var validation = CreateFragmentValidator(fragmentFormData);
+  // validate fragment form data
+  let validation = saveFragmentValidator(req.body);
   if(validation){
-    return helpers.ajaxResponse(res, {
-      error: new FormValidationError(validation)
-    });
+    return ajaxRes.error('FORM_VALIDATION_ERROR', null, {validationErrors: validation}).send();
   }
 
-  // climb down excess "fragment" object
-  fragmentData = fragmentFormData.fragment;
+  let fragmentData = req.body.fragment;
+  let territoryDoc = res.locals.territory;
+  let fragment = await territoryServices.saveFragment(territoryDoc, fragmentData.number, fragmentData.blocks, fragmentData.assignment);
 
-  // create fragment
-  TerritoryModel.findByCongregation(congregation)
-    .then(territory => {
-      // CREATE FRAGMENT
-      // WARNING: fragment is automatically added
-      // with overwrite param, to optimize, ask user to
-      // if they would like to overwrite
-      var fragment = territory.addFragment(fragmentData.number, {overwriteFragment: true});
-      // ASSIGN BLOCKS
-      var blockIds = [];
-      fragmentData.data.forEach(street => {
-        street.blocks.forEach(block => blockIds.push(block.id));
-      });
-      // WARNING: if the auto overwrite option is removed
-      // assign blocks can possibly throw BlocksAlreadyAssignedToFragment
-      fragment.assignBlocks(blockIds, territory, {overwriteAssignments: true});
-      // check for fragment holder assignment
-      if(fragmentData.assignment && ObjectId.isValid(fragmentData.assignment)){
-        fragment.assignHolder(fragmentData.assignment);
-      }
-      return territory.save();
-    })
-    .then(territory => {
-      // all done!
-      return helpers.ajaxResponse(res);
-    })
-    .catch(e => {
-      throw e;
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    });
+  let fragmentSummary = {number: fragment.number, blocks: fragmentData.blocks.length};
+  if(fragmentData.assignment) fragmentSummary.assignedTo = fragmentData.assignment;
+  ajaxRes.data('fragment', fragmentSummary);
+  ajaxRes.send();
 
 };
 
-exports.getUnassignedFragments = (req, res, next) => {
+exports.getUnassignedFragments = (req, res) => {
 
   var congregation = req.session.congregation;
 
@@ -367,7 +245,7 @@ exports.getUnassignedFragments = (req, res, next) => {
 
 };
 
-exports.getAssignedFragments = (req, res, next) => {
+exports.getAssignedFragments = (req, res) => {
 
     var congregation = req.session.congregation;
     var user_id = req.body.user_id;
