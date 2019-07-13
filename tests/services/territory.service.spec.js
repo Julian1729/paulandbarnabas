@@ -7,8 +7,10 @@ chai.use(sinonChai);
 const appRoot = require('app-root-path');
 
 const {helpers} = require(`${appRoot}/utils`);
-const {TerritoryModel} = require(`${appRoot}/models`);
+const {StreetNotFound, FragmentNotFound} = require(`${appRoot}/errors`);
 const {territoryServices} = require(`${appRoot}/services`);
+const userSeed = require(`${appRoot}/tests/seed/user.seed`);
+const {TerritoryModel, UserModel} = require(`${appRoot}/models`);
 
 describe('Territory Service', () => {
 
@@ -86,6 +88,98 @@ describe('Territory Service', () => {
       let newFragment = seedTerritory.findFragment(2);
       expect(newFragment).to.exist;
       expect(newFragment.holder().toString()).to.equal(userAssignmentId.toString());
+
+    });
+
+  });
+
+  describe('streetStats', () => {
+
+    it('should return street stats', () => {
+
+      // add street
+      let seedStreet = seedTerritory.addStreet('Overington', {skipExistenceCheck: true});
+      let seedHundred1 = seedStreet.addHundred(1200);
+      // enter 4 units
+      let seedUnits1 = seedHundred1.addUnits([{number: 1202}, {number: 1204}, {number: 1205}, {number: 1206, subunits: ['Apt 1', 'Apt 2']}]);
+      let seedHundred2 = seedStreet.addHundred(1300);
+      // enter 2 units
+      let seedUnits2 = seedHundred2.addUnits([{number: 1302}, {number: 1204}]);
+      let stats = territoryServices.streetStats(seedTerritory, 'Overington');
+      expect(stats).to.eql(
+        {
+          totals: {
+            hundreds: 2,
+            units: 6
+          },
+          hundreds: {
+            '1200': {
+              even_count: 3,
+              odd_count: 1
+            },
+            '1300': {
+              even_count: 2,
+              odd_count: 0
+            }
+          }
+        }
+      );
+
+    });
+
+    it('should throw StreetNotFound', () => {
+
+      try {
+        territoryServices.streetStats(seedTerritory, 'Oakland');
+        throw 'should have thrown StreetNotFound';
+      } catch (e) {
+        expect(e instanceof StreetNotFound).to.be.true;
+      }
+
+    });
+
+  });
+
+  describe('fragmentStats', () => {
+
+    let seedFragment = null;
+    let seedUser = null;
+
+    beforeEach(async () => {
+
+      await helpers.clearCollection(UserModel);
+      seedUser = await UserModel.create(userSeed.validUser);
+      seedFragment = seedTerritory.addFragment(35);
+      // enter 3 ids as block ids
+      seedFragment.assignBlocks([new ObjectId(), new ObjectId(), new ObjectId()], seedTerritory);
+      seedFragment.assignHolder(seedUser._id);
+
+
+    });
+
+    it('should get fragment stats', async () => {
+
+      let stats = await territoryServices.fragmentStats(seedTerritory, 35);
+      expect(stats).to.eql({
+        number: 35,
+        blocks: 3,
+        holder: {
+          name: `${seedUser.first_name} ${seedUser.last_name}`,
+          title: seedUser.title,
+          id: seedUser._id.toString()
+        }
+      });
+
+    });
+
+    it('should throw FragmentNotFound', async () => {
+
+      try{
+        await territoryServices.fragmentStats(seedTerritory, 48);
+        throw 'should have thrown FragmentNotFound';
+      }catch(e){
+        expect(e instanceof FragmentNotFound).to.be.true;
+      }
 
     });
 

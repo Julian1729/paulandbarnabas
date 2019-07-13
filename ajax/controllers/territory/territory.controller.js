@@ -59,92 +59,83 @@ exports.saveBlock = async (req, res) => {
 
 exports.getStreetStats = (req, res) => {
 
+  let ajaxRes = new AjaxResponse(res);
+  ajaxRes.validErrors = ['STREET_NOT_FOUND'];
 
-  // var congregationId = dev.congregationId; // FIXME: this should come from session
-  var congregationId = req.session.congregation;
-  var streetToFind = req.body.street;
-  // store street statistics {hundred: 4500, unit_counts: {odd: 10, even: 0}}
-  var stats = [];
-  // find blocks
-  TerritoryModel.findByCongregation(congregationId)
-    .then(territory => {
-      var street = territory.findStreet(streetToFind);
-      // loop through hundreds
-      street.hundreds.forEach(h => {
-        var statObj = {hundred: null, unit_counts: {odd: 0, even: 0}};
-        statObj.hundred = h.hundred;
-        statObj.unit_counts.odd = h.odd.units.length;
-        statObj.unit_counts.even = h.even.units.length;
-        statObj.odd_id = h.odd._id;
-        statObj.even_id = h.even._id;
-        stats.push(statObj);
-      });
-      return helpers.ajaxResponse(res, {
-        data: stats
-      });
-
-    })
-    .catch(e => {
-
-      if(e instanceof errors.StreetNotFound){
-        return helpers.ajaxResponse(res, {
-          status: 500,
-          error: e
-        });
-      }else{
-        return helpers.ajaxResponse(res, {
-          status: 500
-        });
-      }
-
-    });
+  let streetName = req.params.street_name;
+  let stats = null;
+  try {
+    stats = territoryServices.streetStats(res.locals.territory, streetName);
+  } catch (e) {
+    if(e instanceof errors.StreetNotFound){
+      return ajaxRes.error('STREET_NOT_FOUND', `"${streetName}" not found in congregation's territory`).send();
+    }else{
+      throw e;
+    }
+  }
+  return ajaxRes.data('stats', stats).send();
 
 };
 
-exports.getFragments = (req, res) => {
+exports.getFragmentStats = async (req, res) => {
 
-  // var congregationId = dev.congregationId; // FIXME: this should come from session
-  var congregationId = req.session.congregation;
+  let ajaxRes = new AjaxResponse(res);
+  ajaxRes.validErrors = ['FRAGMENT_NOT_FOUND'];
 
-  TerritoryModel.findOne({congregation: congregationId}, 'fragments')
-    .then(result => {
-      return helpers.ajaxResponse(res, {
-        data: result.fragments
-      });
-    })
-    .catch(e => {
-      return helpers.ajaxResponse(res, {
-        status: 500
-      });
-    })
+  let fragmentNumber = req.params.fragment_number;
+
+  let stats = null;
+  try{
+    stats = await territoryServices.fragmentStats(res.locals.territory, fragmentNumber);
+  }catch(e){
+    if(e instanceof errors.FragmentNotFound){
+      return ajaxRes.error('FRAGMENT_NOT_FOUND', `Fragment #${fragmentNumber} not found in congregation's territory.`).send();
+    }else{
+      throw e;
+    }
+  }
+  return ajaxRes.data('stats', stats).send();
 
 };
 
-exports.getStreets = (req, res) => {
+/**
+ * Respond with stats for all
+ * fragments in the congregations territory
+ */
+exports.getAllFragmentStats = async (req, res) => {
 
-  // var congregationId = dev.congregationId; // FIXME: this should come from session
-  var congregationId = req.session.congregation;
+  let ajaxRes = new AjaxResponse(res);
 
-  // find streets
-  TerritoryModel.findByCongregation(congregationId)
-    .then(territory => {
-      return helpers.ajaxResponse(res, {
-        data: territory.streets
-      });
-    })
-    .catch(e => {
-      if(e instanceof errors.TerritoryNotFound){
-        return helpers.ajaxResponse(res, {
-          status: 500,
-          error: e
-        });
-      }
+  let stats = [];
+  // loop through all fragments and call stat service
+  for(let fragment of res.locals.territory.fragments){
+    let fragmentStats = await territoryServices.fragmentStats(res.locals.territory, fragment.number);
+    stats.push(fragmentStats);
+  }
 
-      return helpers.ajaxResponse(res, {
-        status: 500
-      });
+  return ajaxRes.data('fragments', stats).send();
 
-    });
+};
+
+/**
+ * Respond with stats for all
+ * all streets in congregations territory
+ * OPTIMIZE: this logic could be extracted and made
+ * into a teritory service
+ */
+exports.getAllStreetStats = (req, res) => {
+
+  let ajaxRes = new AjaxResponse(res);
+
+  let stats = [];
+  // loop through all streets in territory and get stats
+  for (let street of res.locals.territory.streets) {
+    let streetStats = territoryServices.streetStats(res.locals.territory, street.name);
+    streetStats.name = street.name;
+    stats.push(streetStats);
+  }
+
+  return ajaxRes.data('streets', stats).send();
 
 };
 
@@ -171,139 +162,5 @@ exports.saveFragment = async (req, res) => {
   if(fragmentData.assignment) fragmentSummary.assignedTo = fragmentData.assignment;
   ajaxRes.data('fragment', fragmentSummary);
   ajaxRes.send();
-
-};
-
-exports.getUnassignedFragments = (req, res) => {
-
-  var congregation = req.session.congregation;
-
-  if(!congregation){
-    return res.status(HttpStatus.UNAUTHORIZED).send();
-  }
-
-  // query for fragments with empty assignment_history or last element "to" = null
-  TerritoryModel.aggregate([
-    {
-      "$match": {
-        "congregation": ObjectId("5c69fc84a38f454a4e8687ab")
-      }
-    },
-    {
-      "$limit": 1
-    },
-    {
-      "$unwind": {
-        "path": "$fragments"
-      }
-    },
-    {
-      "$match": {
-        "$or": [
-          {
-            "fragments.assignment_history.to": null
-          },
-          {
-            "fragments.assignment_history.to": {
-              "$exists": false
-            }
-          }
-        ]
-      }
-    },
-    {
-      "$project": {
-        "fragments.number": 1,
-        "fragments._id": 1,
-        "fragments.assignment_history": {
-          "$slice": ["$fragments.assignment_history", -1]
-        },
-        "size": {"$size":"$fragments.blocks"}
-      }
-    },
-
-  ])
-  .then(r => {
-    // loop through returned and grab only needed information
-    // OPTIMIZE: there has to be a way I can do this with aggregation
-    // e.g. [ {id: ObjectId('asdfasdf'), number: 3}, ... ]
-    var fragments = [];
-    r.forEach(d => {
-      fragments.push({
-        id: d.fragments._id,
-        number: d.fragments.number,
-        block_count: d.size
-      });
-    });
-    helpers.ajaxResponse(res, {
-      data: fragments
-    })
-  })
-  .catch(e => {
-    console.log(e);
-  });
-
-};
-
-exports.getAssignedFragments = (req, res) => {
-
-    var congregation = req.session.congregation;
-    var user_id = req.body.user_id;
-
-    if(!congregation || !user_id){
-      return res.status(HttpStatus.UNAUTHORIZED).send();
-    }
-
-    // query for fragments with empty assignment_history or last element "to" = null
-    TerritoryModel.aggregate([
-      {
-        "$match": {
-          "congregation": ObjectId("5c69fc84a38f454a4e8687ab")
-        }
-      },
-      {
-        "$limit": 1
-      },
-      {
-        "$unwind": {
-          "path": "$fragments"
-        }
-      },
-      {
-        "$project": {
-          "fragments.number": 1,
-          "fragments._id": 1,
-          "fragments.assignment_history": {
-            "$slice": ["$fragments.assignment_history", -1]
-          },
-          "size": {"$size":"$fragments.blocks"}
-        }
-      },
-      {
-        "$match": {
-          "fragments.assignment_history.to": ObjectId("5c69fc84a38f454a4e8687ac")
-        }
-      }
-    ])
-    .then(r => {
-      // loop through returned and grab only needed information
-      // OPTIMIZE: there has to be a way I can do this with aggregation
-      // e.g. [ {id: ObjectId('asdfasdf'), number: 3}, ... ]
-      console.log(r);
-      var fragments = [];
-      r.forEach(d => {
-        fragments.push({
-          id: d.fragments._id,
-          number: d.fragments.number,
-          block_count: d.size
-        });
-      });
-      helpers.ajaxResponse(res, {
-        data: fragments
-      })
-    })
-    .catch(e => {
-      console.log(e);
-    });
 
 };

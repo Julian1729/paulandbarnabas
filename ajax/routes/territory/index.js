@@ -8,56 +8,39 @@ const appRoot = require('app-root-path');
 const {territoryController} = require(`${appRoot}/ajax/controllers/territory`);
 const {territoryMiddleware, authenticationMiddleware} = require(`${appRoot}/middleware`);
 
-router.use(territoryMiddleware.findTerritory,  authenticationMiddleware.session);
+router.use(authenticationMiddleware.session, territoryMiddleware.findTerritory);
 
 /**
  * Save or update territory
  */
-router.post('/save-territory', authenticationMiddleware.admin, territoryController.createBlock);
+router.post('/save-territory', authenticationMiddleware.admin, territoryController.saveBlock);
 
 /**
  * Save or update a fragment
  */
-// FIXME: authenticate as admin
-router.post('/save-fragment', () => {
-  res.status(501).send();
-});
+router.post('/save-fragment', authenticationMiddleware.admin, territoryController.saveFragment);
 
 /**
- * List all streets found in territory
+ * Get list with statistics
+ * of all streets in territory
  */
-router.get('/list/streets', () => {
-  res.status(501).send();
-});
+router.get('/list/streets', territoryController.getAllStreetStats);
 
 /**
- * List all streets found in territory
+ * Get list with statistics of
+ * all fragments found in territory
  */
-router.get('/list/fragments', () => {
-  res.status(501).send();
-});
+router.get('/list/fragments', territoryController.getAllFragmentStats);
 
 /**
  * Get fragment stats
  */
-router.get('/fragment/:fragment_number/stats', () => {
-  res.status(501).send();
-});
+router.get('/fragment/:fragment_number/stats', territoryController.getFragmentStats);
 
 /**
  * Get street stats
  */
-router.get('/street/:street_name/stats', () => {
-  res.status(501).send();
-});
-
-/**
- * Add units to hundred
- * // FIXME: is this needed? is it ever used?
- */
-// router.use('/street/:street_name/hundred/:hundred/add-units', () => {
-//   res.status(501).send();
-// });
+router.get('/street/:street_name/stats', territoryController.getStreetStats);
 
 /**
  * Delegate to block router

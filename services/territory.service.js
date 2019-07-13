@@ -6,6 +6,7 @@ const appRoot = require('app-root-path');
 
 const errors = require(`${appRoot}/errors`);
 const {logger} = require(`${appRoot}/utils`);
+const {UserModel} = require(`${appRoot}/models`);
 
 /**
  * Add units to block, create street and block if
@@ -61,6 +62,15 @@ exports.saveBlock = async (territoryDoc, streetName, hundredNumber, oddOrEven, n
 
 };
 
+/**
+ * Save or update a fragment with new blocks and
+ *  optionally a new user assignment.
+ * @param  {Object}  territoryDoc   Territory document from db
+ * @param  {Number}  fragmentNumber Fragment unique number
+ * @param  {Array}  blockIds       Ids of blocks to add to fragment
+ * @param  {mixed}  userAssignment ObjectId or string User Id to assign block to
+ * @return {Object}                 New or updated fragment
+ */
 exports.saveFragment = async (territoryDoc, fragmentNumber, blockIds, userAssignment) => {
 
   // search for fragment
@@ -88,3 +98,70 @@ exports.saveFragment = async (territoryDoc, fragmentNumber, blockIds, userAssign
   return fragment;
 
 };
+
+/**
+ * Breakdown of statistics of street
+ * @param  {Object} territoryDoc Territory document from db
+ * @param  {String} streetName   Exact Street name
+ * @return {Object}              Object with stats
+ */
+exports.streetStats = (territoryDoc, streetName) => {
+
+  let street = territoryDoc.findStreet(streetName);
+  let stats = {
+    totals: {
+      hundreds: null,
+      units: null,
+    },
+    hundreds: {},
+  };
+  // set stats on object
+  // set total hundred count
+  stats.totals.hundreds = street.hundreds.length;
+  // begin hundred stat collection
+  for (let hundred of street.hundreds) {
+    stats.hundreds[hundred.hundred] = {
+      even_count: hundred.even.units.length,
+      odd_count: hundred.odd.units.length,
+    };
+    // add hundred unit count to totals
+    stats.totals.units += (hundred.even.units.length + hundred.odd.units.length);
+  }
+
+  return stats;
+
+};
+
+/**
+ * Breakdown of fragment statistics
+ * @param  {Object}  territoryDoc  Territory document from db
+ * @param  {mixed}  fragmentNumber Number or string fragment number
+ * @return {Object}                Fragment statistics
+ */
+exports.fragmentStats = async (territoryDoc, fragmentNumber) => {
+
+  let fragment = territoryDoc.findFragment(fragmentNumber);
+
+  let stats = {
+    number: fragment.number,
+    blocks: fragment.blocks.length,
+    holder: null,
+  };
+
+  let currentHolder = fragment.holder();
+
+  if(currentHolder){
+    // get holder name and title
+    let user = await UserModel.findById(currentHolder);
+    if(user){
+      stats.holder = {
+        name: `${user.first_name} ${user.last_name}`,
+        title: user.title,
+        id: user._id.toString()
+      };
+    }
+  }
+
+  return stats;
+
+}
