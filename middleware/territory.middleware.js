@@ -8,6 +8,10 @@ const errors = require(`${appRoot}/errors`);
 const {logger} = require(`${appRoot}/utils`);
 const {TerritoryModel} = require(`${appRoot}/models`);
 
+/**
+ * Find and load user territory
+ * to be used on route
+ */
 exports.findTerritory = async (req, res, next) => {
 
   let territory = await TerritoryModel.findByCongregation(req.session.congregation);
@@ -16,87 +20,95 @@ exports.findTerritory = async (req, res, next) => {
 
   res.locals.territory = territory;
 
-  // init current object
-  res.locals.territory.current = {};
+  // init collected object to hold collected territory assets
+  res.locals.collected = {};
 
   return next();
 
-};
-
-exports.findRequestedStreet = (req, res, next) => {
-
-  let territory = req.app.locals.territory;
-  let street = null;
-  try{
-    street = territory.territory.findStreet(req.params.street_name);
-    territory.current.street = street;
-    logger.debug(`Street ${req.params.street_name} found`);
-  }catch(e){
-    if(e instanceof errors.StreetNotFound){
-      console.log(e.stack);
-      logger.debug(`Street ${req.params.street_name} not found`);
-      return res.status(HttpStatus.NOT_FOUND).send();
-    }
-    console.log(e.stack);
-    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-  }
-  return next();
-
-};
-
-exports.findRequestedHundred = (req, res, next) => {
-
-  let territory = req.app.locals.territory;
-  let street = req.app.locals.territory.current.street;
-  let hundred = null;
-
-  let reqHundred = req.params.hundred;
-
-  // attempt to find hundred
-  try {
-    hundred = street.findHundred(reqHundred);
-    logger.debug(`Found ${reqHundred} hundred of ${street.name}`);
-    // attach to locals
-    territory.current.hundred = hundred;
-    return next();
-  } catch (e) {
-    if(e instanceof errors.HundredNotFound){
-      logger.debug(`${reqHundred} not found in ${street.name}`);
-      return res.send(HttpStatus.NOT_FOUND).send();
-    }else{
-      console.log(e.stack);
-      // delegate to main error handler
-      throw e;
-    }
-  }
 };
 
 /**
- * Find requested unit
+ * Find and load the street requested
+ * in url and attach to collection
  */
-exports.findUnit = function(req, res, next){
+exports.findRequestedStreet = (req, res, next) => {
 
-  let territory = req.app.locals.territory;
-  let hundred = territory.current.hundred;
+  let territory = res.locals.territory;
+  let requestedStreetName = req.params.street_name;
 
-  let reqUnit = req.params.unit_number;
-
-  let unit = null;
-
-  try {
-    unit = hundred.findUnit(reqUnit);
-    logger.debug(`Unit ${unit.number} found`);
-  } catch (e) {
-    if(e instanceof errors.UnitNotFound){
+  let street = null;
+  try{
+    street = territory.findStreet(requestedStreetName);
+    res.locals.collected.street = street;
+    logger.verbose(`collected "${street.name}" street`);
+  }catch(e){
+    if(e instanceof errors.StreetNotFound){
+      logger.verbose(`street "${req.params.street_name}" not found`);
       return res.status(HttpStatus.NOT_FOUND).send();
     }else{
-      console.log(e.stack);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+      throw e;
+    }
+  }
+
+  return next();
+
+};
+
+/**
+ * Find and load requested street hundred
+ * in url and attach to route collection
+ */
+exports.findRequestedHundred = (req, res, next) => {
+
+  let territory = res.locals.territory;
+  let street = res.locals.collected.street;
+  let requestedHundred = req.params.hundred;
+
+  let hundred = null;
+  try {
+    hundred = street.findHundred(requestedHundred);;
+    logger.verbose(`collected ${requestedHundred} hundred of ${street.name}`);
+  } catch (e) {
+    if(e instanceof errors.HundredNotFound){
+      logger.verbose(`${requestedHundred} hundred not found in ${street.name}`);
+      return res.status(HttpStatus.NOT_FOUND).send();
+    }else{
+      throw e;
+    }
+  }
+
+  res.locals.collected.hundred = hundred;
+
+  return next();
+
+};
+
+/**
+ * Find and load requested unit
+ * un url and attach to route collection
+ */
+exports.findRequestedUnit = function(req, res, next){
+
+  let territory = res.locals.territory;
+  let hundred = res.locals.collected.hundred;
+
+  let requestedUnitNumber = req.params.unit_number;
+
+  let unit = null;
+  try {
+    unit = hundred.findUnit(requestedUnitNumber);
+    logger.verbose(`collected unit ${unit.number}`);
+  } catch (e) {
+    if(e instanceof errors.UnitNotFound){
+      logger.verbose(`unit ${requestedUnitNumber} not found in ${hundred.hundred} ${res.locals.collected.street.name}`);
+      return res.status(HttpStatus.NOT_FOUND).send();
+    }else{
+      throw e;
     }
   }
 
   // attach to locals
-  territory.current.unit = unit;
+  res.locals.collected.unit = unit;
 
   return next();
 
@@ -106,48 +118,51 @@ exports.findUnit = function(req, res, next){
  * If subunit query param is passed in with name,
  * find subunit and attach to locals
  */
-exports.findSubunit = function(req, res, next){
+exports.findRequestedSubunit = function(req, res, next){
 
-  let reqSubunit = req.query.subunit || null;
+  let requestedSubunitName = req.query.subunit || null;
 
-  if(!reqSubunit) return next();
+  if(!requestedSubunitName) return next();
 
-  let territory = req.app.locals.territory;
-  let unit = territory.current.unit;
+  let territory = res.locals.territory;
+  let unit = res.locals.collected.unit;
 
   let subunit = null;
-
   try {
-    subunit = unit.findSubunit(reqSubunit);
-    logger.debug(`Subunit ${subunit.name} found`);
+    subunit = unit.findSubunit(requestedSubunitName);
+    logger.verbose(`collected subunit "${subunit.name}"`);
   } catch (e) {
     if(e instanceof errors.SubunitNotFound){
+      logger.verbose(`subunit "${requestedSubunitName}" not found in ${unit.number} ${res.locals.collected.street.name}`);
       return res.status(HttpStatus.NOT_FOUND).send();
     }else{
-      console.log(e.stack);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+      throw e;
     }
   }
 
   // attach to locals
-  territory.current.subunit = subunit;
+  res.locals.collected.subunit = subunit;
 
   return next();
 
 };
 
-exports.findBlock = (req, res, next) =>{
+exports.findRequestedBlock = (req, res, next) =>{
 
-  let territory = req.app.locals.territory;
-  let reqBlock = req.params.side;
+  let territory = res.locals.territory;
+  let hundred = res.locals.collected.hundred;
+  let requestedBlockSide = req.params.side;
+
   // make sure that req.param.block equals "odd" or "even"
-  if(!reqBlock || !(reqBlock === 'odd' || reqBlock === 'even')){
-    logger.debug(`${reqBlock} must equal "odd" or "even"`);
+  if(!requestedBlockSide || !(requestedBlockSide === 'odd' || requestedBlockSide === 'even')){
+    logger.verbose(`${requestedBlockSide} must equal "odd" or "even"`);
     return res.status(HttpStatus.NOT_ACCEPTABLE).send();
   }
-  let block = territory.current.hundred[reqBlock];
-  // attach to locals
-  territory.current.block = block;
-  logger.debug(`${block.hundred} hundred found`);
+
+  let block = hundred[requestedBlockSide];
+  res.locals.collected.block = block;
+  logger.verbose(`collected ${requestedBlockSide} side of ${res.locals.collected.hundred.hundred} ${res.locals.collected.street.name}`);
+
   return next();
+
 };

@@ -77,6 +77,8 @@ exports.getStreetStats = (req, res) => {
 
 };
 
+// OPTIMIZE: extract the loading of framgent into middleware
+// to be used in future fragment routes
 exports.getFragmentStats = async (req, res) => {
 
   let ajaxRes = new AjaxResponse(res);

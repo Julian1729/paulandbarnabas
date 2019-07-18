@@ -6,7 +6,10 @@ const express = require('express');
 const router = express.Router({mergeParams: true});
 const appRoot = require('app-root-path');
 
+const {territoryMiddleware} = require(`${appRoot}/middleware`);
 const {unitController} = require(`${appRoot}/ajax/controllers`);
+
+router.use(territoryMiddleware.findRequestedUnit, territoryMiddleware.findRequestedSubunit);
 
 // Visits
 router.post('/visit/add', unitController.addVisit);
