@@ -215,18 +215,19 @@ const {helpers, logger} = require(`${appRoot}/utils`);
   }
 
   function addTag(tag){
-    // check for duplicate tag in array
-    let tagExists = this.tags.indexOf(tag);
-    if(tagExists !== -1){
-      return logger.debug(`${tag} already exists`);
-    }
     // add tag to array
     this.tags.push(tag);
-    logger.debug(`"${tag}" tag added`);
+    let formattedTag = _.last(this.tags);
+
+    if(this.tags.length > 1 && _.lastIndexOf(this.tags, formattedTag, (this.tags.length - 2)) !== -1){
+      // tag already exists remove and return tag
+      return this.tags.pop();
+    }
+    
+    return formattedTag;
   }
 
   function removeTag(tag){
-    logger.debug(`Removing "${tag}" tag`);
     return this.tags.pull(tag);
   }
 

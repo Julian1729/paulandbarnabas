@@ -491,7 +491,7 @@ describe('Territory Model', () => {
 
           });
 
-          it('should add tag to 4500 oakland', (done) => {
+          it('should add and return tag tag added to 4500 oakland', (done) => {
 
             var testTerritory = TerritoryModel(seed.territory.completed);
             testTerritory.save()
@@ -499,7 +499,8 @@ describe('Territory Model', () => {
                 let street = territory.findStreet('Oakland');
                 let hundred = street.findHundred(4500);
                 let odd = hundred.odd;
-                odd.addTag('Low steps');
+                let newTag = odd.addTag('Low steps');
+                expect(newTag).to.eql('low steps');
                 expect(odd.tags).to.include('low steps');
                 return done();
               })
@@ -1065,7 +1066,8 @@ describe('Territory Model', () => {
               let street = territory.findStreet('Oakland');
               let hundred = street.findHundred(4500);
               let unit = hundred.findUnit(4502);
-              unit.addTag('Low steps');
+              let newTag = unit.addTag('Low steps');
+              expect(newTag).to.eql('low steps');
               expect(unit.tags).to.include('low steps');
               return done();
             })
@@ -1090,16 +1092,19 @@ describe('Territory Model', () => {
               // add tags
               var unit = hundred.findUnit(4506);
               unit.addTag('low steps');
+              unit.addTag('no trespassing');
               expect(unit.tags).include('low steps');
+              expect(unit.tags).include('no trespassing');
               return territory.save();
             })
             .then(territory => {
               var street = territory.findStreet('Oakland');
               var hundred = street.findHundred(4500);
               var unit = hundred.findUnit(4506);
-              unit.addTag('low steps');
+              let newTag = unit.addTag('Low steps');
+              expect(newTag).to.eql('low steps')
               expect(unit.tags).to.include('low steps');
-              expect(unit.tags).to.have.lengthOf(1);
+              expect(unit.tags).to.have.lengthOf(2);
               return done();
             })
             .catch(e => done(e));
