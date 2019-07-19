@@ -48,7 +48,7 @@ exports.removeTag = async (req, res) => {
 
 };
 
-exports.markWorked = (req, res) => {
+exports.markWorked = async (req, res) => {
 
   let territoryDoc = res.locals.territory;
   let block = res.locals.collected.block;

@@ -156,6 +156,13 @@ let seedTerritory = null;
 
       it('should respond with MISSING_TAG error', async () => {
 
+        // add seeded block
+        let seedStreet = seedTerritory.addStreet('Oakland');
+        let seedHundred = seedStreet.addHundred(4500);
+        seedHundred.addUnits([{number: 4500}, {number: 4502}]);
+        seedHundred.even.addTag('low steps');
+        await seedTerritory.save();
+
         await authenticatedSession
           .post('/ajax/territory/street/Oakland/hundred/4500/even/tag/remove')
           .expect(200)
@@ -170,13 +177,12 @@ let seedTerritory = null;
 
     describe('POST /worked', () => {
 
-      it('should mark block as worked', () => {
+      it('should mark block as worked', async () => {
 
         // add seeded block
         let seedStreet = seedTerritory.addStreet('Oakland');
         let seedHundred = seedStreet.addHundred(4500);
         seedHundred.addUnits([{number: 4500}, {number: 4502}]);
-        seedHundred.even.addTag('low steps');
         await seedTerritory.save();
 
         await authenticatedSession
@@ -184,7 +190,9 @@ let seedTerritory = null;
           .expect(200);
 
         // refind in seedTerritory
-        let block = seedTerritory.findStreet('Oakland').findHundred(4500).even;
+        let updatedSeedTerritory = await TerritoryModel.findOne({congregation: seedCongregation._id});
+        expect(updatedSeedTerritory.findStreet).to.exist;
+        let block = updatedSeedTerritory.findStreet('Oakland').findHundred(4500).even;
         expect(block.worked).to.have.lengthOf(1);
 
       });
