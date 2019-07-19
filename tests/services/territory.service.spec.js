@@ -185,4 +185,88 @@ describe('Territory Service', () => {
 
   });
 
+  describe('addTag', () => {
+
+    it('should add tags to block and unit', async () => {
+
+      let seedStreet = seedTerritory.addStreet('Oakland');
+      let seedHundred = seedStreet.addHundred(4500);
+      seedHundred.addUnits([{number: 4504}, {number: 4502}]);
+      let seedUnit = seedHundred.findUnit(4502);
+
+      // add tag to block
+      await territoryServices.addTag(seedTerritory, seedHundred.odd ,'low steps');
+      expect(seedHundred.odd.tags).to.include('low steps');
+
+      // add tag to unit
+      await territoryServices.addTag(seedTerritory, seedUnit,'low steps');
+      await territoryServices.addTag(seedTerritory, seedUnit,'No trespassing');
+      expect(seedUnit.tags).to.have.lengthOf(2);
+      expect(seedUnit.tags).to.include('low steps');
+      expect(seedUnit.tags).to.include('no trespassing');
+
+      // should not duplicate tag
+      await territoryServices.addTag(seedTerritory, seedUnit, 'Low steps');
+      expect(seedUnit.tags).to.have.lengthOf(2);
+
+    });
+
+  });
+
+  describe('removeTag', () => {
+
+    it('should remove tags on block and unit', async () => {
+
+      let seedStreet = seedTerritory.addStreet('Oakland');
+      let seedHundred = seedStreet.addHundred(4500);
+      seedHundred.addUnits([{number: 4504}, {number: 4502}]);
+      let seedUnit = seedHundred.findUnit(4502);
+
+      // add tag to block
+      await territoryServices.addTag(seedTerritory, seedHundred.odd ,'low steps');
+      await territoryServices.removeTag(seedTerritory, seedHundred.odd ,'low steps');
+      expect(seedHundred.odd.tags).to.not.include('low steps');
+
+      // add tag to unit
+      await territoryServices.addTag(seedTerritory, seedUnit,'low steps');
+      await territoryServices.addTag(seedTerritory, seedUnit,'No trespassing');
+      await territoryServices.removeTag(seedTerritory, seedUnit, 'no trespassing');
+      expect(seedUnit.tags).to.have.lengthOf(1);
+      expect(seedUnit.tags).to.not.include('no trespassing');
+
+    });
+
+  });
+
+  describe('markBlockWorked', () => {
+
+    it('should add worked record to block', async () => {
+
+      let seedStreet = seedTerritory.addStreet('Oakland');
+      let seedHundred = seedStreet.addHundred(4500);
+      seedHundred.addUnits([{number: 4504}, {number: 4502}]);
+
+      await territoryServices.markBlockWorked(seedTerritory, seedHundred.odd);
+
+      expect(seedHundred.odd.worked).to.have.lengthOf(1);
+
+    });
+
+    it('should add worked record to block with specified time', async () => {
+
+      let seedStreet = seedTerritory.addStreet('Oakland');
+      let seedHundred = seedStreet.addHundred(4500);
+      seedHundred.addUnits([{number: 4504}, {number: 4502}]);
+
+      let time = new Date().getTime();
+
+      await territoryServices.markBlockWorked(seedTerritory, seedHundred.odd, time);
+
+      expect(seedHundred.odd.worked).to.have.lengthOf(1);
+      expect(seedHundred.odd.worked[0]).to.eql(new Date(time));
+
+    });
+
+  });
+
 });

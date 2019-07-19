@@ -58,7 +58,7 @@ router.get('/street/:street_name/stats', territoryController.getStreetStats);
 /**
  * Delegate to block router
  */
-// router.use('/street/:street_name/hundred/:hundred/:side', require('./block.route'));
+router.use('/street/:street_name/hundred/:hundred/:side', require('./block.route'));
 
 /**
  * Delegate to unit router

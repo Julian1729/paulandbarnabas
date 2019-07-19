@@ -95,6 +95,8 @@ exports.saveFragment = async (territoryDoc, fragmentNumber, blockIds, userAssign
     logger.verbose(`Fragment #${fragmentNumber} assigned to user with id "${userAssignment}"`);
   }
 
+  await territoryDoc.save();
+
   return fragment;
 
 };
@@ -165,3 +167,37 @@ exports.fragmentStats = async (territoryDoc, fragmentNumber) => {
   return stats;
 
 }
+
+exports.addTag = async (territoryDoc, taggable, tag) => {
+
+  if(typeof taggable.addTag !== 'function'){
+    throw new TypeError('territoryServices.addTag expects second parameter to be a block or unit mongoose document');
+  }
+
+  let newTag = taggable.addTag(tag);
+
+  await territoryDoc.save();
+
+  return newTag;
+
+};
+
+exports.removeTag = async (territoryDoc, taggable, tag) => {
+
+  if(typeof taggable.addTag !== 'function'){
+    throw new TypeError('territoryServices.removeTag expects second parameter to be a block or unit mongoose document');
+  }
+
+  let removedTag = taggable.removeTag(tag);
+
+  await territoryDoc.save();
+
+};
+
+exports.markBlockWorked = async (territoryDoc, block, time) => {
+
+  block.work(time);
+
+  await territoryDoc.save();
+
+};

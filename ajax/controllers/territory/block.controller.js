@@ -5,68 +5,58 @@ const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
 
 const errors = require(`${appRoot}/errors`);
-const {logger} = require(`${appRoot}/utils`);
+const {logger, AjaxResponse} = require(`${appRoot}/utils`);
+const {territoryServices} = require(`${appRoot}/services`);
 
-exports.addTag = (req, res) => {
+exports.addTag = async (req, res) => {
 
-  let tag = req.query.tag || null;
+  let ajaxRes = new AjaxResponse(res);
+  ajaxRes.validErrors = ['MISSING_TAG'];
+
+  let tag = req.query.tag;
 
   if(!tag){
-    return res.status(HttpStatus.NOT_ACCEPTABLE).send();
+    return ajaxRes.error('MISSING_TAG').send();
   }
 
-  let territory = req.app.locals.territory;
-  let block = territory.current.block;
+  let territoryDoc = res.locals.territory;
+  let block = res.locals.collected.block;
 
-  block.addTag(tag);
+  let newTag = await territoryServices.addTag(territoryDoc, block, tag);
 
-  territory.territory.save()
-    .then(territory => {
-      return res.send();
-    })
-    .catch(e => {
-      console.log(e.stack);
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    });
+  return ajaxRes.data('tag', newTag).send();
 
 };
 
-exports.removeTag = (req, res) => {
+exports.removeTag = async (req, res) => {
 
-  let tag = req.query.tag || null;
+  let ajaxRes = new AjaxResponse(res);
+  ajaxRes.validErrors = ['MISSING_TAG'];
+
+  let tag = req.query.tag;
 
   if(!tag){
-    return res.status(HttpStatus.NOT_ACCEPTABLE).send();
+    return ajaxRes.error('MISSING_TAG').send();
   }
 
-  let territory = req.app.locals.territory;
-  let block = territory.current.block;
+  let territoryDoc = res.locals.territory;
+  let block = res.locals.collected.block;
 
-  block.removeTag(tag);
+  await territoryServices.removeTag(territoryDoc, block, tag);
 
-  territory.territory.save()
-    .then(territory => {
-      return res.send();
-    })
-    .catch(e => {throw e});
+  return ajaxRes.send();
 
 };
 
-exports.addWorkedRecord = (req, res) => {
+exports.markWorked = (req, res) => {
 
-  let territory = req.app.locals.territory;
-  let block = territory.current.block;
+  let territoryDoc = res.locals.territory;
+  let block = res.locals.collected.block;
 
   let timestamp = req.query.time;
 
-  block.work(timestamp);
+  await territoryServices.markBlockWorked(territoryDoc, block, timestamp);
 
-  territory.territory.save()
-    .then(t => {
-      return res.send();
-    })
-    .catch(e => {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    });
+  return res.send();
 
 };

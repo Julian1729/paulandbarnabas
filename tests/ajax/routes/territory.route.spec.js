@@ -72,7 +72,6 @@ let seedTerritory = null;
 
   describe('GET /street/:street_name/stats', () => {
 
-
     it('should get street stats', async () => {
 
       // seed street
@@ -109,6 +108,86 @@ let seedTerritory = null;
       await authenticatedSession
         .get('/ajax/territory/street/Oakland/stats')
         .expect(HttpStatus.NOT_FOUND);
+
+    });
+
+  });
+
+  describe('/street/:street_name/hundred/:hundred/:side', () => {
+
+    describe('POST /tag/add', () => {
+
+      it('should add tag to even side of 4500 Oakland', async () => {
+
+        // add seeded block
+        let seedStreet = seedTerritory.addStreet('Oakland');
+        let seedHundred = seedStreet.addHundred(4500);
+        seedHundred.addUnits([{number: 4500}, {number: 4502}]);
+        await seedTerritory.save();
+
+        await authenticatedSession
+          .post('/ajax/territory/street/Oakland/hundred/4500/even/tag/add?tag=low+steps')
+          .expect(200)
+          .expect(res => {
+            expect(res.body.data).to.have.property('tag');
+            expect(res.body.data.tag).to.eql('low steps');
+          });
+
+      });
+
+    });
+
+    describe('POST /tag/remove', () => {
+
+      it('should remove tag from even side of 4500 Oakland', async () => {
+
+        // add seeded block
+        let seedStreet = seedTerritory.addStreet('Oakland');
+        let seedHundred = seedStreet.addHundred(4500);
+        seedHundred.addUnits([{number: 4500}, {number: 4502}]);
+        seedHundred.even.addTag('low steps');
+        await seedTerritory.save();
+
+        await authenticatedSession
+          .post('/ajax/territory/street/Oakland/hundred/4500/even/tag/remove?tag=low+steps')
+          .expect(200);
+
+      });
+
+      it('should respond with MISSING_TAG error', async () => {
+
+        await authenticatedSession
+          .post('/ajax/territory/street/Oakland/hundred/4500/even/tag/remove')
+          .expect(200)
+          .expect(res => {
+            expect(res.body.error).to.exist;
+            expect(res.body.error.type).to.eql('MISSING_TAG');
+          });
+
+      });
+
+    });
+
+    describe('POST /worked', () => {
+
+      it('should mark block as worked', () => {
+
+        // add seeded block
+        let seedStreet = seedTerritory.addStreet('Oakland');
+        let seedHundred = seedStreet.addHundred(4500);
+        seedHundred.addUnits([{number: 4500}, {number: 4502}]);
+        seedHundred.even.addTag('low steps');
+        await seedTerritory.save();
+
+        await authenticatedSession
+          .post('/ajax/territory/street/Oakland/hundred/4500/even/worked')
+          .expect(200);
+
+        // refind in seedTerritory
+        let block = seedTerritory.findStreet('Oakland').findHundred(4500).even;
+        expect(block.worked).to.have.lengthOf(1);
+
+      });
 
     });
 
