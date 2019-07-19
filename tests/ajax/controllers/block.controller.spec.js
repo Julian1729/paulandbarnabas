@@ -19,38 +19,42 @@ const {TerritoryModel, UserModel} = require(`${appRoot}/models`);
 // addTag not tested
 // removeTag not tested
 
-describe('markWorked', () => {
+describe('AJAX Territory > Block Controllers', () => {
 
-  let seedTerritory = null;
-  beforeEach(async () => {
+  describe('markWorked', () => {
 
-    // clear and reseed territory
-    await helpers.clearCollection(TerritoryModel);
-    // seed with empty territory
-    seedTerritory = await TerritoryModel.create({
-      congregation: new ObjectId(),
-      fragments: [],
-      streets: []
+    let seedTerritory = null;
+    beforeEach(async () => {
+
+      // clear and reseed territory
+      await helpers.clearCollection(TerritoryModel);
+      // seed with empty territory
+      seedTerritory = await TerritoryModel.create({
+        congregation: new ObjectId(),
+        fragments: [],
+        streets: []
+      });
+
     });
 
-  });
+    it('should mark block worked', async () => {
 
-  it('should mark block worked', async () => {
+      let seedStreet = seedTerritory.addStreet('Oakland');
+      let seedHundred = seedStreet.addHundred(4500);
+      seedHundred.addUnits([{number: 4504}, {number: 4502}]);
+      let seedUnit = seedHundred.findUnit(4502);
+      let seedBlock = seedHundred.even;
+      let seedTimestamp = 894499200;
 
-    let seedStreet = seedTerritory.addStreet('Oakland');
-    let seedHundred = seedStreet.addHundred(4500);
-    seedHundred.addUnits([{number: 4504}, {number: 4502}]);
-    let seedUnit = seedHundred.findUnit(4502);
-    let seedBlock = seedHundred.even;
-    let seedTimestamp = 894499200;
+      let res = mockResponse({locals: {territory: seedTerritory, collected: {street: seedStreet, hundred: seedHundred, block: seedBlock}}});
+      let req = mockRequest({query: {time: seedTimestamp}});
 
-    let res = mockResponse({locals: {territory: seedTerritory, collected: {street: seedStreet, hundred: seedHundred, block: seedBlock}}});
-    let req = mockRequest({query: {time: seedTimestamp}});
+      await blockController.markWorked(req, res);
 
-    await blockController.markWorked(req, res);
+      expect(seedBlock.worked).to.have.lengthOf(1);
+      expect(seedBlock.worked[0]).to.eql(new Date(seedTimestamp));
 
-    expect(seedBlock.worked).to.have.lengthOf(1);
-    expect(seedBlock.worked[0]).to.eql(new Date(seedTimestamp));
+    });
 
   });
 
