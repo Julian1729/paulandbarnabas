@@ -1,61 +1,59 @@
-// Visits
+const _ = require('lodash');
+const appRoot = require('app-root-path');
+const HttpStatus = require('http-status-codes');
+
+const {AjaxResponse} = require(`${appRoot}/utils`);
+const {validators} = require(`${appRoot}/utils`);
+const {territoryServices} = require(`${appRoot}/services`);
+
 /**
  * Add a visit record to a unit
  * Expecting in body: 'householders_contacted', 'contacted_by', 'details', 'timestamp', 'id'
  */
-exports.addVisit = (req, res) => {
+exports.addVisit = async (req, res) => {
 
-  let territory = req.app.locals.territory;
-  let unit = territory.current.subunit || territory.current.unit;
+  let ajaxRes = new AjaxResponse(res);
 
-  let visitData = _.pick(req.body, [
-    'householders_contacted',
-    'contacted_by',
-    'details',
-    'timestamp',
-    'id'
-  ]);
+  let territoryDoc = res.locals.territory;
+  let unit = res.locals.collected.subunit || res.locals.collected.unit;
 
-  let newVisit = unit.addVisit(visitData);
+  let visitData = req.body.visit;
 
-  territory.territory.save()
-    .then(t => {
-      return res.json({data: {id: newVisit._id.toString()}});
-    })
-    .catch(e => {
-      console.log(e.stack);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    })
+  let visit = await territoryServices.visitUnit(territoryDoc, unit, visitData);
+
+  // add visit to response data object and send response
+  return ajaxRes.data('visit', visit).send();
 
 };
 
 /**
  * Delete a visit record from a unit
  * Expecting in query: visit id
+ * // FIXME: refactor
  */
-exports.removeVisit = (req, res) => {
-
-  let visitId = req.query.id || null;
-
-  if(!visitId){
-    return res.status(HttpStatus.NOT_ACCEPTABLE).send();
-  }
-
-  let territory = req.app.locals.territory;
-  let unit = territory.current.subunit || territory.current.unit;
-
-  unit.removeVisit(visitId)
-
-  territory.territory.save()
-    .then(t => {
-      return res.send();
-    })
-    .catch(e => {
-      console.log(e.stack);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    })
-
-};
+// exports.removeVisit = (req, res) => {
+//
+//   let visitId = req.query.id || null;
+//
+//   if(!visitId){
+//     return res.status(HttpStatus.NOT_ACCEPTABLE).send();
+//   }
+//
+//   let territory = req.app.locals.territory;
+//   let unit = territory.current.subunit || territory.current.unit;
+//
+//   unit.removeVisit(visitId)
+//
+//   territory.territory.save()
+//     .then(t => {
+//       return res.send();
+//     })
+//     .catch(e => {
+//       console.log(e.stack);
+//       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+//     })
+//
+// };
 
 /**
  * Add subunits to unit
@@ -63,204 +61,193 @@ exports.removeVisit = (req, res) => {
  * OPTIMIZE: refactor addSubunits to allow adding more than just a name
  * and allow more than just a name to be send in body
  */
-exports.addSubunit = (req, res) => {
-
-  let territory = req.app.locals.territory;
-  let unit = territory.current.unit;
-
-  let subunitsToAdd = req.body.subunits;
-
-  subunitsToAdd.forEach(subunitObj => {
-    unit.addSubunit(subunitObj.name);
-  });
-
-  territory.territory.save()
-    .then(t => {
-      return res.send({
-        data: {
-          subunits: unit.subunits
-        }
-      });
-    })
-    .catch(e => {
-      console.log(e.stack);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    })
-
-};
+// exports.addSubunit = (req, res) => {
+//
+//   let territory = req.app.locals.territory;
+//   let unit = territory.current.unit;
+//
+//   let subunitsToAdd = req.body.subunits;
+//
+//   subunitsToAdd.forEach(subunitObj => {
+//     unit.addSubunit(subunitObj.name);
+//   });
+//
+//   territory.territory.save()
+//     .then(t => {
+//       return res.send({
+//         data: {
+//           subunits: unit.subunits
+//         }
+//       });
+//     })
+//     .catch(e => {
+//       console.log(e.stack);
+//       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+//     })
+//
+// };
 
 /**
  * Remove subunit
  * Expecting in query: subunit id
+ * // FIXME: refactor
  */
-exports.removeSubunit = (req, res) => {
-
-  let reqSubunitId = req.query.id;
-  if(!reqSubunitId) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
-
-  let territory = req.app.locals.territory;
-  let unit = territory.current.unit;
-
-  unit.removeSubunit(reqSubunitId);
-
-  territory.territory.save()
-    .then(t => {
-      return res.send();
-    })
-    .catch(e => {
-      console.log(e.stack);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    })
-
-};
+// exports.removeSubunit = (req, res) => {
+//
+//   let reqSubunitId = req.query.id;
+//   if(!reqSubunitId) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
+//
+//   let territory = req.app.locals.territory;
+//   let unit = territory.current.unit;
+//
+//   unit.removeSubunit(reqSubunitId);
+//
+//   territory.territory.save()
+//     .then(t => {
+//       return res.send();
+//     })
+//     .catch(e => {
+//       console.log(e.stack);
+//       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+//     })
+//
+// };
 
 /**
  * Add tag to unit or subunit
  */
-exports.addTag = (req, res) => {
+exports.addTag = async (req, res) => {
 
-  let reqTag = req.query.tag;
-  if(!reqTag) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
+  let ajaxRes = new AjaxResponse(res);
 
-  let territory = req.app.locals.territory;
-  let unit = territory.current.subunit || territory.current.unit;
+  let tag = req.query.tag;
+  if(!tag) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
 
-  unit.addTag(reqTag);
+  let territoryDoc = res.locals.territory;
+  let unit = res.locals.collected.subunit || res.locals.collected.unit;
 
-  territory.territory.save()
-    .then(t => {
-      return res.send();
-    })
-    .catch(e => {
-      console.log(e.stack);
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    });
+  let newTag = await territoryServices.addTag(territoryDoc, unit, tag);
+
+  return ajaxRes.data('tag', newTag).send();
 
 };
 
 /**
  * Remove tag from unit or subunit
+ * // FIXME: refactor and implement
  */
-exports.removeTag = (req, res) => {
-
-  let reqTag = req.query.tag;
-  if(!reqTag) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
-
-  let territory = req.app.locals.territory;
-  let unit = territory.current.subunit || territory.current.unit;
-
-  unit.removeTag(reqTag);
-
-  territory.territory.save()
-    .then(t => {
-      return res.send();
-    })
-    .catch(e => {
-      console.log(e.stack);
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    });
-
-};
+// exports.removeTag = (req, res) => {
+//
+//   let reqTag = req.query.tag;
+//   if(!reqTag) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
+//
+//   let territory = req.app.locals.territory;
+//   let unit = territory.current.subunit || territory.current.unit;
+//
+//   unit.removeTag(reqTag);
+//
+//   territory.territory.save()
+//     .then(t => {
+//       return res.send();
+//     })
+//     .catch(e => {
+//       console.log(e.stack);
+//       res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+//     });
+//
+// };
 
 /**
  * Add housholder to unit or subunit
  */
-exports.addHouseholder = (req, res) => {
+exports.addHouseholder = async (req, res) => {
 
-  let reqHouseholder = req.body.householder;
-  if(!reqHouseholder) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
+  let ajaxRes = new AjaxResponse(res);
+  ajaxRes.validErrors = ['VALIDATION_ERROR'];
 
-  let territory = req.app.locals.territory;
-  let unit = territory.current.subunit || territory.current.unit;
+  let householderInfo = req.body.householder;
 
-  let name = reqHouseholder.name || null;
-  let gender = reqHouseholder.gender || null;
-  let email = reqHouseholder.email || null;
-  let phone_number = reqHouseholder.phone_number || null;
+  // validate householder
+  let validationErrors = validators.addHouseholderValidator(householderInfo);
+  if(validationErrors){
+    return ajaxRes.error('VALIDATION_ERROR', null, validationErrors).send();
+  }
 
-  var householder = unit.addHouseholder(name, gender, email, phone_number);
+  let territoryDoc = res.locals.territory;
+  let unit = res.locals.collected.subunit || res.locals.collected.unit;
 
-  territory.territory.save()
-    .then(t => {
-      return res.json({data: {householder: householder}});
-    })
-    .catch(e => {
-      console.log(e.stack);
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    });
+  let newHouseholder = await territoryServices.addUnitHouseholder(territoryDoc, unit, householderInfo);
+
+  return ajaxRes.data('householder', newHouseholder).send();
 
 };
 
 /**
  * Remove a housholder from unit
  */
-exports.removeHouseholder = (req, res) => {
-
-  let reqHouseholder = req.query.id;
-  if(!reqHouseholder) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
-
-  let territory = req.app.locals.territory;
-  let unit = territory.current.subunit || territory.current.unit;
-
-  unit.removeHouseholder(reqHouseholder);
-
-  territory.territory.save()
-    .then(t => {
-      return res.send();
-    })
-    .catch(e => {
-      console.log(e.stack);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    });
-
-};
+// exports.removeHouseholder = (req, res) => {
+//
+//   let reqHouseholder = req.query.id;
+//   if(!reqHouseholder) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
+//
+//   let territory = req.app.locals.territory;
+//   let unit = territory.current.subunit || territory.current.unit;
+//
+//   unit.removeHouseholder(reqHouseholder);
+//
+//   territory.territory.save()
+//     .then(t => {
+//       return res.send();
+//     })
+//     .catch(e => {
+//       console.log(e.stack);
+//       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+//     });
+//
+// };
 
 /**
  * Add a note to unit or subunit
  */
-exports.addNote = (req, res) => {
+exports.addNote = async (req, res) => {
 
-  let territory = req.app.locals.territory;
-  let unit = territory.current.subunit || territory.current.unit;
+  let ajaxRes = new AjaxResponse(res);
 
-  let reqNote = req.body;
+  let territoryDoc = res.locals.territory;
+  let unit = res.locals.collected.subunit || res.locals.collected.unit;
 
-  let note = unit.addNote(reqNote);
+  let noteData = req.body.note;
+  if(!noteData) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
 
-  territory.territory.save()
-    .then(t => {
-      return res.json({data: {note: note}});
-    })
-    .catch(e => {
-      console.log(e.stack);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    });
+  let note = await territoryServices.addNote(territoryDoc, unit, noteData);
+
+  ajaxRes.data('note', note).send();
 
 };
 
 /**
  * Remove note from unit or subunit
  */
-exports.removeNote = (req, res) => {
-
-  let noteId = req.query.id;
-  if(!noteId) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
-
-  let territory = req.app.locals.territory;
-  let unit = territory.current.subunit || territory.current.unit;
-
-  unit.removeNote(noteId);
-
-  territory.territory.save()
-    .then(t => {
-      return res.send();
-    })
-    .catch(e => {
-      console.log(e.stack);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    });
-
-};
+// exports.removeNote = (req, res) => {
+//
+//   let noteId = req.query.id;
+//   if(!noteId) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
+//
+//   let territory = req.app.locals.territory;
+//   let unit = territory.current.subunit || territory.current.unit;
+//
+//   unit.removeNote(noteId);
+//
+//   territory.territory.save()
+//     .then(t => {
+//       return res.send();
+//     })
+//     .catch(e => {
+//       console.log(e.stack);
+//       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
+//     });
+//
+// };
 
 /**
  * Set a meta property on unit
@@ -270,68 +257,31 @@ exports.removeNote = (req, res) => {
  * (iscalledon)
  * (name)
  */
-exports.meta = (req, res) => {
+exports.setMeta = async (req, res) => {
 
-  let territory = req.app.locals.territory;
-  let unit = territory.current.subunit || territory.current.unit;
+  let ajaxRes = new AjaxResponse(res);
 
-  // search for valid meta option in query
-  // and store in option var
-  let option = null;
+  let territoryDoc = res.locals.territory;
+  let unit = res.locals.collected.subunit || res.locals.collected.unit;
+
+  let metaField = null;
   let value = null;
-  [
-    'dnc',
-    'lang',
-    'calledon',
-    'name'
-  ].forEach(opt => {
+  // search for valid metaField in query
+  // and store in metaField var
+  ['dnc', 'lang', 'calledon', 'name'].forEach(opt => {
     if(req.query.hasOwnProperty(opt)){
       value = req.query[opt];
-      return option = opt;
+      return metaField = opt;
     }
   });
 
-  if(!option){
+  // metaField query must be present
+  if(!metaField){
     return res.status(HttpStatus.NOT_ACCEPTABLE).send();
   }
 
-  var isFalseMeta = (val) => {
-    return (val === 'false' || val === '0') ? false : true;
-  };
+  await territoryServices.setUnitMeta(territoryDoc, unit, metaField, value);
 
-  // update unit metadata
-  switch (option) {
-    case 'dnc':
-      if(isFalseMeta(value)){
-        unit.isdonotcall = true;
-      }else{
-        unit.isdonotcall = false;
-      }
-      break;
-    case 'lang':
-      unit.language = value;
-      break;
-    case 'calledon':
-      if(isFalseMeta(value)){
-        unit.iscalledon = true;
-      }else{
-        unit.iscalledon = false;
-      }
-      break;
-    case 'name':
-      unit.name = value;
-      break;
-    default:
-      return res.send();
-  }
-
-  territory.territory.save()
-    .then(t => {
-      return res.json({data: {option, value}});
-    })
-    .catch(e => {
-      console.log(e.stack);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    });
+  return ajaxRes.data('field', metaField).data('value', value).send();
 
 };

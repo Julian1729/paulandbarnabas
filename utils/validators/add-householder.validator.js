@@ -1,15 +1,15 @@
-const validate = require('validate.js');
+const validate = require('./base.js');
 
 const NewHouseholderConstraints = {
 
-  'householder.name': {
+  'name': {
     presence: {
       allowEmpty: false,
       message: 'Please add the householder\'s name'
     },
   },
 
-  'householder.gender': {
+  'gender': {
     presence: {
       allowEmpty: false,
       message: 'Please specify the householder\'s gender'

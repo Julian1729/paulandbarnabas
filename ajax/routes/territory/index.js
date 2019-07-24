@@ -20,7 +20,8 @@ router.param('hundred', territoryMiddleware.findRequestedHundred);
 router.param('side', territoryMiddleware.findRequestedBlock);
 
 // find and load unit on routes with :unit_number
-router.param('unit_number', territoryMiddleware.findRequestedUnit, territoryMiddleware.findRequestedSubunit);
+router.param('unit_number', territoryMiddleware.findRequestedUnit);
+router.param('unit_number', territoryMiddleware.findRequestedSubunit);
 
 /**
  * Save or update territory
@@ -58,11 +59,11 @@ router.get('/street/:street_name/stats', territoryController.getStreetStats);
 /**
  * Delegate to block router
  */
-router.use('/street/:street_name/hundred/:hundred/:side', require('./block.route'));
+router.use('/street/:street_name/hundred/:hundred/:side(odd|even)', require('./block.route'));
 
 /**
  * Delegate to unit router
  */
-// router.use('/street/:street_name/hundred/:hundred/unit/:unit_number', require('./unit.route'));
+router.use('/street/:street_name/hundred/:hundred/unit/:unit_number', require('./unit.route'));
 
 module.exports = router;

@@ -269,4 +269,126 @@ describe('Territory Service', () => {
 
   });
 
+  describe('visitUnit', () => {
+
+    it('should visit unit', async () => {
+
+      let seedStreet = seedTerritory.addStreet('Oakland');
+      let seedHundred = seedStreet.addHundred(4500);
+      seedHundred.addUnits([{number: 4504}, {number: 4502}]);
+      let seedUnit = seedHundred.findUnit(4502);
+
+      let visit = await territoryServices.visitUnit(seedTerritory, seedUnit, {
+        householders_contacted: ['Michael', 'Dwight'],
+        details: 'Dwight is assistant TO the regional manager.'
+      });
+
+      expect(visit.contacted_by).to.eql('Unknown Publisher');
+      expect(seedUnit.visits).to.have.lengthOf(1);
+      expect(seedUnit.visits[0].contacted_by).to.eql('Unknown Publisher');
+      expect(seedUnit.visits[0].householders_contacted).to.have.lengthOf(2);
+
+    });
+
+  });
+
+  describe('addUnitHouseholder', () => {
+
+    it('should add householder to unit', async () => {
+
+      // add street
+      let seedStreet = seedTerritory.addStreet('Overington', {skipExistenceCheck: true});
+      let seedHundred = seedStreet.addHundred(1200);
+      seedHundred.addUnits([{number: 1202}, {number: 1204}, {number: 1205}, {number: 1206, subunits: ['Apt 1', 'Apt 2']}]);
+      let seedUnit = seedHundred.findUnit(1202);
+
+      let householder = await territoryServices.addUnitHouseholder(seedTerritory, seedUnit, {
+        name: 'Michael Scott',
+        gender: 'male',
+        email: 'mschott@dundermifflin.com',
+        phone_number: '2154000468'
+      });
+
+      expect(householder).to.have.property('_id');
+      expect(seedUnit.householders).to.have.lengthOf(1);
+
+    });
+
+  });
+
+  describe('addUnitNote', () => {
+
+    it('should add note to unit', async () => {
+
+      let seedStreet = seedTerritory.addStreet('Oakland');
+      let seedHundred = seedStreet.addHundred(4500);
+      seedHundred.addUnits([{number: 4504}, {number: 4502}]);
+      let seedUnit = seedHundred.findUnit(4502);
+
+      let note = await territoryServices.addNote(seedTerritory, seedUnit, {
+        by: 'Julian',
+        note: 'This is a new note',
+      });
+
+      expect(note).to.have.property('_id');
+      expect(seedUnit.notes).to.have.lengthOf(1);
+
+    });
+
+  });
+
+  describe('setUnitMeta', () => {
+
+    let seedStreet = null;
+    let seedHundred = null;
+    let seedUnit = null;
+    beforeEach(() => {
+      seedStreet = seedTerritory.addStreet('Oakland');
+      seedHundred = seedStreet.addHundred(4500);
+      seedHundred.addUnits([{number: 4504}, {number: 4502}]);
+      seedUnit = seedHundred.findUnit(4502);
+    })
+
+    it('set unit as do not call', async () => {
+
+      await territoryServices.setUnitMeta(seedTerritory, seedUnit, 'dnc', true);
+      expect(seedUnit.isdonotcall).to.be.true;
+
+    });
+
+    it('set unit unit language', async () => {
+
+      await territoryServices.setUnitMeta(seedTerritory, seedUnit, 'lang', 'en');
+      expect(seedUnit.language).to.eql('en');
+
+    });
+
+    it('set unit as currently being called on', async () => {
+
+      await territoryServices.setUnitMeta(seedTerritory, seedUnit, 'calledon', 'true');
+      expect(seedUnit.iscalledon).to.be.true;
+
+    });
+
+    it('set unit as currently not being called on', async () => {
+
+      await territoryServices.setUnitMeta(seedTerritory, seedUnit, 'calledon', 'true');
+      await territoryServices.setUnitMeta(seedTerritory, seedUnit, 'calledon', 'false');
+      expect(seedUnit.iscalledon).to.be.false;
+
+      await territoryServices.setUnitMeta(seedTerritory, seedUnit, 'calledon', true);
+      await territoryServices.setUnitMeta(seedTerritory, seedUnit, 'calledon', '0');
+      expect(seedUnit.iscalledon).to.be.false;
+
+    });
+
+    it('set unit as name', async () => {
+
+      await territoryServices.setUnitMeta(seedTerritory, seedUnit, 'name', 'Check Cashing');
+      expect(seedUnit.name).to.eql('Check Cashing');
+
+    });
+
+  });
+
 });

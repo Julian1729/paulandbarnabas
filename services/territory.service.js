@@ -201,3 +201,74 @@ exports.markBlockWorked = async (territoryDoc, block, time) => {
   await territoryDoc.save();
 
 };
+
+exports.visitUnit = async (territoryDoc, visitable, visitInfo) => {
+
+  if(typeof visitable.addTag !== 'function'){
+    throw new TypeError('territoryServices.visitUnit expects second parameter to be a unit or subunit mongoose document');
+  }
+
+  let visit = visitable.addVisit(visitInfo);
+
+  await territoryDoc.save();
+
+  return visit;
+
+};
+
+exports.addUnitHouseholder = async (territoryDoc, unit, householderInfo) => {
+
+  if(typeof unit.addTag !== 'function'){
+    throw new TypeError('territoryServices.addUnitHouseholder expects second parameter to be a unit or subunit mongoose document');
+  }
+
+  let householder = unit.addHouseholder(householderInfo.name, householderInfo.gender, householderInfo.email, householderInfo.phone_number);
+
+  await territoryDoc.save();
+
+  return householder;
+
+};
+
+exports.addNote = async (territoryDoc, notable, noteObj) => {
+
+  if(typeof notable.addTag !== 'function'){
+    throw new TypeError('territoryServices.addNote expects second parameter to be a unit or subunit mongoose document');
+  }
+
+  let newNote = notable.addNote(noteObj);
+
+  await territoryDoc.save();
+
+  return newNote;
+
+};
+
+exports.setUnitMeta = async (territoryDoc, unit, metaField, metaValue) => {
+
+  let convertToBoolean = val => {
+    return (val === 'false' || val === '0') ? false : true;
+  }
+
+  switch (metaField) {
+    case 'dnc':
+      unit.isdonotcall = convertToBoolean(metaValue);
+      break;
+    case 'lang':
+      // OPTIMIZE: check that language is a
+      // valid language abbreviation
+      unit.language = metaValue;
+      break;
+    case 'calledon':
+      unit.iscalledon = convertToBoolean(metaValue);
+      break;
+    case 'name':
+      unit.name = metaValue;
+      break;
+    default:
+      return null;
+  }
+
+  await territoryDoc.save();
+
+};
