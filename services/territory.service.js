@@ -6,7 +6,7 @@ const appRoot = require('app-root-path');
 
 const errors = require(`${appRoot}/errors`);
 const {logger} = require(`${appRoot}/utils`);
-const {UserModel} = require(`${appRoot}/models`);
+const UserModel = require(`${appRoot}/models/User.model`);
 
 /**
  * Add units to block, create street and block if

@@ -92,6 +92,9 @@ describe('AJAX Territory Controller', () => {
 
       expect(AjaxResponse.prototype.data).to.have.been.calledWith('fragment_assignment', 2);
 
+      // the actual territory should be traversed to see if
+      // the block was actually assigned to fragment
+
       AjaxResponse.prototype.error.restore();
       AjaxResponse.prototype.send.restore();
       AjaxResponse.prototype.data.restore();

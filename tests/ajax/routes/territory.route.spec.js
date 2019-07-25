@@ -74,6 +74,251 @@ let seedTerritory = null;
 
   });
 
+  describe('POST /save-territory', () => {
+
+    it('should save block', (done) => {
+
+      authenticatedSession
+        .post('/ajax/territory/save-territory')
+        .send({
+          'block_hundred': 1200,
+          'odd_even': 'even',
+          'units': [{number: 1200}, {number: 1202}],
+          'street': 'Tampa',
+          'new_street_name': null,
+          'fragment_assignment': null,
+          'fragment_unassigned': 'on'
+        })
+        .expect(200)
+        .end((err, res) => {
+          expect(res.body.data).to.have.property('units_created');
+          expect(res.body.data.units_created).to.equal(2);
+          refreshSeedTerritory()
+            .then(() => {
+              expect(seedTerritory.findStreet('Tampa').findHundred(1200).findUnit(1202)).to.exist;
+              return done();
+            }).catch(e => {throw e});
+        });
+
+    });
+
+    it('should save block and assign fragment', async () => {
+
+      seedTerritory.addFragment(2);
+      await seedTerritory.save();
+
+      let data = null;
+
+      await authenticatedSession
+        .post('/ajax/territory/save-territory')
+        .send({
+          'block_hundred': 1200,
+          'odd_even': 'even',
+          'units': [{number: 1200}, {number: 1202}],
+          'street': 'Tampa',
+          'new_street_name': null,
+          'fragment_assignment': 2,
+          'fragment_unassigned': 'off'
+        })
+        .expect(200)
+        .expect(res => {
+          data = res.body.data;
+        });
+
+        expect(data).to.have.property('units_created');
+        expect(data.units_created).to.equal(2);
+        expect(data).to.have.property('fragment_assignment');
+        expect(data.fragment_assignment).to.equal(2);
+        await refreshSeedTerritory();
+        expect(seedTerritory.findFragment(2).blocks).to.have.lengthOf(1);
+
+    });
+
+  });
+
+  describe('POST /save-fragment', () => {
+
+    it('should save fragment and assign to user', async () => {
+
+      // store res data to assert outside of supertest
+      let data = null;
+
+      await authenticatedSession
+        .post('/ajax/territory/save-fragment')
+        .send({
+          fragment: {
+            number: 17,
+            blocks: [new ObjectId(), new ObjectId(), new ObjectId()],
+            assignment: seedUserAdmin._id,
+          }
+        })
+        .expect(200)
+        .expect(res => {
+          expect(res.body.error).to.be.empty;
+          expect(res.body.data).to.have.property('fragment');
+          data = res.body.data;
+        });
+
+        expect(data.fragment).to.have.property('assignedTo');
+        expect(data.fragment.number).to.equal(17);
+        expect(data.fragment.blocks).to.equal(3);
+
+        await refreshSeedTerritory();
+        expect(seedTerritory.findFragment(17).blocks).to.have.lengthOf(3);
+        expect(seedTerritory.findFragment(17).holder()).to.equal(seedUserAdmin._id.toString());
+
+    });
+
+  });
+
+  describe('GET /list/streets', () => {
+
+    it('should retrieve stats for 2 streets', async () => {
+
+      // add street1
+      let seedStreet = seedTerritory.addStreet('Overington', {skipExistenceCheck: true});
+      let seedHundred1 = seedStreet.addHundred(1200);
+      // enter 4 units
+      let seedUnits1 = seedHundred1.addUnits([{number: 1202}, {number: 1204}, {number: 1205}, {number: 1206, subunits: ['Apt 1', 'Apt 2']}]);
+      let seedHundred2 = seedStreet.addHundred(1300);
+      // enter 2 units
+      let seedUnits2 = seedHundred2.addUnits([{number: 1302}, {number: 1204}]);
+      // add street2
+      let seedStreet2 = seedTerritory.addStreet('Naples', {skipExistenceCheck: true});
+      let seedHundred3 = seedStreet2.addHundred(1200);
+      // enter 4 units
+      let seedUnits3 = seedHundred3.addUnits([{number: 1202}, {number: 1204}, {number: 1205}, {number: 1206, subunits: ['Apt 1', 'Apt 2']}]);
+      let seedHundred4 = seedStreet2.addHundred(1300);
+      // enter 2 units
+      let seedUnits4 = seedHundred4.addUnits([{number: 1302}, {number: 1204}]);
+
+      await seedTerritory.save();
+
+      await authenticatedSession
+        .get('/ajax/territory/list/streets')
+        .expect(200)
+        .expect(res => {
+          expect(res.body.data.streets).to.eql(          [
+            {
+              name: 'Overington',
+              totals: {
+                hundreds: 2,
+                units: 6
+              },
+              hundreds: {
+                '1200': {
+                  even_count: 3,
+                  odd_count: 1
+                },
+                '1300': {
+                  even_count: 2,
+                  odd_count: 0
+                }
+              }
+            },
+            {
+              name: 'Naples',
+              totals: {
+                hundreds: 2,
+                units: 6
+              },
+              hundreds: {
+                '1200': {
+                  even_count: 3,
+                  odd_count: 1
+                },
+                '1300': {
+                  even_count: 2,
+                  odd_count: 0
+                }
+              }
+            }
+          ])
+        });
+
+    });
+
+  });
+
+  describe('GET /list/fragments', () => {
+
+    it('should retrieve stats for 2 streets', async () => {
+
+      let seedFragment = seedTerritory.addFragment(35);
+      // enter 3 ids as block ids
+      seedFragment.assignBlocks([new ObjectId(), new ObjectId(), new ObjectId()], seedTerritory);
+      seedFragment.assignHolder(seedUserAdmin._id);
+      // seed second fragment
+      let seedFragment2 = seedTerritory.addFragment(36);
+      // enter 3 ids as block ids
+      seedFragment2.assignBlocks([new ObjectId()], seedTerritory);
+      seedFragment2.assignHolder(seedUserAdmin._id);
+
+      await seedTerritory.save();
+
+      await authenticatedSession
+        .get('/ajax/territory/list/fragments')
+        .expect(200)
+        .expect(res => {
+          expect(res.body.data.fragments).to.eql(
+            [
+              {
+                number: 35,
+                blocks: 3,
+                holder: {
+                  name: `${seedUserAdmin.first_name} ${seedUserAdmin.last_name}`,
+                  title: seedUserAdmin.title,
+                  id: seedUserAdmin._id.toString()
+                }
+              },
+              {
+                number: 36,
+                blocks: 1,
+                holder: {
+                  name: `${seedUserAdmin.first_name} ${seedUserAdmin.last_name}`,
+                  title: seedUserAdmin.title,
+                  id: seedUserAdmin._id.toString()
+                }
+              }
+            ]
+          )
+        });
+
+    }, 5000);
+
+  });
+
+  describe('GET /fragment/:fragment_number/stats', () => {
+
+    it('should get stats for one fragment', async () => {
+
+      // create seed user and enter seed fragment into territory
+      let seedFragment = seedTerritory.addFragment(17);
+      // enter 3 ids as block ids
+      seedFragment.assignBlocks([new ObjectId(), new ObjectId(), new ObjectId()], seedTerritory);
+      seedFragment.assignHolder(seedUserAdmin._id);
+      await seedTerritory.save();
+
+      await authenticatedSession
+        .get('/ajax/territory/fragment/17/stats')
+        .expect(200)
+        .expect(res => {
+          expect(res.body.data).to.have.property('stats');
+          expect(res.body.data.stats).to.eql({
+            number: 17,
+            blocks: 3,
+            holder: {
+              name: `${seedUserAdmin.first_name} ${seedUserAdmin.last_name}`,
+              title: seedUserAdmin.title,
+              id: seedUserAdmin._id.toString()
+            }
+          });
+        });
+
+    });
+
+  });
+
   describe('GET /street/:street_name/stats', () => {
 
     it('should get street stats', async () => {

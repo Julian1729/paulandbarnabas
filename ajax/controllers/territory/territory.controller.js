@@ -10,7 +10,7 @@ const HttpStatus = require('http-status-codes');
 
 const errors = require(`${appRoot}/errors`);
 const {territoryServices} = require(`${appRoot}/services`);
-const {TerritoryModel, UserModel} = require(`${appRoot}/models`);
+const {TerritoryModel} = require(`${appRoot}/models`);
 const {logger, helpers, AjaxResponse} = require(`${appRoot}/utils`);
 const {CongregationNotFound, FragmentNotFound, FormValidationError} = require(`${appRoot}/errors`);
 const {createTerritoryValidator, saveFragmentValidator} = require(`${appRoot}/utils/validators`);
