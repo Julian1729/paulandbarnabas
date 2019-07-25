@@ -49,7 +49,7 @@ exports.saveBlock = async (req, res) => {
 
   let territoryDoc = res.locals.territory;
 
-  let newUnitCount = await territoryServices.saveBlock(territoryDoc, formData.street_name, formData.block_hundred, formData.odd_even, formData.units, (formData.fragment_unassigned === 'on' ? formData.fragment_assignment : null));
+  let newUnitCount = await territoryServices.saveBlock(territoryDoc, formData.street_name, formData.block_hundred, formData.odd_even, formData.units, (formData.fragment_unassigned === 'off' ? formData.fragment_assignment : null));
 
   ajaxRes.data('units_created', newUnitCount);
   if(formData.fragment_assignment) ajaxRes.data('fragment_assignment', formData.fragment_assignment);
