@@ -12,6 +12,9 @@ class Session {
     this.req = req;
     if(this.req.session){
       this.session = this.req.session;
+      if(this.session.authenticated === true){
+        this._user = _.pick(this.session, this.requiredProps);
+      }
     }
   }
 

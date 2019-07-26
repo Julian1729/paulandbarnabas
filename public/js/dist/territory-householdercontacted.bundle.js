@@ -131,7 +131,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":28,"jquery":11}],3:[function(require,module,exports){
+},{"../../vendor/form2js":27,"jquery":11}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -35315,7 +35315,6 @@ const $ = require('../../jquery/jquery');
 
 const validators = {
   householder_contacted_form: require('../validators/HouseholderContacted'),
-  new_householder_form: require('../validators/NewHouseholder'),
 };
 
 const DOM_CACHE = {
@@ -35524,7 +35523,7 @@ const DOM_CACHE = {
 
 }())
 
-},{"../../jquery/jquery":1,"../../vendor/form2js":28,"../validators/HouseholderContacted":26,"../validators/NewHouseholder":27,"moment":13,"promise":15,"timepicker":23}],26:[function(require,module,exports){
+},{"../../jquery/jquery":1,"../../vendor/form2js":27,"../validators/HouseholderContacted":26,"moment":13,"promise":15,"timepicker":23}],26:[function(require,module,exports){
 var validate = require('validate.js');
 const _ = require('lodash');
 
@@ -35577,29 +35576,6 @@ const HouseholderContactedContraints = {
 module.exports = function(formData){ return validate(formData, HouseholderContactedContraints, {fullMessages: false}) };
 
 },{"lodash":12,"validate.js":24}],27:[function(require,module,exports){
-const validate = require('validate.js');
-
-const NewHouseholderConstraints = {
-
-  'householder.name': {
-    presence: {
-      allowEmpty: false,
-      message: 'Please add the householder\'s name'
-    },
-  },
-
-  'householder.gender': {
-    presence: {
-      allowEmpty: false,
-      message: 'Please specify the householder\'s gender'
-    },
-  },
-
-};
-
-module.exports = function(formData){ return validate(formData, NewHouseholderConstraints); };
-
-},{"validate.js":24}],28:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *

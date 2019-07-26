@@ -21,6 +21,14 @@ describe('Session Class', () => {
 
   });
 
+  it('should set data when constructed with session', () => {
+
+    let req = mockRequest({session: {first_name: 'Julian', last_name: 'Hernandez', user_id: new ObjectId(), congregation: new ObjectId(), authenticated: true}});
+    let session = new Session(req);
+    expect(session.user).to.exist;
+
+  });
+
   it('should pass validation', () => {
 
     let req = mockRequest({

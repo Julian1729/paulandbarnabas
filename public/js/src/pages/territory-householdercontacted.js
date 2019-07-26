@@ -13,7 +13,6 @@ const $ = require('../../jquery/jquery');
 
 const validators = {
   householder_contacted_form: require('../validators/HouseholderContacted'),
-  new_householder_form: require('../validators/NewHouseholder'),
 };
 
 const DOM_CACHE = {

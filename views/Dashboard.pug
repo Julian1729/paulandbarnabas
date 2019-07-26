@@ -10,11 +10,6 @@ append content
               h5 Fragment ##{val.number}
               p.card-text.text-muted 
                 small assigned on #{moment(val.assigned_on).format('MMMM D, YYYY')}
-                br
-                if val.last_worked
-                  small last worked on #{val.last_worked}
-                else
-                  small never worked
               a.btn.btn-primary(href=val.overview_url) view
             ul.list-group.list-group-flush
               li.list-group-item #{val.block_count} blocks

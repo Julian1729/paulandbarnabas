@@ -1,6 +1,6 @@
 var land = (req, res, next) => {
   // show signup landing page
-  res.render('CreateAccount');
+  res.render('Register');
 };
 
 module.exports = {

@@ -4,13 +4,16 @@ const HttpStatus = require('http-status-codes');
 
 const constants = require('../config/constants');
 const {TerritoryModel} = require(`${appRoot}/models`);
-const {logger, PBURLConstructor} = require(`${appRoot}/utils`);
+const {territoryServices} = require(`${appRoot}/services`);
+const {logger, PBURLConstructor, Session} = require(`${appRoot}/utils`);
 
-var land = (req, res, next) => {
+let land = async (req, res) => {
 
-  var user = Session.pickUserCredentials(req.session);
+  let session = new Session(req);
+  let territoryDoc = res.locals.territory;
+  let user = session.user;
 
-  var renderVars = {
+  let renderVars = {
     'dashboard_stats': {
       fragment_count: 0,
       unit_count: 0
@@ -18,53 +21,26 @@ var land = (req, res, next) => {
     'fragments': [],
   };
 
-  TerritoryModel.findByCongregation(user.congregation)
-    .then(territory => {
+  let userFragments = territoryServices.userFragments(territoryDoc, user.user_id);
+  let fragmentStats = [];
+  for (let fragment of userFragments) {
+    let stats = await territoryServices.fragmentStats(territoryDoc, fragment.number);
+    fragmentStats.push(stats);
+  }
+  let fragmentRoute = PBURLConstructor.getRoute('fragment-overview');
 
-      var fragments = territory.findUserFragments(user.user_id);
-      fragments.forEach(f => {
-        let overview_url = PBURLConstructor.getRoute('fragment-overview').url({'fragment_number': f.number});
-        // e.g. {number: 1, id: 'asdfasd', last_worked: (timestamp), block_count: 12, unit_count: 123}
-        var fragmentStats = {
-          number: null,
-          id: null,
-          url: null,
-          assigned_on: null,
-          last_worked: null,
-          block_count: null,
-          unit_count: 0
-        };
-        fragmentStats.number = f.number;
-        fragmentStats.id = f._id;
-        fragmentStats.overview_url = overview_url;
-        fragmentStats.assigned_on = _.last(f.assignment_history).on;
-        fragmentStats.last_worked = _.last(f.worked);
-        fragmentStats.block_count = f.blocks.length;
-        // find blocks
-        var blocks = territory.findBlocksById(f.blocks);
-        // get unit count from block
-        blocks.forEach(b => {
-          fragmentStats.unit_count += b.block.units.length
-        });
-        // construct var object
-        renderVars.fragments.push(fragmentStats);
-      });
-      return territory;
-    })
-    .then(territory => {
+  // add overview url for each fragment
+  renderVars.fragments = fragmentStats.map(fragment => {
 
-      // create dashboard stats
-      renderVars.fragments.forEach(stat => {
-        renderVars.dashboard_stats.fragment_count++;
-        renderVars.dashboard_stats.unit_count += stat.unit_count;
-      })
-      res.render('Dashboard', renderVars);
+    fragment.overview_url = fragmentRoute.url({fragment_number: fragment.number});
+    return fragment;
 
-    })
-    .catch(e => {
-      console.log(e);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-    });
+  });
+
+  renderVars.dashboard_stats.fragment_count = userFragments.length;
+  renderVars.dashboard_stats.unit_count = _.sum(fragmentStats.map(f => f.unit_count));
+
+  res.render('Dashboard', renderVars);
 
 };
 

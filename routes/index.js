@@ -4,7 +4,7 @@
 
 exports.adminPanelRoute = require('./admin-panel.route');
 
-exports.createAccountRoute = require('./create-account.route');
+exports.registerRoute = require('./register.route');
 
 exports.dashboardRoute = require('./dashboard.route');
 
