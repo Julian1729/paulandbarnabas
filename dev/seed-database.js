@@ -23,7 +23,7 @@ const setPrimaryUser = () => {
 
   // set primary user as first user in user seed data
   cache.primaryUser = _.find(cache.users, ['email', seedData.users[0].email]);
-  logger.info(`"${cache.primaryUser.first_name} ${cache.primaryUser.last_name}" set as primary user \nEmail: ${cache.primaryUser.email} Password: ${seedData.users[0].password}`);
+  logger.info(`"${cache.primaryUser.first_name} ${cache.primaryUser.last_name}" set as primary user \nID: ${cache.primaryUser._id.toString()} \nEmail: ${cache.primaryUser.email} Password: ${seedData.users[0].password}`);
 
 };
 
@@ -130,6 +130,8 @@ const insertData = async () => {
   logger.info(`Fragment 1 assigned to "${cache.primaryUser.first_name} ${cache.primaryUser.last_name}"`);
   cache.primaryTerritory.findFragment(2).assignHolder(cache.primaryUser._id);
   logger.info(`Fragment 2 assigned to "${cache.primaryUser.first_name} ${cache.primaryUser.last_name}"`);
+
+  await cache.primaryTerritory.save();
 
 };
 
