@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const chai = require('chai');
 const expect = chai.expect;
 const sinon = require('sinon');
@@ -144,31 +145,41 @@ describe('Territory Service', () => {
 
     let seedFragment = null;
     let seedUser = null;
+    let seedStreet = null;
 
     beforeEach(async () => {
 
       await helpers.clearCollection(UserModel);
       seedUser = await UserModel.create(userSeed.validUser);
+      seedStreet = seedTerritory.addStreet('Oakland');
+      let seedHundred1 = seedStreet.addHundred(1000);
+      // 1 odd, 1 even
+      seedHundred1.addUnits([{number: 1000}, {number: 1001}]);
+      let seedHundred2 = seedStreet.addHundred(1200);
+      // 1 odd, 1 even
+      seedHundred2.addUnits([{number: 1202}, {number: 1203}]);
       seedFragment = seedTerritory.addFragment(35);
-      // enter 3 ids as block ids
-      seedFragment.assignBlocks([new ObjectId(), new ObjectId(), new ObjectId()], seedTerritory);
+      // enter 4 blocks with 1 unit each
+      seedFragment.assignBlocks([seedHundred1.odd._id, seedHundred1.even._id, seedHundred2.odd._id, seedHundred2.even._id], seedTerritory);
       seedFragment.assignHolder(seedUser._id);
-
 
     });
 
     it('should get fragment stats', async () => {
 
       let stats = await territoryServices.fragmentStats(seedTerritory, 35);
-      expect(stats).to.eql({
+      expect(_.pick(stats, ['number', 'block_count', 'unit_count', 'last_worked', 'holder'])).to.eql({
         number: 35,
-        blocks: 3,
+        block_count: 4,
+        unit_count: 4,
+        last_worked: null,
         holder: {
           name: `${seedUser.first_name} ${seedUser.last_name}`,
           title: seedUser.title,
           id: seedUser._id.toString()
         }
       });
+      expect(stats).to.have.property('assigned_on');
 
     });
 
@@ -390,5 +401,8 @@ describe('Territory Service', () => {
     });
 
   });
+
+  // userFragments not tested
+  // describe('userFragments', () => {});
 
 });

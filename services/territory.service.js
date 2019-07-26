@@ -146,7 +146,10 @@ exports.fragmentStats = async (territoryDoc, fragmentNumber) => {
 
   let stats = {
     number: fragment.number,
-    blocks: fragment.blocks.length,
+    block_count: fragment.blocks.length,
+    unit_count: 0,
+    last_worked: _.last(fragment.worked) || null,
+    assigned_on: _.last(fragment.assignment_history).on || null,
     holder: null,
   };
 
@@ -163,6 +166,12 @@ exports.fragmentStats = async (territoryDoc, fragmentNumber) => {
       };
     }
   }
+
+  // get unit count
+  let blocks = territoryDoc.findBlocksById(fragment.blocks);
+  blocks.forEach(b => {
+    stats.unit_count += b.block.units.length;
+  });
 
   return stats;
 
@@ -270,5 +279,11 @@ exports.setUnitMeta = async (territoryDoc, unit, metaField, metaValue) => {
   }
 
   await territoryDoc.save();
+
+};
+
+exports.userFragments = (territoryDoc, userId) => {
+
+  return territoryDoc.findUserFragments(userId);
 
 };
