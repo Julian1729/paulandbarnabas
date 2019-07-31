@@ -166,3 +166,25 @@ exports.findRequestedBlock = (req, res, next) =>{
   return next();
 
 };
+
+exports.findRequestedFragment = (req, res, next) => {
+
+  let territory = res.locals.territory;
+  let fragmentNumber = req.params.fragment_number;
+
+  let fragment = null;
+  try {
+    fragment = territory.findFragment(fragmentNumber);
+  } catch (e) {
+    if(e instanceof errors.FragmentNotFound){
+      logger.verbose(`Fragment #${fragmentNumber} not found in territory with id ${territory._id}`);
+      return res.status(HttpStatus.NOT_FOUND).send();
+    }else{
+      throw e;
+    }
+  }
+
+  res.locals.collected.fragment = fragment;
+  return next();
+
+};

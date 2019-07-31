@@ -268,4 +268,45 @@ describe('Territory Middleware', () => {
 
   });
 
+  describe('findRequestedFragment', () => {
+
+    beforeEach(async () => {
+
+      // seed fragment 2 into territory
+      seedTerritory.addFragment(2);
+      await seedTerritory.save()
+
+    });
+
+    it('should find requested fragment', () => {
+
+      let res = mockResponse({locals: {territory: seedTerritory, collected: {}}});
+      let req = mockRequest({params: {fragment_number: 2}});
+      let next = sinon.stub();
+
+      territoryMiddleware.findRequestedFragment(req, res, next);
+
+      expect(res.status).to.not.have.been.calledWith(HttpStatus.NOT_FOUND);
+      expect(res.locals.collected).to.have.property('fragment');
+      expect(res.locals.collected.fragment.number).to.have.equal(2);
+      expect(next).to.have.been.calledOnce;
+
+    });
+
+    it('should not find requested fragment and send 404', () => {
+
+      let res = mockResponse({locals: {territory: seedTerritory, collected: {}}});
+      let req = mockRequest({params: {fragment_number: 45}});
+      let next = sinon.stub();
+
+      territoryMiddleware.findRequestedFragment(req, res, next);
+
+      expect(next).to.not.have.been.called;
+      expect(res.status).to.have.been.calledWith(HttpStatus.NOT_FOUND);
+      expect(res.locals.collected).to.not.have.property('fragment');
+
+    });
+
+  });
+
 });
