@@ -15,15 +15,12 @@ router.param('fragment_number', territoryMiddleware.findRequestedFragmentBlocks)
 
 router.param('unit_number', territoryMiddleware.findRequestedUnit);
 
-// view territory
+// Fragment Overview - select block to view
 router.get('/:fragment_number', fragmentController.fragmentOverview);
 
-// select blocks
-// router.get('/:fragment_number/block-select');
-//
-// // block overview
-// router.get('/:fragment_number/:hundred/:street_name/:side(odd|even)');
-//
+// Block Overview - select unit to view
+router.get('/:fragment_number/:hundred/:street_name/:side(odd|even)');
+
 // // unit overview
 // router.get('/:fragment_number/:unit_number/:street_name/')
 //

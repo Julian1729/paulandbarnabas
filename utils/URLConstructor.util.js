@@ -14,36 +14,35 @@ PBURLConstructor.setBase(constants.base_url);
  */
 PBURLConstructor.addRoute('dashboard', '/dashboard');
 // aka fragment overview
-PBURLConstructor.addRoute('fragment-overview', '/territory/fragment/:fragment_number');
-PBURLConstructor.addRoute('block-select', '/territory/fragment/:fragment_number/blocks');
-PBURLConstructor.addRoute('block-overview', '/territory/fragment/:fragment_number/block/:block_id');
-PBURLConstructor.addRoute('unit-overview', '/territory/fragment/:fragment_number/block/:block_id/unit/:unit_number');
-PBURLConstructor.addRoute('unit-add-visit', '/territory/fragment/:fragment_number/block/:block_id/unit/:unit_number/householder-contacted');
+PBURLConstructor.addRoute('fragment-overview', '/fragment/:fragment_number');
+PBURLConstructor.addRoute('block-overview', '/fragment/:fragment_number/:hundred/:street_name/:side');
+PBURLConstructor.addRoute('unit-overview', '/fragment/:fragment_number/:unit_number/:street_name');
+PBURLConstructor.addRoute('unit-add-visit', '/fragment/:fragment_number/:unit_number/:street_name/contacted');
 
 /**
- * Rajax endpoints
+ * Ajax Unit endpoints
  */
-var rajaxBase = `/rajax/territory/street/:street_name/hundred/:hundred/unit/:unit_number`;
+let ajaxBase = `/ajax/territory/street/:street_name/hundred/:hundred/unit/:unit_number`;
 // Tags
-PBURLConstructor.addRoute('add-tag', `${rajaxBase}/tag/add`);
+PBURLConstructor.addRoute('add-tag', `${ajaxBase}/tag/add`);
 // FIXME: add remove-tag
 
 // Notes
-PBURLConstructor.addRoute('add-note', `${rajaxBase}/note/add`);
+PBURLConstructor.addRoute('add-note', `${ajaxBase}/note/add`);
 // FIXME: add remove-note
 
 // Do Not Call
-PBURLConstructor.addRoute('mark-dnc', `${rajaxBase}/meta?dnc=1`);
-PBURLConstructor.addRoute('unmark-dnc', `${rajaxBase}/meta?dnc=0`);
+PBURLConstructor.addRoute('mark-dnc', `${ajaxBase}/meta?dnc=1`);
+PBURLConstructor.addRoute('unmark-dnc', `${ajaxBase}/meta?dnc=0`);
 
 // Is Called On
-PBURLConstructor.addRoute('mark-calledon', `${rajaxBase}/meta/?calledon=1`);
-PBURLConstructor.addRoute('unmark-calledon', `${rajaxBase}/meta/?calledon=0`);
+PBURLConstructor.addRoute('mark-calledon', `${ajaxBase}/meta/?calledon=1`);
+PBURLConstructor.addRoute('unmark-calledon', `${ajaxBase}/meta/?calledon=0`);
 
 // Add Householder
-PBURLConstructor.addRoute('add-householder', `${rajaxBase}/householder/add`);
+PBURLConstructor.addRoute('add-householder', `${ajaxBase}/householder/add`);
 
 // Add Visit
-PBURLConstructor.addRoute('add-visit', `${rajaxBase}/visit/add`);
+PBURLConstructor.addRoute('add-visit', `${ajaxBase}/visit/add`);
 
 module.exports = PBURLConstructor;

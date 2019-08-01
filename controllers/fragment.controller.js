@@ -23,6 +23,10 @@ exports.fragmentOverview = (req, res) => {
     streets: {}
   };
 
+  let blockOverViewRoute = PBURLConstructor.getRoute('block-overview');
+  // set fragment number as route param for all routes
+  blockOverViewRoute.setParam('fragment_number', fragment.number);
+
   // organize blocks by street
   blockReferences.forEach(b => {
     if(!renderVars.streets[b.street]){
@@ -34,7 +38,11 @@ exports.fragmentOverview = (req, res) => {
       hundred: b.hundred,
       odd_even: b.odd_even,
       tags: b.block.tags,
-      overview_url: PBURLConstructor.getRoute('block-overview').url({block_id: b.block._id.toString()}),
+      overview_url: PBURLConstructor.getRoute('block-overview').url({
+        hundred: b.hundred,
+        street_name: b.street,
+        side: b.odd_even,
+      }),
     });
   });
 
