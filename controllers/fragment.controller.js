@@ -38,7 +38,7 @@ exports.fragmentOverview = (req, res) => {
       hundred: b.hundred,
       odd_even: b.odd_even,
       tags: b.block.tags,
-      overview_url: PBURLConstructor.getRoute('block-overview').url({
+      overview_url: blockOverViewRoute.url({
         hundred: b.hundred,
         street_name: b.street,
         side: b.odd_even,
