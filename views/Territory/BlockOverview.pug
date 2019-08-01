@@ -2,11 +2,18 @@ extends ../ProtoBase
 
 append content
   - var breadcrumbActive = 'block_overview'
-  include ../inc/TerritoryBreadcrumb
+  //- include ../inc/TerritoryBreadcrumb
         
   .container.text-center
-    h2 #{render_vars.block.hundred} #{render_vars.block.street}
-    h5= render_vars.block.odd_even
+    h2 #{block.hundred} #{block.street}
+    h5= block.side
+    h6.my-2 tags
+    ul.list-group.list-group-horizontal.unit-tags.my-2
+      each tag in block.tags
+        li.list-group-item= tag
+      
+      else 
+        p No tags
     
   .container 
     ul.list-group

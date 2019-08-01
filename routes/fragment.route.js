@@ -19,7 +19,7 @@ router.param('unit_number', territoryMiddleware.findRequestedUnit);
 router.get('/:fragment_number', fragmentController.fragmentOverview);
 
 // Block Overview - select unit to view
-router.get('/:fragment_number/:hundred/:street_name/:side(odd|even)');
+router.get('/:fragment_number/:hundred/:street_name/:side(odd|even)', fragmentController.blockOverview);
 
 // // unit overview
 // router.get('/:fragment_number/:unit_number/:street_name/')
