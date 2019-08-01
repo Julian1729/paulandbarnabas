@@ -13,6 +13,7 @@ const errors = require(`${appRoot}/errors`);
 const {territoryMiddleware} = require(`${appRoot}/middleware`);
 const {Session, helpers} = require(`${appRoot}/utils`);
 const userSeed = require(`${appRoot}/tests/seed/user.seed`);
+const sessionSeed = require(`${appRoot}/tests/seed/session.seed`);
 const territorySeed = require(`${appRoot}/tests/seed/territory.seed`);
 const {TerritoryModel, CongregationModel} = require(`${appRoot}/models`);
 const congregationSeed = require(`${appRoot}/tests/seed/congregation.seed`);
@@ -304,6 +305,105 @@ describe('Territory Middleware', () => {
       expect(next).to.not.have.been.called;
       expect(res.status).to.have.been.calledWith(HttpStatus.NOT_FOUND);
       expect(res.locals.collected).to.not.have.property('fragment');
+
+    });
+
+  });
+
+  describe('findUserFragments', () => {
+
+    let seedUserId = new ObjectId();
+    beforeEach(async () => {
+
+      // seed fragment 2 into territory
+      let fragment1 = seedTerritory.addFragment(1);
+      let fragment2 = seedTerritory.addFragment(2);
+      let fragment3 = seedTerritory.addFragment(3);
+      // assign random id
+      fragment1.assignHolder(new ObjectId());
+      fragment2.assignHolder(seedUserId);
+      fragment3.assignHolder(seedUserId);
+      await seedTerritory.save()
+
+    });
+
+    it('should find 2 user assigned fragments', () => {
+
+      let seedSession = _.clone(sessionSeed.admin);
+      seedSession.user_id = seedUserId;
+      let res = mockResponse({locals: {territory: seedTerritory, collected: {}}});
+      let req = mockRequest({session: seedSession});
+      let next = sinon.stub();
+
+      territoryMiddleware.findUserFragments(req, res, next);
+
+      expect(res.locals.collected).to.have.property('user_fragments');
+      expect(res.locals.collected.user_fragments).to.have.lengthOf(2);
+      expect(next).to.have.been.calledOnce;
+
+    });
+
+  });
+
+  describe('findFragmentBlocks', () => {
+
+    let seedUserId = new ObjectId();
+    let fragment1 = null;
+    let fragment2 = null;
+    beforeEach(async () => {
+
+      let oakland = seedTerritory.addStreet('Oakland')
+      let oakland4500 = oakland.addHundred(4500);
+      let oakland4600 = oakland.addHundred(4600);
+      fragment1 = seedTerritory.addFragment(1);
+      fragment2 = seedTerritory.addFragment(2);
+      // assign fragments to user
+      fragment1.assignHolder(seedUserId);
+      fragment2.assignHolder(seedUserId);
+      // assign blocks to fragment
+      fragment1.assignBlocks([
+        oakland4500.odd._id,
+        oakland4500.even._id,
+        oakland4600.odd._id,
+        oakland4600.even._id
+      ], seedTerritory);
+      // add 1500 Overington odd + even to fragment 2
+      // get block ids
+      let overington = seedTerritory.addStreet('Overington');
+      let overington1500 = overington.addHundred(1500);
+      fragment2.assignBlocks([
+        overington1500.odd._id,
+        overington1500.even._id,
+      ], seedTerritory);
+
+    });
+
+    it('should find 2 blocks assigned to fragment 2', () => {
+
+      let res = mockResponse({locals: {territory: seedTerritory, collected: {user_fragments: [fragment1]}}});
+      let req = mockRequest({params: {fragment_number: '1'}});
+      let next = sinon.stub();
+
+      territoryMiddleware.findRequestedFragmentBlocks(req, res, next);
+
+      expect(res.status).to.not.have.been.calledWith(HttpStatus.UNAUTHORIZED);
+      expect(res.locals.collected).to.have.property('fragmentBlockReferences');
+      expect(res.locals.collected.fragmentBlockReferences).to.have.lengthOf(4);
+      expect(next).to.have.been.calledOnce;
+
+    });
+
+    it('should return UNAUTHORIZED for unassigned user fragement', () => {
+
+      let res = mockResponse({locals: {territory: seedTerritory, collected: {user_fragments: [fragment1]}}});
+      let req = mockRequest({params: {fragment_number: 26}});
+      let next = sinon.stub();
+
+      territoryMiddleware.findRequestedFragmentBlocks(req, res, next);
+
+      expect(res.status).to.have.been.calledWith(HttpStatus.UNAUTHORIZED);
+      expect(res.locals.collected).to.not.have.property('fragmentBlockReferences');
+      expect(next).to.not.have.been.called;
 
     });
 

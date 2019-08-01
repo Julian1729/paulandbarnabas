@@ -1,12 +1,14 @@
 /**
  * Territory middleware
  */
+const _ = require('lodash');
 const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
 
 const errors = require(`${appRoot}/errors`);
 const {logger} = require(`${appRoot}/utils`);
 const {TerritoryModel} = require(`${appRoot}/models`);
+const {territoryServices} = require(`${appRoot}/services`);
 
 /**
  * Find and load user territory
@@ -185,6 +187,52 @@ exports.findRequestedFragment = (req, res, next) => {
   }
 
   res.locals.collected.fragment = fragment;
+  return next();
+
+};
+
+/**
+ * Search territory for fragments assigned
+ * to session's user and attach to route locals
+ */
+exports.findUserFragments = (req, res, next) => {
+
+  // OPTIMIZE: refactor when session api is refactored
+  let userId = req.session.user_id;
+
+  let territory = res.locals.territory;
+  let userFragments = territoryServices.userFragments(territory, userId);
+  logger.verbose(`Found fragments ${_.map(userFragments, 'number').join(', ')} for logged in user`);
+
+  res.locals.collected.user_fragments = userFragments;
+  return next();
+
+};
+
+/**
+ * Search for fragment blocks within territory. This must be
+ * run after findUserFragments, and will not work only after
+ * findRequestedFragment becuase this will return 301 UNAUTHORIZED if
+ * the requested fragment is not assigned to the user.
+ */
+exports.findRequestedFragmentBlocks = (req, res, next) => {
+
+  let territory = res.locals.territory;
+  let userFragments = res.locals.collected.user_fragments;
+  let requestedFragmentNumber = req.params.fragment_number;
+
+  let fragment = _.find(userFragments, ['number', (requestedFragmentNumber * 1)]);
+  if(!fragment){
+    logger.verbose(`Fragment #${requestedFragmentNumber} was not found in this user's assigned fragments`);
+    // OPTIMIZE: send a GUI communicable error
+    return res.status(HttpStatus.UNAUTHORIZED).send();
+  }
+
+  let blockReferences = territoryServices.fragmentBlocks(territory, fragment);
+
+  // reference requested fragment's assigned blocks as blocks
+  res.locals.collected.fragmentBlockReferences = blockReferences;
+
   return next();
 
 };

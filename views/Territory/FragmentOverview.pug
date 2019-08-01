@@ -4,7 +4,6 @@ append content
   .container
     .row.text-center
       //- send to fragment overview page
-      a(href=render_vars.fragment.overview_url).btn.btn-primary.btn-lg.my-2 work fragment
     .row.my-2
       each props, street in streets
         .col-sm
@@ -12,4 +11,7 @@ append content
             .card-header= street
             ul.list-group.list-group-flush
               each v, i in props.blocks
-                li.list-group-item #{v.hundred} #{v.odd_even}
+                li.list-group-item.list-group-item-action.align-items-center.d-flex.justify-content-between
+                  a(href=v.overview_url) #{v.hundred} #{v.odd_even}
+                  each tag in v.tags
+                      span.badge.badge-primary.badge-pill= tag

@@ -287,3 +287,9 @@ exports.userFragments = (territoryDoc, userId) => {
   return territoryDoc.findUserFragments(userId);
 
 };
+
+exports.fragmentBlocks = (territoryDoc, fragmentDoc) => {
+
+  return territoryDoc.findBlocksById(fragmentDoc.blocks);
+
+};

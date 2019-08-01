@@ -12,6 +12,4 @@ exports.fragmentRoute = require('./fragment.route');
 
 exports.loginRoute = require('./login.route');
 
-exports.territoryRoute = require('./territory.route');
-
 exports.unitRoute = require('./unit.route');

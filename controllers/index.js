@@ -12,6 +12,4 @@ exports.fragmentController = require('./fragment.controller');
 
 exports.loginController = require('./login.controller');
 
-exports.territoryController = require('./territory.controller');
-
 exports.unitController = require('./unit.controller');

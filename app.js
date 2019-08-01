@@ -91,7 +91,7 @@ app.set('views', __dirname + '/views');
   app.use('/adminpanel', routes.adminPanelRoute);
 
   // User Territory CRUD
-  app.use('/territory', routes.territoryRoute);
+  app.use('/fragment', routes.fragmentRoute);
 
   // Error Handler
   app.use((err, req, res, next) => {

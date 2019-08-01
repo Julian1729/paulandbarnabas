@@ -405,4 +405,7 @@ describe('Territory Service', () => {
   // userFragments not tested
   // describe('userFragments', () => {});
 
+  // fragmentBlocks not tested
+  // describe('fragmentBlocks', () => {});
+
 });

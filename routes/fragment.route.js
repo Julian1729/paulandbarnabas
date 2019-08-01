@@ -1,31 +1,33 @@
 const express = require('express');
-const router = express.Router({mergeParams: true});
+const router = express.Router();
 const appRoot = require('app-root-path');
 
+const {territoryMiddleware, authenticationMiddleware} = require(`${appRoot}/middleware`);
 const {fragmentController} = require(`${appRoot}/controllers`);
 
-// OPTIMIZE: add middleware that authorizes user to access fragment
-// (is this fragment assigned to user?)
+router.use(authenticationMiddleware.session, territoryMiddleware.findTerritory);
 
-router.all('*', fragmentController.middleware.initRenderVars, fragmentController.middleware.findUserFragments, fragmentController.middleware.findRequestedFragment, fragmentController.middleware.findFragmentBlocks);
+router.param('fragment_number', territoryMiddleware.findRequestedFragment);
 
-/**
- * Show fragment overview. Lead to block select
- */
-router.get('/', fragmentController.endpoints.fragmentOverview);
+router.param('fragment_number', territoryMiddleware.findUserFragments);
 
-/**
- * Blocks
- */
-router.get('/blocks', fragmentController.endpoints.blockSelect);
-// register middleware to find requested block
-router.all('/block/:block_id*', fragmentController.middleware.findRequestedBlock);
-router.get('/block/:block_id', fragmentController.endpoints.blockOverview);
+router.param('fragment_number', territoryMiddleware.findRequestedFragmentBlocks);
 
-/**
- * Delegate Unit CRUD to Unit router
- */
-router.use('/block/:block_id/unit/:unit_number', require('./unit.route'));
+router.param('unit_number', territoryMiddleware.findRequestedUnit);
 
+// view territory
+router.get('/:fragment_number', fragmentController.fragmentOverview);
+
+// select blocks
+// router.get('/:fragment_number/block-select');
+//
+// // block overview
+// router.get('/:fragment_number/:hundred/:street_name/:side(odd|even)');
+//
+// // unit overview
+// router.get('/:fragment_number/:unit_number/:street_name/')
+//
+// // hogetholder contacted
+// router.use('/:fragment_number/:unit_number/:street_name/contacted');
 
 module.exports = router;
