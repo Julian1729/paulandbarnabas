@@ -11,5 +11,3 @@ exports.dashboardRoute = require('./dashboard.route');
 exports.fragmentRoute = require('./fragment.route');
 
 exports.loginRoute = require('./login.route');
-
-exports.unitRoute = require('./unit.route');
