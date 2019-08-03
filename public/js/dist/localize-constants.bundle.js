@@ -20,17 +20,13 @@ const local = {
     salt_rounds: 10
   }
 };
-local.assets_url = local.base_url;
-local.ajax_url = local.base_url + "/ajax";
-local.fragment_url = local.base_url + "/territory/fragment";
-local.rajax_url = local.base_url + "/rajax"
 
 const production = {
 
 };
 
 const loadConstants = () => {
-  var env = process.env.NODE_ENV || 'development';
+  let env = process.env.NODE_ENV || 'development';
   if(env === 'development' || env === 'test'){
     return _.extend({}, local, universal);
   }else if (env === 'production') {
