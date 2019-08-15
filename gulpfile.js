@@ -1,5 +1,5 @@
 const gulp = require('gulp');
-var path = require('path');
+const path = require('path');
 const pump = require('pump');
 const csso = require('gulp-csso');
 const sass = require('gulp-sass');
@@ -36,7 +36,10 @@ const CONFIG = {
     outputDir: './public/css/dist',
     compiled: './public/css/dist/*.css',
     minifiedDir: './public/css/dist/min'
-  }
+  },
+  html: {
+    pug: './views/**/*.pug',
+  },
 };
 
 /**
@@ -61,10 +64,10 @@ gulp.task('compile-sass', function(){
 /**
  * Bundle all javascript files
  */
-gulp.task('bundleAll', function(){
+gulp.task('bundle-all', function(){
 
-  var tasks = CONFIG.js.files.map(function(entry){
-    var srcPath = CONFIG.js.inputDir + entry;
+  let tasks = CONFIG.js.files.map(function(entry){
+    let srcPath = CONFIG.js.inputDir + entry;
     return browserify({entries: [srcPath]})
       .bundle()
       .pipe(source(entry))
@@ -106,7 +109,7 @@ gulp.task('build-css-development', function(){
   return gulp.src(CONFIG.css.sass)
   .pipe(sass().on('error', sass.logError))
   .pipe(autoprefixer())
-  .pipe(gulp.dest(CONFIG.css.outputDir))//;
+  .pipe(gulp.dest(CONFIG.css.outputDir));
 });
 
 /**
@@ -116,24 +119,20 @@ gulp.task('set-development-env-var', function(){
   return process.env.NODE_ENV = 'development';
 });
 
+gulp.task('watch-public', function(){
+
+  gulp.watch(CONFIG.css.sass, ['build-css-development']);
+  gulp.watch(CONFIG.js.inputDir, ['bundle-all']);
+
+});
+
 /**
  * Run necessary build tasks, then watch for changes with nodemon
  */
-gulp.task('start', ['set-development-env-var', 'bundleAll', 'build-css-development'], function(){
+gulp.task('start', ['set-development-env-var', 'bundle-all', 'build-css-development', 'watch-public'], function(){
   nodemon({
     script: 'app.js',
-    tasks: function(changedFiles){
-      // OPTIMIZE: do not rebundle file is a server side .js was modified
-      var tasks = [];
-      if(!changedFiles) return tasks;
-      changedFiles.forEach(function(file){
-        if(path.extname(file) === '.js' && (changedFiles.indexOf('bundleAll') === -1) ) tasks.push('bundleAll');
-        if(path.extname(file) === '.sass' && (changedFiles.indexOf('build-css-development') === -1) ) tasks.push('build-css-development');
-        if(path.extname(file) === '.pug' && (changedFiles.indexOf('build-css-development') === -1) ) tasks.push('build-css-development');
-    });
-      return tasks
-    },
-    ext: 'js pug sass',
-    ignore: ['public/js/dist/*']
+    ext: 'js',
+    ignore: ['public/**'],
   });
 });
