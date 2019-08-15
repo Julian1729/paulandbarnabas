@@ -13,6 +13,8 @@ router.param('fragment_number', territoryMiddleware.findUserFragments);
 
 router.param('fragment_number', territoryMiddleware.findRequestedFragmentBlocks);
 
+router.param('unit_number', territoryMiddleware.findRequestedFragmentUnit);
+
 // Fragment Overview - select block to view
 router.get('/:fragment_number', fragmentController.fragmentOverview);
 
@@ -23,6 +25,6 @@ router.get('/:fragment_number/:hundred/:street_name/:side(odd|even)', fragmentCo
 router.get('/:fragment_number/:unit_number/:street_name', fragmentController.unitOverview);
 
 // // hogetholder contacted
-// router.use('/:fragment_number/:unit_number/:street_name/contacted');
+router.use('/:fragment_number/:unit_number/:street_name/contacted', fragmentController.householderContacted);
 
 module.exports = router;

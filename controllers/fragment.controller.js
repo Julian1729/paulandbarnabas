@@ -132,60 +132,27 @@ exports.blockOverview = (req, res) => {
  */
 exports.unitOverview = (req, res) => {
 
-  let requestedUnitNumber = req.params.unit_number * 1;
-  let requestedSubunitName = req.query.subunit;
-  let requestedStreetName = req.params.street_name;
+  let unit = res.locals.collected.unit;
+  let subunit = res.locals.collected.subunit;
+  let block = res.locals.collected.blockRef;
 
   let fragmentNumber = res.locals.collected.fragment.number;
-  let fragmentBlocks = res.locals.collected.fragmentBlockReferences;
-
-  // search for blocks with street in fragment blocks
-  let streetBlocks = _.filter(fragmentBlocks, ['street', requestedStreetName]);
-  if(!streetBlocks){
-    logger.verbose(`${requestedStreetName} street not found in Fragment #${fragmentNumber}`);
-    return res.status(HttpStatus.NOT_FOUND).send();
-  }
-
-  let unit = null;
-  let block = null;
-  streetBlocks.forEach(blockRef => {
-     let foundUnit = _.find(blockRef.block.units, ['number', requestedUnitNumber]) || null;
-     if(foundUnit){
-       block = blockRef;
-       unit = foundUnit;
-       return false;
-     }
-  });
-  if(!unit) {
-    logger.verbose(`${requestedUnitNumber} unit not found in ${requestedStreetName} street`);
-    return res.status(HttpStatus.NOT_FOUND).send();
-  }
-
-  let subunit = {};
-  if(requestedSubunitName){
-    // search for subunit
-    try {
-      subunit = unit.findSubunit(requestedSubunitName);
-    } catch (e) {
-      if(e instanceof erros.SubunitNotFound){
-        logger.verbose(`${requestedSubunitName} not found in ${unit.number} ${requestedStreetName}`);
-        res.status(HttpStatus.NOT_FOUND).send();
-      }else{
-        throw e;
-      }
-    }
-  }
 
   // init an object to be passed into URLConstructor
   // as query param with subunit name
-  let subunitQueryParam = subunit ? {'subunit' : subunit.name} : null;
+  let subunitQueryParam = _.isEmpty(subunit) ? null : {'subunit' : subunit.name};
+
+  // set globals on PBURLConstructor
+  PBURLConstructor.setGlobal('street_name', block.street);
+  PBURLConstructor.setGlobal('hundred', block.hundred);
+  PBURLConstructor.setGlobal('unit_number', unit.number);
 
   let unitOptions = {
 
     tags: {
       add: {
         title: 'add tag',
-        // endpoint: PBURLConstructor.getRoute('add-tag').url(null, _.extend(subunitQueryParam, {'tag':'TAGHERE'})),
+        endpoint: PBURLConstructor.getRoute('add-tag').url(null, _.extend(_.clone(subunitQueryParam), {tag: 'TAGHERE'})),
         id: 'option-tag-add'
       }
     },
@@ -193,7 +160,7 @@ exports.unitOverview = (req, res) => {
     notes: {
       add: {
         title: 'add note',
-        // endpoint: PBURLConstructor.getRoute('add-note').url(null, subunitQueryParam),
+        endpoint: PBURLConstructor.getRoute('add-note').url(null, subunitQueryParam),
         id: 'option-note-add'
       }
     },
@@ -201,12 +168,12 @@ exports.unitOverview = (req, res) => {
     dnc: {
       mark: {
         title: 'mark as do not call',
-        // endpoint: PBURLConstructor.getRoute('mark-dnc').url(null, subunitQueryParam),
+        endpoint: PBURLConstructor.getRoute('mark-dnc').url(null, subunitQueryParam),
         id: 'option-dnc-mark'
       },
       unmark: {
         title: 'unmark as do not call',
-        // endpoint: PBURLConstructor.getRoute('unmark-dnc').url(null, subunitQueryParam),
+        endpoint: PBURLConstructor.getRoute('unmark-dnc').url(null, subunitQueryParam),
         id: 'option-dnc-unmark'
       }
     },
@@ -215,13 +182,13 @@ exports.unitOverview = (req, res) => {
 
       mark: {
         title: 'this unit is currently being consistently visited',
-        // endpoint: PBURLConstructor.getRoute('mark-calledon').url(null, subunitQueryParam),
+        endpoint: PBURLConstructor.getRoute('mark-calledon').url(null, subunitQueryParam),
         id: 'option-calledon-mark'
       },
 
       unmark: {
         title: 'this unit is no longer being consistently visited',
-        // endpoint: PBURLConstructor.getRoute('unmark-calledon').url(null, subunitQueryParam),
+        endpoint: PBURLConstructor.getRoute('unmark-calledon').url(null, subunitQueryParam),
         id: 'option-calledon-unmark'
       },
 
@@ -231,7 +198,7 @@ exports.unitOverview = (req, res) => {
 
       ni: {
         title: 'not interested',
-        // endpoint: PBURLConstructor.getRoute('add-note').url(null, subunitQueryParam),
+        endpoint: PBURLConstructor.getRoute('add-note').url(null, subunitQueryParam),
         body: {
           note: 'Householder not interested.',
           by: `${req.session.first_name} ${req.session.last_name}`
@@ -241,7 +208,7 @@ exports.unitOverview = (req, res) => {
 
       busy: {
         title: 'busy, call again',
-        // endpoint: PBURLConstructor.getRoute('add-note').url(null, subunitQueryParam),
+        endpoint: PBURLConstructor.getRoute('add-note').url(null, subunitQueryParam),
         body: {
           note: 'Householder busy, call again.',
           by: `${req.session.first_name} ${req.session.last_name}`
@@ -308,28 +275,43 @@ exports.unitOverview = (req, res) => {
 /**
  * Householder Contacted
  */
-// exports.householderContacted = (req, res) => {
-//
-//   let territory = res.locals.territory;
-//   let requested = res.locals.requested;
-//   let unit = requested.unit;
-//   let subunit = requested.subunit || {};
-//
-//   let street = requested.block.street;
-//   let hundred = requested.block.hundred;
-//
-//   let subunitQueryParam = _.isEmpty(subunit) ? null : {'subunit': subunit.name};
-//
-//   let renderVars = {
-//    rajax_add_visit_url: PBURLConstructor.getRoute('add-visit').url(null, subunitQueryParam),
-//    rajax_add_householder_url: PBURLConstructor.getRoute('add-householder').url(null, subunitQueryParam),
-//    subunit: _.isEmpty(subunit) ? false : true,
-//    householders: unit.householders.map(h => _.pick(h, 'name', 'gender')),
-//    number: unit.number,
-//    unit_overview_url: PBURLConstructor.getRoute('unit-overview').url(),
-//    street
-//   };
-//
-//   res.render('Territory/UnitHouseholderContacted', renderVars);
-//
-// };
+exports.householderContacted = (req, res) => {
+
+  let territory = res.locals.territory;
+  let unit = res.locals.collected.unit;
+  let subunit = res.locals.collected.subunit;
+
+  let block = res.locals.collected.blockRef;
+  let fragment = res.locals.collected.fragment;
+
+  let subunitQueryParam = _.isEmpty(subunit) ? null : {'subunit': subunit.name};
+
+  PBURLConstructor.setGlobal('street_name', block.street);
+  PBURLConstructor.setGlobal('hundred', block.hundred);
+  PBURLConstructor.setGlobal('unit_number', unit.number);
+  PBURLConstructor.setGlobal('fragment_number', fragment.number);
+
+  // params object
+  // FIXME: this could be optimized, url was running rendering
+  // wrong params dues to require vs import i think 
+  let urlParams = {
+    street_name: block.street,
+    hundred: block.number,
+    unit_number: unit.number,
+    fragment_number: fragment.number,
+  };
+
+  let renderVars = {
+   ajax_add_visit_url: PBURLConstructor.getRoute('add-visit').url(urlParams, subunitQueryParam),
+   ajax_add_householder_url: PBURLConstructor.getRoute('add-householder').url(urlParams, subunitQueryParam),
+   subunit: _.isEmpty(subunit) ? false : true,
+   // only padding in name and gender for householders
+   householders: unit.householders.map(h => _.pick(h, 'name', 'gender')),
+   number: unit.number,
+   unit_overview_url: PBURLConstructor.getRoute('unit-overview').url(urlParams, subunitQueryParam),
+   street: block.street,
+  };
+
+  res.render('Territory/HouseholderContacted', renderVars);
+
+};

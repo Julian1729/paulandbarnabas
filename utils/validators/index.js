@@ -10,3 +10,5 @@ exports.loginValidator = require('./login.validator');
 exports.registrationValidator = require('./registration.validator');
 
 exports.addHouseholderValidator = require('./add-householder.validator');
+
+exports.householderContactedValidator = require('./householder-contacted.validator');

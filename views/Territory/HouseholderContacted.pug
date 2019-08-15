@@ -6,6 +6,7 @@ append stylesheets
 
 append content
   .bootstrap-modals
+    include ../inc/BootstrapModals.pug
     //- new householder modal
     .modal#new-householder-modal
       .modal-dialog(role="document")
@@ -35,19 +36,6 @@ append content
           .modal-footer
             button.btn.btn-secondary(data-dismiss="modal") close
             button.btn.btn-primary#save-new-householder save
-  
-  .container.my-2
-    nav(aria-label='breadcrumb')
-      ol.breadcrumb
-        li.breadcrumb-item Fragment #{render_vars.fragment.number}
-        li.breadcrumb-item #{render_vars.block.hundred} #{render_vars.block.street}
-        if subunit
-        
-          li.breadcrumb-item #{render_vars.unit.number} &#62; #{render_vars.subunit.name}
-        
-        else
-          
-          li.breadcrumb-item= render_vars.unit.number
           
   .container
     form#add-visit-form
@@ -61,7 +49,7 @@ append content
           each householder, index in householders
             - var id = `hh-${index}`
             label(for=id).btn.btn-secondary.m-1= householder.name
-              input(type="checkbox" id=id value=householder.name name="householders.contacted[]")
+              input(type="checkbox" id=id value=householder.name name="visit.householders_contacted[]")
           button.btn.btn-info.m-1#new-householder-button new householder
       
       hr
@@ -71,7 +59,7 @@ append content
         small.text-muted who spoke to them?
         
         .input-group
-          input(type="text" placeholder="Brother Zealous" name="publisher.name").form-control
+          input(type="text" placeholder="Brother Zealous" name="visit.publisher").form-control
         //- hidden below not wired up in backend yet
         .input-group.d-none
           small.text-muted will this publisher now be consistently returning on this unit?
@@ -87,8 +75,7 @@ append content
       .form-group
         h4 visit details
         .input-group
-          small.text-muted provide specific details about the conversation
-          small.text-muted topic of discussion, bible scriptures, level of interest
+          small.text-muted provide specific details about the conversation: topic of discussion, bible scriptures shared, discerned level of interest
         textarea(name="visit.details").form-control
         .input-group
           p.text-muted.w-100.my-2 date and time
@@ -101,20 +88,16 @@ append content
               input(type="text", name="visit.time")#visit-time-picker
 
       
-      button.btn.btn-primary(type="button" id="visit-form-submit") save visit
-      
+      button.btn.btn-primary(type="button", id="visit-form-submit") save visit
   
   .row.my-3
-        
-  
-    
   
 prepend scripts
   script.
-    window.rajax_visit_url= "#{rajax_add_visit_url}"
-    window.rajax_householder_url = "#{rajax_add_householder_url}"
+    window.ajax_add_visit_url= "#{ajax_add_visit_url}"
+    window.ajax_add_householder_url = "#{ajax_add_householder_url}"
     window.unit_overview_url= "#{unit_overview_url}"
 
 append scripts
   script(src="https://unpkg.com/js-datepicker")
-  script(src=constants.assets_url + '/js/dist/territory-householdercontacted.bundle.js', type="text/javascript")
+  script(src=constants.base_url + '/js/dist/territory-householdercontacted.bundle.js', type="text/javascript")

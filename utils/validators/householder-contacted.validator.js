@@ -1,16 +1,20 @@
-var validate = require('validate.js');
+const validate = require('./base.js');
 const _ = require('lodash');
 
 const HouseholderContactedContraints = {
 
-  'householders.contacted': {
+  'householders_contacted': {
     presence: {
       allowEmpty: false,
       message: 'Please select or add the housholder who was contacted'
     },
+    length: {
+      minimum: 1,
+      tooShort: 'Please select or add the housholder who was contacted'
+    }
   },
 
-  'publisher.name': {
+  'publisher': {
     presence: {
       allowEmpty: false,
       message: 'Please provide the name of the publisher who spoke to the householder'
@@ -24,21 +28,21 @@ const HouseholderContactedContraints = {
   //   },
   // },
 
-  'visit.details': {
+  'details': {
     presence: {
       allowEmpty: false,
       message: 'Please provide at least a brief summary of the visit'
     },
   },
 
-  'visit.date': {
+  'date': {
     presence: {
       allowEmpty: false,
       message: 'Please provide the date this visit took place'
     },
   },
 
-  'visit.time': {
+  'time': {
     presence: {
       allowEmpty: false,
       message: 'Please provide the time this visit took place'
@@ -47,4 +51,4 @@ const HouseholderContactedContraints = {
 
 };
 
-module.exports = function(formData){ return validate(formData, HouseholderContactedContraints, {fullMessages: false}) };
+module.exports = formData =>  validate(formData, HouseholderContactedContraints, {fullMessages: false});

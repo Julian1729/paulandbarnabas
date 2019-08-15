@@ -28035,7 +28035,9 @@ var DOM_CACHE = {
       submit_note: $('#add-note-submit-btn'),
     }
   },
-
+  forms: {
+    add_tag: w$('#add-tag-form'),
+  }
 };
 
 function showErrorModal(){
@@ -28057,8 +28059,16 @@ for (var option in DOM_CACHE.options) {
 }
 
 // Bind tag:add event to add tag button on modal
-DOM_CACHE.modals.buttons.submit_tag.on('click', function(){
+// DOM_CACHE.modals.buttons.submit_tag.on('click', function(){
+//
+//   UnitOptionEvents.emit('tag:add');
+//
+// });
 
+// Bind tag:add on form submit
+DOM_CACHE.forms.add_tag.on('submit', function(e){
+
+  e.preventDefault();
   UnitOptionEvents.emit('tag:add');
 
 });
@@ -28075,10 +28085,10 @@ UnitOptionEvents.on('select', function(id){
 
   switch (id) {
     case 'option-tag-add':
-      this.emit('tag:modal');
+      this.emit('tag:modal:show');
       break;
     case 'option-note-add':
-      this.emit('note:modal');
+      this.emit('note:modal:show');
       break;
     case 'option-dnc-mark':
       this.emit('dnc:mark')
@@ -28093,10 +28103,10 @@ UnitOptionEvents.on('select', function(id){
       this.emit('calledon:unmark');
       break;
     case 'option-quicknote-ni':
-      this.emit('qicknote', 'ni');
+      this.emit('quicknote', 'ni');
       break;
     case 'option-quicknote-busy':
-      this.emit('qicknote', 'busy');
+      this.emit('quicknote', 'busy');
       break;
     default:
       showErrorModal();
@@ -28105,9 +28115,15 @@ UnitOptionEvents.on('select', function(id){
 });
 
 // Activate tag modal
-UnitOptionEvents.on('tag:modal', function(){
+UnitOptionEvents.on('tag:modal:show', function(){
 
   DOM_CACHE.modals.add_tag.modal('show');
+
+});
+
+UnitOptionEvents.on('tag:modal:hide', function(){
+
+  DOM_CACHE.modals.add_tag.modal('hide');
 
 });
 
@@ -28141,14 +28157,21 @@ UnitOptionEvents.on('tag:add', function(tag){
     utils.reloadPage();
   })
   .fail(function(){
+    UnitOptionEvents.emit('tag:modal:hide');
     showErrorModal();
   });
 
 });
 
-UnitOptionEvents.on('note:modal', function(){
+UnitOptionEvents.on('note:modal:show', function(){
 
   DOM_CACHE.modals.add_note.modal('show');
+
+});
+
+UnitOptionEvents.on('note:modal:hide', function(){
+
+  DOM_CACHE.modals.add_note.modal('hide');
 
 });
 
@@ -28168,20 +28191,30 @@ UnitOptionEvents.on('note:add', function(){
   }
   if(_.isEmpty(note) || _.isEmpty(by) ) return;
 
+  // construct request body to convert to JSON
+  var body = {
+    note: {
+      note: note,
+      by: by,
+    }
+  };
+
   $.ajax({
     url: unitOptions.notes.add.endpoint,
     type: 'POST',
-    data: {
-      note: note,
-      by: by
-    },
-  })
+    data: JSON.stringify(body),
+    processData: false,
+    contentType: "application/json"
+    })
   .done(function(){
     $noteInput.val('');
     $byInput.val('');
     utils.reloadPage();
   })
-  .fail(showErrorModal);
+  .fail(function(){
+    UnitOptionEvents.emit('note:modal:hide');
+    showErrorModal();
+  });
 
 });
 
@@ -28230,16 +28263,16 @@ UnitOptionEvents.on('calledon:unmark', function(){
 });
 
 // set note input to predefined text and open modal
-UnitOptionEvents.on('qicknote', function(type){
+UnitOptionEvents.on('quicknote', function(type){
 
   var $noteInput = $('#add-note-input');
 
   var quicknotes = {
     ni: 'Householder stated that they were not interested.',
-    busy: 'Householder was busy, and was not opposed to a visit at another time.',
+    busy: 'Householder was busy, but was not opposed to a visit at another time.',
   };
 
-  this.emit('note:modal');
+  this.emit('note:modal:show');
 
   $noteInput.val(quicknotes[type]);
 

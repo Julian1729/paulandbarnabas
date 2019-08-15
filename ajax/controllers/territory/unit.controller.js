@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const moment = require('moment');
 const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
 
@@ -13,11 +14,29 @@ const {territoryServices} = require(`${appRoot}/services`);
 exports.addVisit = async (req, res) => {
 
   let ajaxRes = new AjaxResponse(res);
+  ajaxRes.validErrors = ['VALIDATION_ERROR'];
 
   let territoryDoc = res.locals.territory;
   let unit = res.locals.collected.subunit || res.locals.collected.unit;
 
   let visitData = req.body.visit;
+
+  let validationErrors = validators.householderContactedValidator(visitData);
+  if(validationErrors){
+    return ajaxRes.error('VALIDATION_ERROR', null, {validationErrors}).send();
+  }
+
+  // construct timestamp with time and date
+  let timestamp = moment( `${visitData.date} ${visitData.time}`, 'MMMM Do, YYYY h:mm A' ).valueOf();
+
+  visitData.timestamp = timestamp;
+  delete visitData.date;
+  delete visitData.time;
+
+  // rename publisher to contacted_by
+  // FIXME: this is sloppy
+  visitData.contacted_by = visitData.publisher;
+  delete visitData.publisher;
 
   let visit = await territoryServices.visitUnit(territoryDoc, unit, visitData);
 
@@ -170,7 +189,7 @@ exports.addHouseholder = async (req, res) => {
   // validate householder
   let validationErrors = validators.addHouseholderValidator(householderInfo);
   if(validationErrors){
-    return ajaxRes.error('VALIDATION_ERROR', null, validationErrors).send();
+    return ajaxRes.error('VALIDATION_ERROR', null, {validationErrors}).send();
   }
 
   let territoryDoc = res.locals.territory;

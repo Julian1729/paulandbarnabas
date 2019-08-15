@@ -70,7 +70,7 @@ app.set('views', __dirname + '/views');
    }
  }));
  // // Express json
- // app.use(express.json());
+ app.use(express.json());
 
 /**
  * Express Routing

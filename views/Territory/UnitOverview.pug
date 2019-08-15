@@ -12,17 +12,17 @@ append content
     .modal#add-tag-modal
       .modal-dialog(role="document")
         .modal-content
-          .modal-header
-            h5 Add tag
-          .modal-body
-            form
-              .form-errors#add-tag-errors
-              .form-group
-                label new tag
-                input#add-tag-input(type="text" name="tag").form-control
-          .modal-footer
-            button.btn.btn-secondary(data-dismiss="modal") close
-            button.btn.btn-primary#add-tag-submit-btn add
+          form#add-tag-form
+            .modal-header
+              h5 Add tag
+            .modal-body
+                .form-errors#add-tag-errors
+                .form-group
+                  label new tag
+                  input#add-tag-input(type="text" name="tag").form-control
+            .modal-footer
+              button.btn.btn-secondary(data-dismiss="modal") close
+              button.btn.btn-primary#add-tag-submit-btn add
             
     //- add note modal
     .modal#add-note-modal
@@ -62,7 +62,7 @@ append content
           i= name
         
     .row.align-items-center.d-flex.flex-column
-      a(href= householder_contacted_url).btn.btn-primary.btn-lg.mb-2 householder contacted
+      a(href=householder_contacted_url).btn.btn-primary.btn-lg.mb-2 householder contacted
       button.nav-item.dropdown.btn.btn-secondary.btn-sm(data-toggle='dropdown') options
         .dropdown-menu(aria-labelledby='navbarDropdown', style='font-size: 62.5%')
           each option in options 

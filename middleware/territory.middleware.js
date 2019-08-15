@@ -236,3 +236,61 @@ exports.findRequestedFragmentBlocks = (req, res, next) => {
   return next();
 
 };
+
+/**
+ * Find requested unit when fragment
+ * is loaded first, so that the unit is
+ * assured to be in fragment, or return 404
+ */
+exports.findRequestedFragmentUnit = (req, res, next) => {
+
+  let requestedUnitNumber = req.params.unit_number * 1;
+  let requestedSubunitName = req.query.subunit;
+  let requestedStreetName = req.params.street_name;
+
+  let fragmentBlocks = res.locals.collected.fragmentBlockReferences;
+
+  // search for blocks with street in fragment blocks
+  let streetBlocks = _.filter(fragmentBlocks, ['street', requestedStreetName]);
+  if(!streetBlocks){
+    logger.verbose(`${requestedStreetName} street not found in Fragment #${fragmentNumber}`);
+    return res.status(HttpStatus.NOT_FOUND).send();
+  }
+
+  let unit = null;
+  let block = null;
+  streetBlocks.forEach(blockRef => {
+     let foundUnit = _.find(blockRef.block.units, ['number', requestedUnitNumber]) || null;
+     if(foundUnit){
+       block = blockRef;
+       unit = foundUnit;
+       return false;
+     }
+  });
+  if(!unit) {
+    logger.verbose(`${requestedUnitNumber} unit not found in ${requestedStreetName} street`);
+    return res.status(HttpStatus.NOT_FOUND).send();
+  }
+
+  let subunit = {};
+  if(requestedSubunitName){
+    // search for subunit
+    try {
+      subunit = unit.findSubunit(requestedSubunitName);
+    } catch (e) {
+      if(e instanceof errors.SubunitNotFound){
+        logger.verbose(`${requestedSubunitName} not found in ${unit.number} ${requestedStreetName}`);
+        res.status(HttpStatus.NOT_FOUND).send();
+      }else{
+        throw e;
+      }
+    }
+  }
+
+  res.locals.collected.unit = unit;
+  res.locals.collected.subunit = _.isEmpty(subunit) ? {} : subunit;
+  res.locals.collected.blockRef = block;
+
+  return next();
+
+};

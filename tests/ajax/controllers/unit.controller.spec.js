@@ -10,9 +10,10 @@ const {mockResponse, mockRequest} = require('mock-req-res');
 const appRoot = require('app-root-path');
 
 const {AjaxResponse, helpers} = require(`${appRoot}/utils`);
-const {authenticationMiddleware} = require(`${appRoot}/middleware`);
+const {territoryServices} = require(`${appRoot}/services`);
 const userSeed = require(`${appRoot}/tests/seed/user.seed`);
 const territorySeed = require(`${appRoot}/tests/seed/territory.seed`);
+const {authenticationMiddleware} = require(`${appRoot}/middleware`);
 const {unitController} = require(`${appRoot}/ajax/controllers/territory`);
 const {TerritoryModel, UserModel} = require(`${appRoot}/models`);
 
@@ -51,13 +52,30 @@ describe('AJAX Territory > Unit Controllers', () => {
         visit: {
           householders_contacted: ['Michael', 'Dwight'],
           contacted_by: 'Jan Levenson Gould',
-          details: 'Dwight is preparing Michael for Jans baby'
+          details: 'Dwight is preparing Michael for Jans baby',
+          publisher: 'Julian',
+          date: 'August 21st, 2019',
+          time: '8:30 AM',
         }
       }});
+
+      // timestamp for date and time
+      // Wednesday, August 21, 2019 8:30:00 AM GMT-04:00 = 1566390600000
+
+      sinon.spy(AjaxResponse.prototype, 'error');
+      sinon.spy(territoryServices, 'visitUnit');
+
       await unitController.addVisit(req, res);
 
+      expect(AjaxResponse.prototype.error).to.not.have.been.calledWith('VALIDATION_ERROR');
+      expect(territoryServices.visitUnit.getCall(0).args[2]).to.have.property('timestamp');
+      expect(territoryServices.visitUnit.getCall(0).args[2].timestamp).to.equal(1566390600000);
+      expect(territoryServices.visitUnit.getCall(0).args[2]).to.not.have.property('date');
+      expect(territoryServices.visitUnit.getCall(0).args[2]).to.not.have.property('time');
       expect(seedUnit.visits).to.have.lengthOf(1);
       expect(seedUnit.visits[0].contacted_by).to.eql('Jan Levenson Gould');
+
+      AjaxResponse.prototype.error.restore();
 
     });
 
@@ -68,16 +86,50 @@ describe('AJAX Territory > Unit Controllers', () => {
         visit: {
           householders_contacted: ['Michael', 'Dwight'],
           contacted_by: 'Jan Levenson Gould',
-          details: 'Dwight is preparing Michael for Jans baby'
+          details: 'Dwight is preparing Michael for Jans baby',
+          publisher: 'Julian',
+          date: 'August 21st, 2019',
+          time: '8:30 AM',
         }
       }});
 
       expect(seedSubunit.visits).to.have.lengthOf(0);
 
+      sinon.spy(AjaxResponse.prototype, 'error');
+
       await unitController.addVisit(req, res);
 
+      expect(AjaxResponse.prototype.error).to.not.have.been.calledWith('VALIDATION_ERROR');
       expect(seedSubunit.visits).to.have.lengthOf(1);
 
+      AjaxResponse.prototype.error.restore();
+
+    });
+
+    it('should send VALIDATION_ERROR', async () => {
+
+      let res = mockResponse({locals: {territory: seedTerritory, collected: {street: seedStreet, hundred: seedHundred, unit: seedUnit}}});
+      let req = mockRequest({body: {
+        visit: {
+          householders_contacted: [],
+          contacted_by: 'Jan Levenson Gould',
+          details: 'Dwight is preparing Michael for Jans baby',
+          publisher: 'Julian',
+          date: 'August 21st, 2019',
+          time: '8:30 AM',
+        }
+      }});
+
+      sinon.spy(AjaxResponse.prototype, 'error');
+      sinon.spy(AjaxResponse.prototype, 'send');
+
+      await unitController.addVisit(req, res);
+
+      expect(AjaxResponse.prototype.error).to.have.been.calledWith('VALIDATION_ERROR');
+      expect(AjaxResponse.prototype.send).to.have.been.calledOnce;
+
+      AjaxResponse.prototype.error.restore();
+      AjaxResponse.prototype.send.restore();
     });
 
   });

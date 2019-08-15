@@ -1,4 +1,529 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+var objectCreate = Object.create || objectCreatePolyfill
+var objectKeys = Object.keys || objectKeysPolyfill
+var bind = Function.prototype.bind || functionBindPolyfill
+
+function EventEmitter() {
+  if (!this._events || !Object.prototype.hasOwnProperty.call(this, '_events')) {
+    this._events = objectCreate(null);
+    this._eventsCount = 0;
+  }
+
+  this._maxListeners = this._maxListeners || undefined;
+}
+module.exports = EventEmitter;
+
+// Backwards-compat with node 0.10.x
+EventEmitter.EventEmitter = EventEmitter;
+
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._maxListeners = undefined;
+
+// By default EventEmitters will print a warning if more than 10 listeners are
+// added to it. This is a useful default which helps finding memory leaks.
+var defaultMaxListeners = 10;
+
+var hasDefineProperty;
+try {
+  var o = {};
+  if (Object.defineProperty) Object.defineProperty(o, 'x', { value: 0 });
+  hasDefineProperty = o.x === 0;
+} catch (err) { hasDefineProperty = false }
+if (hasDefineProperty) {
+  Object.defineProperty(EventEmitter, 'defaultMaxListeners', {
+    enumerable: true,
+    get: function() {
+      return defaultMaxListeners;
+    },
+    set: function(arg) {
+      // check whether the input is a positive number (whose value is zero or
+      // greater and not a NaN).
+      if (typeof arg !== 'number' || arg < 0 || arg !== arg)
+        throw new TypeError('"defaultMaxListeners" must be a positive number');
+      defaultMaxListeners = arg;
+    }
+  });
+} else {
+  EventEmitter.defaultMaxListeners = defaultMaxListeners;
+}
+
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+EventEmitter.prototype.setMaxListeners = function setMaxListeners(n) {
+  if (typeof n !== 'number' || n < 0 || isNaN(n))
+    throw new TypeError('"n" argument must be a positive number');
+  this._maxListeners = n;
+  return this;
+};
+
+function $getMaxListeners(that) {
+  if (that._maxListeners === undefined)
+    return EventEmitter.defaultMaxListeners;
+  return that._maxListeners;
+}
+
+EventEmitter.prototype.getMaxListeners = function getMaxListeners() {
+  return $getMaxListeners(this);
+};
+
+// These standalone emit* functions are used to optimize calling of event
+// handlers for fast cases because emit() itself often has a variable number of
+// arguments and can be deoptimized because of that. These functions always have
+// the same number of arguments and thus do not get deoptimized, so the code
+// inside them can execute faster.
+function emitNone(handler, isFn, self) {
+  if (isFn)
+    handler.call(self);
+  else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      listeners[i].call(self);
+  }
+}
+function emitOne(handler, isFn, self, arg1) {
+  if (isFn)
+    handler.call(self, arg1);
+  else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      listeners[i].call(self, arg1);
+  }
+}
+function emitTwo(handler, isFn, self, arg1, arg2) {
+  if (isFn)
+    handler.call(self, arg1, arg2);
+  else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      listeners[i].call(self, arg1, arg2);
+  }
+}
+function emitThree(handler, isFn, self, arg1, arg2, arg3) {
+  if (isFn)
+    handler.call(self, arg1, arg2, arg3);
+  else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      listeners[i].call(self, arg1, arg2, arg3);
+  }
+}
+
+function emitMany(handler, isFn, self, args) {
+  if (isFn)
+    handler.apply(self, args);
+  else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      listeners[i].apply(self, args);
+  }
+}
+
+EventEmitter.prototype.emit = function emit(type) {
+  var er, handler, len, args, i, events;
+  var doError = (type === 'error');
+
+  events = this._events;
+  if (events)
+    doError = (doError && events.error == null);
+  else if (!doError)
+    return false;
+
+  // If there is no 'error' event listener then throw.
+  if (doError) {
+    if (arguments.length > 1)
+      er = arguments[1];
+    if (er instanceof Error) {
+      throw er; // Unhandled 'error' event
+    } else {
+      // At least give some kind of context to the user
+      var err = new Error('Unhandled "error" event. (' + er + ')');
+      err.context = er;
+      throw err;
+    }
+    return false;
+  }
+
+  handler = events[type];
+
+  if (!handler)
+    return false;
+
+  var isFn = typeof handler === 'function';
+  len = arguments.length;
+  switch (len) {
+      // fast cases
+    case 1:
+      emitNone(handler, isFn, this);
+      break;
+    case 2:
+      emitOne(handler, isFn, this, arguments[1]);
+      break;
+    case 3:
+      emitTwo(handler, isFn, this, arguments[1], arguments[2]);
+      break;
+    case 4:
+      emitThree(handler, isFn, this, arguments[1], arguments[2], arguments[3]);
+      break;
+      // slower
+    default:
+      args = new Array(len - 1);
+      for (i = 1; i < len; i++)
+        args[i - 1] = arguments[i];
+      emitMany(handler, isFn, this, args);
+  }
+
+  return true;
+};
+
+function _addListener(target, type, listener, prepend) {
+  var m;
+  var events;
+  var existing;
+
+  if (typeof listener !== 'function')
+    throw new TypeError('"listener" argument must be a function');
+
+  events = target._events;
+  if (!events) {
+    events = target._events = objectCreate(null);
+    target._eventsCount = 0;
+  } else {
+    // To avoid recursion in the case that type === "newListener"! Before
+    // adding it to the listeners, first emit "newListener".
+    if (events.newListener) {
+      target.emit('newListener', type,
+          listener.listener ? listener.listener : listener);
+
+      // Re-assign `events` because a newListener handler could have caused the
+      // this._events to be assigned to a new object
+      events = target._events;
+    }
+    existing = events[type];
+  }
+
+  if (!existing) {
+    // Optimize the case of one listener. Don't need the extra array object.
+    existing = events[type] = listener;
+    ++target._eventsCount;
+  } else {
+    if (typeof existing === 'function') {
+      // Adding the second element, need to change to array.
+      existing = events[type] =
+          prepend ? [listener, existing] : [existing, listener];
+    } else {
+      // If we've already got an array, just append.
+      if (prepend) {
+        existing.unshift(listener);
+      } else {
+        existing.push(listener);
+      }
+    }
+
+    // Check for listener leak
+    if (!existing.warned) {
+      m = $getMaxListeners(target);
+      if (m && m > 0 && existing.length > m) {
+        existing.warned = true;
+        var w = new Error('Possible EventEmitter memory leak detected. ' +
+            existing.length + ' "' + String(type) + '" listeners ' +
+            'added. Use emitter.setMaxListeners() to ' +
+            'increase limit.');
+        w.name = 'MaxListenersExceededWarning';
+        w.emitter = target;
+        w.type = type;
+        w.count = existing.length;
+        if (typeof console === 'object' && console.warn) {
+          console.warn('%s: %s', w.name, w.message);
+        }
+      }
+    }
+  }
+
+  return target;
+}
+
+EventEmitter.prototype.addListener = function addListener(type, listener) {
+  return _addListener(this, type, listener, false);
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.prependListener =
+    function prependListener(type, listener) {
+      return _addListener(this, type, listener, true);
+    };
+
+function onceWrapper() {
+  if (!this.fired) {
+    this.target.removeListener(this.type, this.wrapFn);
+    this.fired = true;
+    switch (arguments.length) {
+      case 0:
+        return this.listener.call(this.target);
+      case 1:
+        return this.listener.call(this.target, arguments[0]);
+      case 2:
+        return this.listener.call(this.target, arguments[0], arguments[1]);
+      case 3:
+        return this.listener.call(this.target, arguments[0], arguments[1],
+            arguments[2]);
+      default:
+        var args = new Array(arguments.length);
+        for (var i = 0; i < args.length; ++i)
+          args[i] = arguments[i];
+        this.listener.apply(this.target, args);
+    }
+  }
+}
+
+function _onceWrap(target, type, listener) {
+  var state = { fired: false, wrapFn: undefined, target: target, type: type, listener: listener };
+  var wrapped = bind.call(onceWrapper, state);
+  wrapped.listener = listener;
+  state.wrapFn = wrapped;
+  return wrapped;
+}
+
+EventEmitter.prototype.once = function once(type, listener) {
+  if (typeof listener !== 'function')
+    throw new TypeError('"listener" argument must be a function');
+  this.on(type, _onceWrap(this, type, listener));
+  return this;
+};
+
+EventEmitter.prototype.prependOnceListener =
+    function prependOnceListener(type, listener) {
+      if (typeof listener !== 'function')
+        throw new TypeError('"listener" argument must be a function');
+      this.prependListener(type, _onceWrap(this, type, listener));
+      return this;
+    };
+
+// Emits a 'removeListener' event if and only if the listener was removed.
+EventEmitter.prototype.removeListener =
+    function removeListener(type, listener) {
+      var list, events, position, i, originalListener;
+
+      if (typeof listener !== 'function')
+        throw new TypeError('"listener" argument must be a function');
+
+      events = this._events;
+      if (!events)
+        return this;
+
+      list = events[type];
+      if (!list)
+        return this;
+
+      if (list === listener || list.listener === listener) {
+        if (--this._eventsCount === 0)
+          this._events = objectCreate(null);
+        else {
+          delete events[type];
+          if (events.removeListener)
+            this.emit('removeListener', type, list.listener || listener);
+        }
+      } else if (typeof list !== 'function') {
+        position = -1;
+
+        for (i = list.length - 1; i >= 0; i--) {
+          if (list[i] === listener || list[i].listener === listener) {
+            originalListener = list[i].listener;
+            position = i;
+            break;
+          }
+        }
+
+        if (position < 0)
+          return this;
+
+        if (position === 0)
+          list.shift();
+        else
+          spliceOne(list, position);
+
+        if (list.length === 1)
+          events[type] = list[0];
+
+        if (events.removeListener)
+          this.emit('removeListener', type, originalListener || listener);
+      }
+
+      return this;
+    };
+
+EventEmitter.prototype.removeAllListeners =
+    function removeAllListeners(type) {
+      var listeners, events, i;
+
+      events = this._events;
+      if (!events)
+        return this;
+
+      // not listening for removeListener, no need to emit
+      if (!events.removeListener) {
+        if (arguments.length === 0) {
+          this._events = objectCreate(null);
+          this._eventsCount = 0;
+        } else if (events[type]) {
+          if (--this._eventsCount === 0)
+            this._events = objectCreate(null);
+          else
+            delete events[type];
+        }
+        return this;
+      }
+
+      // emit removeListener for all listeners on all events
+      if (arguments.length === 0) {
+        var keys = objectKeys(events);
+        var key;
+        for (i = 0; i < keys.length; ++i) {
+          key = keys[i];
+          if (key === 'removeListener') continue;
+          this.removeAllListeners(key);
+        }
+        this.removeAllListeners('removeListener');
+        this._events = objectCreate(null);
+        this._eventsCount = 0;
+        return this;
+      }
+
+      listeners = events[type];
+
+      if (typeof listeners === 'function') {
+        this.removeListener(type, listeners);
+      } else if (listeners) {
+        // LIFO order
+        for (i = listeners.length - 1; i >= 0; i--) {
+          this.removeListener(type, listeners[i]);
+        }
+      }
+
+      return this;
+    };
+
+function _listeners(target, type, unwrap) {
+  var events = target._events;
+
+  if (!events)
+    return [];
+
+  var evlistener = events[type];
+  if (!evlistener)
+    return [];
+
+  if (typeof evlistener === 'function')
+    return unwrap ? [evlistener.listener || evlistener] : [evlistener];
+
+  return unwrap ? unwrapListeners(evlistener) : arrayClone(evlistener, evlistener.length);
+}
+
+EventEmitter.prototype.listeners = function listeners(type) {
+  return _listeners(this, type, true);
+};
+
+EventEmitter.prototype.rawListeners = function rawListeners(type) {
+  return _listeners(this, type, false);
+};
+
+EventEmitter.listenerCount = function(emitter, type) {
+  if (typeof emitter.listenerCount === 'function') {
+    return emitter.listenerCount(type);
+  } else {
+    return listenerCount.call(emitter, type);
+  }
+};
+
+EventEmitter.prototype.listenerCount = listenerCount;
+function listenerCount(type) {
+  var events = this._events;
+
+  if (events) {
+    var evlistener = events[type];
+
+    if (typeof evlistener === 'function') {
+      return 1;
+    } else if (evlistener) {
+      return evlistener.length;
+    }
+  }
+
+  return 0;
+}
+
+EventEmitter.prototype.eventNames = function eventNames() {
+  return this._eventsCount > 0 ? Reflect.ownKeys(this._events) : [];
+};
+
+// About 1.5x faster than the two-arg version of Array#splice().
+function spliceOne(list, index) {
+  for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1)
+    list[i] = list[k];
+  list.pop();
+}
+
+function arrayClone(arr, n) {
+  var copy = new Array(n);
+  for (var i = 0; i < n; ++i)
+    copy[i] = arr[i];
+  return copy;
+}
+
+function unwrapListeners(arr) {
+  var ret = new Array(arr.length);
+  for (var i = 0; i < ret.length; ++i) {
+    ret[i] = arr[i].listener || arr[i];
+  }
+  return ret;
+}
+
+function objectCreatePolyfill(proto) {
+  var F = function() {};
+  F.prototype = proto;
+  return new F;
+}
+function objectKeysPolyfill(obj) {
+  var keys = [];
+  for (var k in obj) if (Object.prototype.hasOwnProperty.call(obj, k)) {
+    keys.push(k);
+  }
+  return k;
+}
+function functionBindPolyfill(context) {
+  var fn = this;
+  return function () {
+    return fn.apply(context, arguments);
+  };
+}
+
+},{}],2:[function(require,module,exports){
 /**
  * Attach all plugins to jQuery object and return modified jQuery
  */
@@ -31,7 +556,7 @@ var $ = require('jquery');
 
 module.exports = $;
 
-},{"./plugins/ajaxform":2,"./plugins/disableInputs":3,"./plugins/pbmodal":4,"./plugins/pbtable":5,"./plugins/populatefragments":6,"./plugins/populatestreetnames":7,"./plugins/populateusers":8,"jquery":11}],2:[function(require,module,exports){
+},{"./plugins/ajaxform":3,"./plugins/disableInputs":4,"./plugins/pbmodal":5,"./plugins/pbtable":6,"./plugins/populatefragments":7,"./plugins/populatestreetnames":8,"./plugins/populateusers":9,"jquery":10}],3:[function(require,module,exports){
 const $ = require('jquery');
 const form2js = require('../../vendor/form2js');
 
@@ -131,7 +656,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":27,"jquery":11}],3:[function(require,module,exports){
+},{"../../vendor/form2js":17,"jquery":10}],4:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -158,7 +683,7 @@ function disable(){
 
 module.exports = DisableInputs;
 
-},{"jquery":11}],4:[function(require,module,exports){
+},{"jquery":10}],5:[function(require,module,exports){
 var $ = require('jquery');
 const _ = require('lodash');
 const Mustache = require('mustache');
@@ -297,7 +822,7 @@ Modal.init.prototype = Modal.prototype;
 
 module.exports = Modal;
 
-},{"jquery":11,"lodash":12,"mustache":14}],5:[function(require,module,exports){
+},{"jquery":10,"lodash":11,"mustache":13}],6:[function(require,module,exports){
 /**
  * PB Table morph module
  */
@@ -372,7 +897,7 @@ PBTable.init.prototype = PBTable.prototype;
 
 module.exports = PBTable;
 
-},{"jquery":11,"lodash":12}],6:[function(require,module,exports){
+},{"jquery":10,"lodash":11}],7:[function(require,module,exports){
 var $ = require('jquery');
 
 var PopulateFragments = function(){
@@ -402,7 +927,7 @@ var PopulateFragments = function(){
 
 module.exports = PopulateFragments;
 
-},{"jquery":11}],7:[function(require,module,exports){
+},{"jquery":10}],8:[function(require,module,exports){
 var $ = require('jquery');
 
 var PopulateStreetNames = function(useNames){
@@ -440,7 +965,7 @@ var PopulateStreetNames = function(useNames){
 
 module.exports = PopulateStreetNames;
 
-},{"jquery":11}],8:[function(require,module,exports){
+},{"jquery":10}],9:[function(require,module,exports){
 /**
  * Populate Select elements users by congregation
  */
@@ -474,302 +999,7 @@ var PopulateUsers = function(){
 
 module.exports = PopulateUsers;
 
-},{"jquery":11}],9:[function(require,module,exports){
-"use strict";
-
-// rawAsap provides everything we need except exception management.
-var rawAsap = require("./raw");
-// RawTasks are recycled to reduce GC churn.
-var freeTasks = [];
-// We queue errors to ensure they are thrown in right order (FIFO).
-// Array-as-queue is good enough here, since we are just dealing with exceptions.
-var pendingErrors = [];
-var requestErrorThrow = rawAsap.makeRequestCallFromTimer(throwFirstError);
-
-function throwFirstError() {
-    if (pendingErrors.length) {
-        throw pendingErrors.shift();
-    }
-}
-
-/**
- * Calls a task as soon as possible after returning, in its own event, with priority
- * over other events like animation, reflow, and repaint. An error thrown from an
- * event will not interrupt, nor even substantially slow down the processing of
- * other events, but will be rather postponed to a lower priority event.
- * @param {{call}} task A callable object, typically a function that takes no
- * arguments.
- */
-module.exports = asap;
-function asap(task) {
-    var rawTask;
-    if (freeTasks.length) {
-        rawTask = freeTasks.pop();
-    } else {
-        rawTask = new RawTask();
-    }
-    rawTask.task = task;
-    rawAsap(rawTask);
-}
-
-// We wrap tasks with recyclable task objects.  A task object implements
-// `call`, just like a function.
-function RawTask() {
-    this.task = null;
-}
-
-// The sole purpose of wrapping the task is to catch the exception and recycle
-// the task object after its single use.
-RawTask.prototype.call = function () {
-    try {
-        this.task.call();
-    } catch (error) {
-        if (asap.onerror) {
-            // This hook exists purely for testing purposes.
-            // Its name will be periodically randomized to break any code that
-            // depends on its existence.
-            asap.onerror(error);
-        } else {
-            // In a web browser, exceptions are not fatal. However, to avoid
-            // slowing down the queue of pending tasks, we rethrow the error in a
-            // lower priority turn.
-            pendingErrors.push(error);
-            requestErrorThrow();
-        }
-    } finally {
-        this.task = null;
-        freeTasks[freeTasks.length] = this;
-    }
-};
-
-},{"./raw":10}],10:[function(require,module,exports){
-(function (global){
-"use strict";
-
-// Use the fastest means possible to execute a task in its own turn, with
-// priority over other events including IO, animation, reflow, and redraw
-// events in browsers.
-//
-// An exception thrown by a task will permanently interrupt the processing of
-// subsequent tasks. The higher level `asap` function ensures that if an
-// exception is thrown by a task, that the task queue will continue flushing as
-// soon as possible, but if you use `rawAsap` directly, you are responsible to
-// either ensure that no exceptions are thrown from your task, or to manually
-// call `rawAsap.requestFlush` if an exception is thrown.
-module.exports = rawAsap;
-function rawAsap(task) {
-    if (!queue.length) {
-        requestFlush();
-        flushing = true;
-    }
-    // Equivalent to push, but avoids a function call.
-    queue[queue.length] = task;
-}
-
-var queue = [];
-// Once a flush has been requested, no further calls to `requestFlush` are
-// necessary until the next `flush` completes.
-var flushing = false;
-// `requestFlush` is an implementation-specific method that attempts to kick
-// off a `flush` event as quickly as possible. `flush` will attempt to exhaust
-// the event queue before yielding to the browser's own event loop.
-var requestFlush;
-// The position of the next task to execute in the task queue. This is
-// preserved between calls to `flush` so that it can be resumed if
-// a task throws an exception.
-var index = 0;
-// If a task schedules additional tasks recursively, the task queue can grow
-// unbounded. To prevent memory exhaustion, the task queue will periodically
-// truncate already-completed tasks.
-var capacity = 1024;
-
-// The flush function processes all tasks that have been scheduled with
-// `rawAsap` unless and until one of those tasks throws an exception.
-// If a task throws an exception, `flush` ensures that its state will remain
-// consistent and will resume where it left off when called again.
-// However, `flush` does not make any arrangements to be called again if an
-// exception is thrown.
-function flush() {
-    while (index < queue.length) {
-        var currentIndex = index;
-        // Advance the index before calling the task. This ensures that we will
-        // begin flushing on the next task the task throws an error.
-        index = index + 1;
-        queue[currentIndex].call();
-        // Prevent leaking memory for long chains of recursive calls to `asap`.
-        // If we call `asap` within tasks scheduled by `asap`, the queue will
-        // grow, but to avoid an O(n) walk for every task we execute, we don't
-        // shift tasks off the queue after they have been executed.
-        // Instead, we periodically shift 1024 tasks off the queue.
-        if (index > capacity) {
-            // Manually shift all values starting at the index back to the
-            // beginning of the queue.
-            for (var scan = 0, newLength = queue.length - index; scan < newLength; scan++) {
-                queue[scan] = queue[scan + index];
-            }
-            queue.length -= index;
-            index = 0;
-        }
-    }
-    queue.length = 0;
-    index = 0;
-    flushing = false;
-}
-
-// `requestFlush` is implemented using a strategy based on data collected from
-// every available SauceLabs Selenium web driver worker at time of writing.
-// https://docs.google.com/spreadsheets/d/1mG-5UYGup5qxGdEMWkhP6BWCz053NUb2E1QoUTU16uA/edit#gid=783724593
-
-// Safari 6 and 6.1 for desktop, iPad, and iPhone are the only browsers that
-// have WebKitMutationObserver but not un-prefixed MutationObserver.
-// Must use `global` or `self` instead of `window` to work in both frames and web
-// workers. `global` is a provision of Browserify, Mr, Mrs, or Mop.
-
-/* globals self */
-var scope = typeof global !== "undefined" ? global : self;
-var BrowserMutationObserver = scope.MutationObserver || scope.WebKitMutationObserver;
-
-// MutationObservers are desirable because they have high priority and work
-// reliably everywhere they are implemented.
-// They are implemented in all modern browsers.
-//
-// - Android 4-4.3
-// - Chrome 26-34
-// - Firefox 14-29
-// - Internet Explorer 11
-// - iPad Safari 6-7.1
-// - iPhone Safari 7-7.1
-// - Safari 6-7
-if (typeof BrowserMutationObserver === "function") {
-    requestFlush = makeRequestCallFromMutationObserver(flush);
-
-// MessageChannels are desirable because they give direct access to the HTML
-// task queue, are implemented in Internet Explorer 10, Safari 5.0-1, and Opera
-// 11-12, and in web workers in many engines.
-// Although message channels yield to any queued rendering and IO tasks, they
-// would be better than imposing the 4ms delay of timers.
-// However, they do not work reliably in Internet Explorer or Safari.
-
-// Internet Explorer 10 is the only browser that has setImmediate but does
-// not have MutationObservers.
-// Although setImmediate yields to the browser's renderer, it would be
-// preferrable to falling back to setTimeout since it does not have
-// the minimum 4ms penalty.
-// Unfortunately there appears to be a bug in Internet Explorer 10 Mobile (and
-// Desktop to a lesser extent) that renders both setImmediate and
-// MessageChannel useless for the purposes of ASAP.
-// https://github.com/kriskowal/q/issues/396
-
-// Timers are implemented universally.
-// We fall back to timers in workers in most engines, and in foreground
-// contexts in the following browsers.
-// However, note that even this simple case requires nuances to operate in a
-// broad spectrum of browsers.
-//
-// - Firefox 3-13
-// - Internet Explorer 6-9
-// - iPad Safari 4.3
-// - Lynx 2.8.7
-} else {
-    requestFlush = makeRequestCallFromTimer(flush);
-}
-
-// `requestFlush` requests that the high priority event queue be flushed as
-// soon as possible.
-// This is useful to prevent an error thrown in a task from stalling the event
-// queue if the exception handled by Node.js’s
-// `process.on("uncaughtException")` or by a domain.
-rawAsap.requestFlush = requestFlush;
-
-// To request a high priority event, we induce a mutation observer by toggling
-// the text of a text node between "1" and "-1".
-function makeRequestCallFromMutationObserver(callback) {
-    var toggle = 1;
-    var observer = new BrowserMutationObserver(callback);
-    var node = document.createTextNode("");
-    observer.observe(node, {characterData: true});
-    return function requestCall() {
-        toggle = -toggle;
-        node.data = toggle;
-    };
-}
-
-// The message channel technique was discovered by Malte Ubl and was the
-// original foundation for this library.
-// http://www.nonblocking.io/2011/06/windownexttick.html
-
-// Safari 6.0.5 (at least) intermittently fails to create message ports on a
-// page's first load. Thankfully, this version of Safari supports
-// MutationObservers, so we don't need to fall back in that case.
-
-// function makeRequestCallFromMessageChannel(callback) {
-//     var channel = new MessageChannel();
-//     channel.port1.onmessage = callback;
-//     return function requestCall() {
-//         channel.port2.postMessage(0);
-//     };
-// }
-
-// For reasons explained above, we are also unable to use `setImmediate`
-// under any circumstances.
-// Even if we were, there is another bug in Internet Explorer 10.
-// It is not sufficient to assign `setImmediate` to `requestFlush` because
-// `setImmediate` must be called *by name* and therefore must be wrapped in a
-// closure.
-// Never forget.
-
-// function makeRequestCallFromSetImmediate(callback) {
-//     return function requestCall() {
-//         setImmediate(callback);
-//     };
-// }
-
-// Safari 6.0 has a problem where timers will get lost while the user is
-// scrolling. This problem does not impact ASAP because Safari 6.0 supports
-// mutation observers, so that implementation is used instead.
-// However, if we ever elect to use timers in Safari, the prevalent work-around
-// is to add a scroll event listener that calls for a flush.
-
-// `setTimeout` does not call the passed callback if the delay is less than
-// approximately 7 in web workers in Firefox 8 through 18, and sometimes not
-// even then.
-
-function makeRequestCallFromTimer(callback) {
-    return function requestCall() {
-        // We dispatch a timeout with a specified delay of 0 for engines that
-        // can reliably accommodate that request. This will usually be snapped
-        // to a 4 milisecond delay, but once we're flushing, there's no delay
-        // between events.
-        var timeoutHandle = setTimeout(handleTimer, 0);
-        // However, since this timer gets frequently dropped in Firefox
-        // workers, we enlist an interval handle that will try to fire
-        // an event 20 times per second until it succeeds.
-        var intervalHandle = setInterval(handleTimer, 50);
-
-        function handleTimer() {
-            // Whichever timer succeeds will cancel both timers and
-            // execute the callback.
-            clearTimeout(timeoutHandle);
-            clearInterval(intervalHandle);
-            callback();
-        }
-    };
-}
-
-// This is for `asap.js` only.
-// Its name will be periodically randomized to break any code that depends on
-// its existence.
-rawAsap.makeRequestCallFromTimer = makeRequestCallFromTimer;
-
-// ASAP was originally a nextTick shim included in Q. This was factored out
-// into this ASAP package. It was later adapted to RSVP which made further
-// amendments. These decisions, particularly to marginalize MessageChannel and
-// to capture the MutationObserver implementation in a closure, were integrated
-// back into ASAP proper.
-// https://github.com/tildeio/rsvp.js/blob/cddf7232546a9cf858524b75cde6f9edf72620a7/lib/rsvp/asap.js
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],11:[function(require,module,exports){
+},{"jquery":10}],10:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
@@ -11135,7 +11365,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -28246,7 +28476,7 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 //! moment.js
 
 ;(function (global, factory) {
@@ -32850,7 +33080,7 @@ return jQuery;
 
 })));
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /*!
  * mustache.js - Logic-less {{mustache}} templates with JavaScript
  * http://github.com/janl/mustache.js
@@ -33534,575 +33764,7 @@ return jQuery;
   return mustache;
 }));
 
-},{}],15:[function(require,module,exports){
-'use strict';
-
-module.exports = require('./lib')
-
-},{"./lib":20}],16:[function(require,module,exports){
-'use strict';
-
-var asap = require('asap/raw');
-
-function noop() {}
-
-// States:
-//
-// 0 - pending
-// 1 - fulfilled with _value
-// 2 - rejected with _value
-// 3 - adopted the state of another promise, _value
-//
-// once the state is no longer pending (0) it is immutable
-
-// All `_` prefixed properties will be reduced to `_{random number}`
-// at build time to obfuscate them and discourage their use.
-// We don't use symbols or Object.defineProperty to fully hide them
-// because the performance isn't good enough.
-
-
-// to avoid using try/catch inside critical functions, we
-// extract them to here.
-var LAST_ERROR = null;
-var IS_ERROR = {};
-function getThen(obj) {
-  try {
-    return obj.then;
-  } catch (ex) {
-    LAST_ERROR = ex;
-    return IS_ERROR;
-  }
-}
-
-function tryCallOne(fn, a) {
-  try {
-    return fn(a);
-  } catch (ex) {
-    LAST_ERROR = ex;
-    return IS_ERROR;
-  }
-}
-function tryCallTwo(fn, a, b) {
-  try {
-    fn(a, b);
-  } catch (ex) {
-    LAST_ERROR = ex;
-    return IS_ERROR;
-  }
-}
-
-module.exports = Promise;
-
-function Promise(fn) {
-  if (typeof this !== 'object') {
-    throw new TypeError('Promises must be constructed via new');
-  }
-  if (typeof fn !== 'function') {
-    throw new TypeError('Promise constructor\'s argument is not a function');
-  }
-  this._h = 0;
-  this._i = 0;
-  this._j = null;
-  this._k = null;
-  if (fn === noop) return;
-  doResolve(fn, this);
-}
-Promise._l = null;
-Promise._m = null;
-Promise._n = noop;
-
-Promise.prototype.then = function(onFulfilled, onRejected) {
-  if (this.constructor !== Promise) {
-    return safeThen(this, onFulfilled, onRejected);
-  }
-  var res = new Promise(noop);
-  handle(this, new Handler(onFulfilled, onRejected, res));
-  return res;
-};
-
-function safeThen(self, onFulfilled, onRejected) {
-  return new self.constructor(function (resolve, reject) {
-    var res = new Promise(noop);
-    res.then(resolve, reject);
-    handle(self, new Handler(onFulfilled, onRejected, res));
-  });
-}
-function handle(self, deferred) {
-  while (self._i === 3) {
-    self = self._j;
-  }
-  if (Promise._l) {
-    Promise._l(self);
-  }
-  if (self._i === 0) {
-    if (self._h === 0) {
-      self._h = 1;
-      self._k = deferred;
-      return;
-    }
-    if (self._h === 1) {
-      self._h = 2;
-      self._k = [self._k, deferred];
-      return;
-    }
-    self._k.push(deferred);
-    return;
-  }
-  handleResolved(self, deferred);
-}
-
-function handleResolved(self, deferred) {
-  asap(function() {
-    var cb = self._i === 1 ? deferred.onFulfilled : deferred.onRejected;
-    if (cb === null) {
-      if (self._i === 1) {
-        resolve(deferred.promise, self._j);
-      } else {
-        reject(deferred.promise, self._j);
-      }
-      return;
-    }
-    var ret = tryCallOne(cb, self._j);
-    if (ret === IS_ERROR) {
-      reject(deferred.promise, LAST_ERROR);
-    } else {
-      resolve(deferred.promise, ret);
-    }
-  });
-}
-function resolve(self, newValue) {
-  // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
-  if (newValue === self) {
-    return reject(
-      self,
-      new TypeError('A promise cannot be resolved with itself.')
-    );
-  }
-  if (
-    newValue &&
-    (typeof newValue === 'object' || typeof newValue === 'function')
-  ) {
-    var then = getThen(newValue);
-    if (then === IS_ERROR) {
-      return reject(self, LAST_ERROR);
-    }
-    if (
-      then === self.then &&
-      newValue instanceof Promise
-    ) {
-      self._i = 3;
-      self._j = newValue;
-      finale(self);
-      return;
-    } else if (typeof then === 'function') {
-      doResolve(then.bind(newValue), self);
-      return;
-    }
-  }
-  self._i = 1;
-  self._j = newValue;
-  finale(self);
-}
-
-function reject(self, newValue) {
-  self._i = 2;
-  self._j = newValue;
-  if (Promise._m) {
-    Promise._m(self, newValue);
-  }
-  finale(self);
-}
-function finale(self) {
-  if (self._h === 1) {
-    handle(self, self._k);
-    self._k = null;
-  }
-  if (self._h === 2) {
-    for (var i = 0; i < self._k.length; i++) {
-      handle(self, self._k[i]);
-    }
-    self._k = null;
-  }
-}
-
-function Handler(onFulfilled, onRejected, promise){
-  this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
-  this.onRejected = typeof onRejected === 'function' ? onRejected : null;
-  this.promise = promise;
-}
-
-/**
- * Take a potentially misbehaving resolver function and make sure
- * onFulfilled and onRejected are only called once.
- *
- * Makes no guarantees about asynchrony.
- */
-function doResolve(fn, promise) {
-  var done = false;
-  var res = tryCallTwo(fn, function (value) {
-    if (done) return;
-    done = true;
-    resolve(promise, value);
-  }, function (reason) {
-    if (done) return;
-    done = true;
-    reject(promise, reason);
-  });
-  if (!done && res === IS_ERROR) {
-    done = true;
-    reject(promise, LAST_ERROR);
-  }
-}
-
-},{"asap/raw":10}],17:[function(require,module,exports){
-'use strict';
-
-var Promise = require('./core.js');
-
-module.exports = Promise;
-Promise.prototype.done = function (onFulfilled, onRejected) {
-  var self = arguments.length ? this.then.apply(this, arguments) : this;
-  self.then(null, function (err) {
-    setTimeout(function () {
-      throw err;
-    }, 0);
-  });
-};
-
-},{"./core.js":16}],18:[function(require,module,exports){
-'use strict';
-
-//This file contains the ES6 extensions to the core Promises/A+ API
-
-var Promise = require('./core.js');
-
-module.exports = Promise;
-
-/* Static Functions */
-
-var TRUE = valuePromise(true);
-var FALSE = valuePromise(false);
-var NULL = valuePromise(null);
-var UNDEFINED = valuePromise(undefined);
-var ZERO = valuePromise(0);
-var EMPTYSTRING = valuePromise('');
-
-function valuePromise(value) {
-  var p = new Promise(Promise._n);
-  p._i = 1;
-  p._j = value;
-  return p;
-}
-Promise.resolve = function (value) {
-  if (value instanceof Promise) return value;
-
-  if (value === null) return NULL;
-  if (value === undefined) return UNDEFINED;
-  if (value === true) return TRUE;
-  if (value === false) return FALSE;
-  if (value === 0) return ZERO;
-  if (value === '') return EMPTYSTRING;
-
-  if (typeof value === 'object' || typeof value === 'function') {
-    try {
-      var then = value.then;
-      if (typeof then === 'function') {
-        return new Promise(then.bind(value));
-      }
-    } catch (ex) {
-      return new Promise(function (resolve, reject) {
-        reject(ex);
-      });
-    }
-  }
-  return valuePromise(value);
-};
-
-Promise.all = function (arr) {
-  var args = Array.prototype.slice.call(arr);
-
-  return new Promise(function (resolve, reject) {
-    if (args.length === 0) return resolve([]);
-    var remaining = args.length;
-    function res(i, val) {
-      if (val && (typeof val === 'object' || typeof val === 'function')) {
-        if (val instanceof Promise && val.then === Promise.prototype.then) {
-          while (val._i === 3) {
-            val = val._j;
-          }
-          if (val._i === 1) return res(i, val._j);
-          if (val._i === 2) reject(val._j);
-          val.then(function (val) {
-            res(i, val);
-          }, reject);
-          return;
-        } else {
-          var then = val.then;
-          if (typeof then === 'function') {
-            var p = new Promise(then.bind(val));
-            p.then(function (val) {
-              res(i, val);
-            }, reject);
-            return;
-          }
-        }
-      }
-      args[i] = val;
-      if (--remaining === 0) {
-        resolve(args);
-      }
-    }
-    for (var i = 0; i < args.length; i++) {
-      res(i, args[i]);
-    }
-  });
-};
-
-Promise.reject = function (value) {
-  return new Promise(function (resolve, reject) {
-    reject(value);
-  });
-};
-
-Promise.race = function (values) {
-  return new Promise(function (resolve, reject) {
-    values.forEach(function(value){
-      Promise.resolve(value).then(resolve, reject);
-    });
-  });
-};
-
-/* Prototype Methods */
-
-Promise.prototype['catch'] = function (onRejected) {
-  return this.then(null, onRejected);
-};
-
-},{"./core.js":16}],19:[function(require,module,exports){
-'use strict';
-
-var Promise = require('./core.js');
-
-module.exports = Promise;
-Promise.prototype.finally = function (f) {
-  return this.then(function (value) {
-    return Promise.resolve(f()).then(function () {
-      return value;
-    });
-  }, function (err) {
-    return Promise.resolve(f()).then(function () {
-      throw err;
-    });
-  });
-};
-
-},{"./core.js":16}],20:[function(require,module,exports){
-'use strict';
-
-module.exports = require('./core.js');
-require('./done.js');
-require('./finally.js');
-require('./es6-extensions.js');
-require('./node-extensions.js');
-require('./synchronous.js');
-
-},{"./core.js":16,"./done.js":17,"./es6-extensions.js":18,"./finally.js":19,"./node-extensions.js":21,"./synchronous.js":22}],21:[function(require,module,exports){
-'use strict';
-
-// This file contains then/promise specific extensions that are only useful
-// for node.js interop
-
-var Promise = require('./core.js');
-var asap = require('asap');
-
-module.exports = Promise;
-
-/* Static Functions */
-
-Promise.denodeify = function (fn, argumentCount) {
-  if (
-    typeof argumentCount === 'number' && argumentCount !== Infinity
-  ) {
-    return denodeifyWithCount(fn, argumentCount);
-  } else {
-    return denodeifyWithoutCount(fn);
-  }
-};
-
-var callbackFn = (
-  'function (err, res) {' +
-  'if (err) { rj(err); } else { rs(res); }' +
-  '}'
-);
-function denodeifyWithCount(fn, argumentCount) {
-  var args = [];
-  for (var i = 0; i < argumentCount; i++) {
-    args.push('a' + i);
-  }
-  var body = [
-    'return function (' + args.join(',') + ') {',
-    'var self = this;',
-    'return new Promise(function (rs, rj) {',
-    'var res = fn.call(',
-    ['self'].concat(args).concat([callbackFn]).join(','),
-    ');',
-    'if (res &&',
-    '(typeof res === "object" || typeof res === "function") &&',
-    'typeof res.then === "function"',
-    ') {rs(res);}',
-    '});',
-    '};'
-  ].join('');
-  return Function(['Promise', 'fn'], body)(Promise, fn);
-}
-function denodeifyWithoutCount(fn) {
-  var fnLength = Math.max(fn.length - 1, 3);
-  var args = [];
-  for (var i = 0; i < fnLength; i++) {
-    args.push('a' + i);
-  }
-  var body = [
-    'return function (' + args.join(',') + ') {',
-    'var self = this;',
-    'var args;',
-    'var argLength = arguments.length;',
-    'if (arguments.length > ' + fnLength + ') {',
-    'args = new Array(arguments.length + 1);',
-    'for (var i = 0; i < arguments.length; i++) {',
-    'args[i] = arguments[i];',
-    '}',
-    '}',
-    'return new Promise(function (rs, rj) {',
-    'var cb = ' + callbackFn + ';',
-    'var res;',
-    'switch (argLength) {',
-    args.concat(['extra']).map(function (_, index) {
-      return (
-        'case ' + (index) + ':' +
-        'res = fn.call(' + ['self'].concat(args.slice(0, index)).concat('cb').join(',') + ');' +
-        'break;'
-      );
-    }).join(''),
-    'default:',
-    'args[argLength] = cb;',
-    'res = fn.apply(self, args);',
-    '}',
-    
-    'if (res &&',
-    '(typeof res === "object" || typeof res === "function") &&',
-    'typeof res.then === "function"',
-    ') {rs(res);}',
-    '});',
-    '};'
-  ].join('');
-
-  return Function(
-    ['Promise', 'fn'],
-    body
-  )(Promise, fn);
-}
-
-Promise.nodeify = function (fn) {
-  return function () {
-    var args = Array.prototype.slice.call(arguments);
-    var callback =
-      typeof args[args.length - 1] === 'function' ? args.pop() : null;
-    var ctx = this;
-    try {
-      return fn.apply(this, arguments).nodeify(callback, ctx);
-    } catch (ex) {
-      if (callback === null || typeof callback == 'undefined') {
-        return new Promise(function (resolve, reject) {
-          reject(ex);
-        });
-      } else {
-        asap(function () {
-          callback.call(ctx, ex);
-        })
-      }
-    }
-  }
-};
-
-Promise.prototype.nodeify = function (callback, ctx) {
-  if (typeof callback != 'function') return this;
-
-  this.then(function (value) {
-    asap(function () {
-      callback.call(ctx, null, value);
-    });
-  }, function (err) {
-    asap(function () {
-      callback.call(ctx, err);
-    });
-  });
-};
-
-},{"./core.js":16,"asap":9}],22:[function(require,module,exports){
-'use strict';
-
-var Promise = require('./core.js');
-
-module.exports = Promise;
-Promise.enableSynchronous = function () {
-  Promise.prototype.isPending = function() {
-    return this.getState() == 0;
-  };
-
-  Promise.prototype.isFulfilled = function() {
-    return this.getState() == 1;
-  };
-
-  Promise.prototype.isRejected = function() {
-    return this.getState() == 2;
-  };
-
-  Promise.prototype.getValue = function () {
-    if (this._i === 3) {
-      return this._j.getValue();
-    }
-
-    if (!this.isFulfilled()) {
-      throw new Error('Cannot get a value of an unfulfilled promise.');
-    }
-
-    return this._j;
-  };
-
-  Promise.prototype.getReason = function () {
-    if (this._i === 3) {
-      return this._j.getReason();
-    }
-
-    if (!this.isRejected()) {
-      throw new Error('Cannot get a rejection reason of a non-rejected promise.');
-    }
-
-    return this._j;
-  };
-
-  Promise.prototype.getState = function () {
-    if (this._i === 3) {
-      return this._j.getState();
-    }
-    if (this._i === -1 || this._i === -2) {
-      return 0;
-    }
-
-    return this._i;
-  };
-};
-
-Promise.disableSynchronous = function() {
-  Promise.prototype.isPending = undefined;
-  Promise.prototype.isFulfilled = undefined;
-  Promise.prototype.isRejected = undefined;
-  Promise.prototype.getValue = undefined;
-  Promise.prototype.getReason = undefined;
-  Promise.prototype.getState = undefined;
-};
-
-},{"./core.js":16}],23:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 /*!
  * jquery-timepicker v1.11.14 - A jQuery timepicker plugin inspired by Google Calendar. It supports both mouse and keyboard navigation.
  * Copyright (c) 2018 Jon Thornton - http://jonthornton.github.com/jquery-timepicker/
@@ -34111,1219 +33773,54 @@ Promise.disableSynchronous = function() {
 
 !function(a){"object"==typeof exports&&exports&&"object"==typeof module&&module&&module.exports===exports?a(require("jquery")):"function"==typeof define&&define.amd?define(["jquery"],a):a(jQuery)}(function(a){function b(a){var b=a[0];return b.offsetWidth>0&&b.offsetHeight>0}function c(b){if(b.minTime&&(b.minTime=t(b.minTime)),b.maxTime&&(b.maxTime=t(b.maxTime)),b.durationTime&&"function"!=typeof b.durationTime&&(b.durationTime=t(b.durationTime)),"now"==b.scrollDefault)b.scrollDefault=function(){return b.roundingFunction(t(new Date),b)};else if(b.scrollDefault&&"function"!=typeof b.scrollDefault){var c=b.scrollDefault;b.scrollDefault=function(){return b.roundingFunction(t(c),b)}}else b.minTime&&(b.scrollDefault=function(){return b.roundingFunction(b.minTime,b)});if("string"===a.type(b.timeFormat)&&b.timeFormat.match(/[gh]/)&&(b._twelveHourTime=!0),b.showOnFocus===!1&&b.showOn.indexOf("focus")!=-1&&b.showOn.splice(b.showOn.indexOf("focus"),1),b.disableTimeRanges.length>0){for(var d in b.disableTimeRanges)b.disableTimeRanges[d]=[t(b.disableTimeRanges[d][0]),t(b.disableTimeRanges[d][1])];b.disableTimeRanges=b.disableTimeRanges.sort(function(a,b){return a[0]-b[0]});for(var d=b.disableTimeRanges.length-1;d>0;d--)b.disableTimeRanges[d][0]<=b.disableTimeRanges[d-1][1]&&(b.disableTimeRanges[d-1]=[Math.min(b.disableTimeRanges[d][0],b.disableTimeRanges[d-1][0]),Math.max(b.disableTimeRanges[d][1],b.disableTimeRanges[d-1][1])],b.disableTimeRanges.splice(d,1))}return b}function d(b){var c=b.data("timepicker-settings"),d=b.data("timepicker-list");if(d&&d.length&&(d.remove(),b.data("timepicker-list",!1)),c.useSelect){d=a("<select />",{"class":"ui-timepicker-select"}),b.attr("name")&&d.attr("name","ui-timepicker-"+b.attr("name"));var g=d}else{d=a("<ul />",{"class":"ui-timepicker-list"});var g=a("<div />",{"class":"ui-timepicker-wrapper",tabindex:-1});g.css({display:"none",position:"absolute"}).append(d)}if(c.noneOption)if(c.noneOption===!0&&(c.noneOption=c.useSelect?"Time...":"None"),a.isArray(c.noneOption)){for(var i in c.noneOption)if(parseInt(i,10)==i){var k=e(c.noneOption[i],c.useSelect);d.append(k)}}else{var k=e(c.noneOption,c.useSelect);d.append(k)}if(c.className&&g.addClass(c.className),(null!==c.minTime||null!==c.durationTime)&&c.showDuration){"function"==typeof c.step?"function":c.step;g.addClass("ui-timepicker-with-duration"),g.addClass("ui-timepicker-step-"+c.step)}var l=c.minTime;"function"==typeof c.durationTime?l=t(c.durationTime()):null!==c.durationTime&&(l=c.durationTime);var n=null!==c.minTime?c.minTime:0,o=null!==c.maxTime?c.maxTime:n+v-1;o<n&&(o+=v),o===v-1&&"string"===a.type(c.timeFormat)&&c.show2400&&(o=v);var p=c.disableTimeRanges,w=0,x=p.length,z=c.step;"function"!=typeof z&&(z=function(){return c.step});for(var i=n,A=0;i<=o;A++,i+=60*z(A)){var B=i,C=s(B,c);if(c.useSelect){var D=a("<option />",{value:C});D.text(C)}else{var D=a("<li />");D.addClass(B%v<v/2?"ui-timepicker-am":"ui-timepicker-pm"),D.data("time",u(B,c)),D.text(C)}if((null!==c.minTime||null!==c.durationTime)&&c.showDuration){var E=r(i-l,c.step);if(c.useSelect)D.text(D.text()+" ("+E+")");else{var F=a("<span />",{"class":"ui-timepicker-duration"});F.text(" ("+E+")"),D.append(F)}}w<x&&(B>=p[w][1]&&(w+=1),p[w]&&B>=p[w][0]&&B<p[w][1]&&(c.useSelect?D.prop("disabled",!0):D.addClass("ui-timepicker-disabled"))),d.append(D)}if(g.data("timepicker-input",b),b.data("timepicker-list",g),c.useSelect)b.val()&&d.val(f(t(b.val()),c)),d.on("focus",function(){a(this).data("timepicker-input").trigger("showTimepicker")}),d.on("blur",function(){a(this).data("timepicker-input").trigger("hideTimepicker")}),d.on("change",function(){m(b,a(this).val(),"select")}),m(b,d.val(),"initial"),b.hide().after(d);else{var G=c.appendTo;"string"==typeof G?G=a(G):"function"==typeof G&&(G=G(b)),G.append(g),j(b,d),d.on("mousedown click","li",function(c){b.off("focus.timepicker"),b.on("focus.timepicker-ie-hack",function(){b.off("focus.timepicker-ie-hack"),b.on("focus.timepicker",y.show)}),h(b)||b[0].focus(),d.find("li").removeClass("ui-timepicker-selected"),a(this).addClass("ui-timepicker-selected"),q(b)&&(b.trigger("hideTimepicker"),d.on("mouseup.timepicker click.timepicker","li",function(a){d.off("mouseup.timepicker click.timepicker"),g.hide()}))})}}function e(b,c){var d,e,f;return"object"==typeof b?(d=b.label,e=b.className,f=b.value):"string"==typeof b?(d=b,f=""):a.error("Invalid noneOption value"),c?a("<option />",{value:f,"class":e,text:d}):a("<li />",{"class":e,text:d}).data("time",String(f))}function f(a,b){if(a=b.roundingFunction(a,b),null!==a)return s(a,b)}function g(b){if(b.target!=window){var c=a(b.target);c.closest(".ui-timepicker-input").length||c.closest(".ui-timepicker-wrapper").length||(y.hide(),a(document).unbind(".ui-timepicker"),a(window).unbind(".ui-timepicker"))}}function h(a){var b=a.data("timepicker-settings");return(window.navigator.msMaxTouchPoints||"ontouchstart"in document)&&b.disableTouchKeyboard}function i(b,c,d){if(!d&&0!==d)return!1;var e=b.data("timepicker-settings"),f=!1,d=e.roundingFunction(d,e);return c.find("li").each(function(b,c){var e=a(c);if("number"==typeof e.data("time"))return e.data("time")==d?(f=e,!1):void 0}),f}function j(a,b){b.find("li").removeClass("ui-timepicker-selected");var c=a.data("timepicker-settings"),d=t(l(a),c);if(null!==d){var e=i(a,b,d);if(e){var f=e.offset().top-b.offset().top;(f+e.outerHeight()>b.outerHeight()||f<0)&&b.scrollTop(b.scrollTop()+e.position().top-e.outerHeight()),(c.forceRoundTime||e.data("time")===d)&&e.addClass("ui-timepicker-selected")}}}function k(b,c){if("timepicker"!=c){var d=a(this);if(""===this.value)return void m(d,null,c);if(!d.is(":focus")||b&&"change"==b.type){var e=d.data("timepicker-settings"),f=t(this.value,e);if(null===f)return void d.trigger("timeFormatError");var g=!1;if(null!==e.minTime&&null!==e.maxTime&&(f<e.minTime||f>e.maxTime)&&(g=!0),a.each(e.disableTimeRanges,function(){if(f>=this[0]&&f<this[1])return g=!0,!1}),e.forceRoundTime){var h=e.roundingFunction(f,e);h!=f&&(f=h,c=null)}var i=s(f,e);g?(m(d,i,"error")||b&&"change"==b.type)&&d.trigger("timeRangeError"):m(d,i,c)}}}function l(a){return a.is("input")?a.val():a.data("ui-timepicker-value")}function m(a,b,c){if(a.is("input")){a.val(b);var d=a.data("timepicker-settings");d.useSelect&&"select"!=c&&a.data("timepicker-list")&&a.data("timepicker-list").val(f(t(b),d))}return a.data("ui-timepicker-value")!=b?(a.data("ui-timepicker-value",b),"select"==c?a.trigger("selectTime").trigger("changeTime").trigger("change","timepicker"):["error","initial"].indexOf(c)==-1&&a.trigger("changeTime"),!0):(["error","initial"].indexOf(c)==-1&&a.trigger("selectTime"),!1)}function n(a){switch(a.keyCode){case 13:case 9:return;default:a.preventDefault()}}function o(c){var d=a(this),e=d.data("timepicker-list");if(!e||!b(e)){if(40!=c.keyCode)return!0;y.show.call(d.get(0)),e=d.data("timepicker-list"),h(d)||d.focus()}switch(c.keyCode){case 13:return q(d)&&(k.call(d.get(0),{type:"change"}),y.hide.apply(this)),c.preventDefault(),!1;case 38:var f=e.find(".ui-timepicker-selected");return f.length?f.is(":first-child")||(f.removeClass("ui-timepicker-selected"),f.prev().addClass("ui-timepicker-selected"),f.prev().position().top<f.outerHeight()&&e.scrollTop(e.scrollTop()-f.outerHeight())):(e.find("li").each(function(b,c){if(a(c).position().top>0)return f=a(c),!1}),f.addClass("ui-timepicker-selected")),!1;case 40:return f=e.find(".ui-timepicker-selected"),0===f.length?(e.find("li").each(function(b,c){if(a(c).position().top>0)return f=a(c),!1}),f.addClass("ui-timepicker-selected")):f.is(":last-child")||(f.removeClass("ui-timepicker-selected"),f.next().addClass("ui-timepicker-selected"),f.next().position().top+2*f.outerHeight()>e.outerHeight()&&e.scrollTop(e.scrollTop()+f.outerHeight())),!1;case 27:e.find("li").removeClass("ui-timepicker-selected"),y.hide();break;case 9:y.hide();break;default:return!0}}function p(c){var d=a(this),e=d.data("timepicker-list"),f=d.data("timepicker-settings");if(!e||!b(e)||f.disableTextInput)return!0;if("paste"===c.type||"cut"===c.type)return void setTimeout(function(){f.typeaheadHighlight?j(d,e):e.hide()},0);switch(c.keyCode){case 96:case 97:case 98:case 99:case 100:case 101:case 102:case 103:case 104:case 105:case 48:case 49:case 50:case 51:case 52:case 53:case 54:case 55:case 56:case 57:case 65:case 77:case 80:case 186:case 8:case 46:f.typeaheadHighlight?j(d,e):e.hide()}}function q(a){var b=a.data("timepicker-settings"),c=a.data("timepicker-list"),d=null,e=c.find(".ui-timepicker-selected");return!e.hasClass("ui-timepicker-disabled")&&(e.length&&(d=e.data("time")),null!==d&&("string"!=typeof d&&(d=s(d,b)),m(a,d,"select")),!0)}function r(a,b){a=Math.abs(a);var c,d,e=Math.round(a/60),f=[];return e<60?f=[e,w.mins]:(c=Math.floor(e/60),d=e%60,30==b&&30==d&&(c+=w.decimal+5),f.push(c),f.push(1==c?w.hr:w.hrs),30!=b&&d&&(f.push(d),f.push(w.mins))),f.join(" ")}function s(b,c){if("number"!=typeof b)return null;var d=parseInt(b%60),e=parseInt(b/60%60),f=parseInt(b/3600%24),g=new Date(1970,0,2,f,e,d,0);if(isNaN(g.getTime()))return null;if("function"===a.type(c.timeFormat))return c.timeFormat(g);for(var h,i,j="",k=0;k<c.timeFormat.length;k++)switch(i=c.timeFormat.charAt(k)){case"a":j+=g.getHours()>11?w.pm:w.am;break;case"A":j+=g.getHours()>11?w.PM:w.AM;break;case"g":h=g.getHours()%12,j+=0===h?"12":h;break;case"G":h=g.getHours(),b===v&&(h=c.show2400?24:0),j+=h;break;case"h":h=g.getHours()%12,0!==h&&h<10&&(h="0"+h),j+=0===h?"12":h;break;case"H":h=g.getHours(),b===v&&(h=c.show2400?24:0),j+=h>9?h:"0"+h;break;case"i":var e=g.getMinutes();j+=e>9?e:"0"+e;break;case"s":d=g.getSeconds(),j+=d>9?d:"0"+d;break;case"\\":k++,j+=c.timeFormat.charAt(k);break;default:j+=i}return j}function t(a,b){if(""===a||null===a)return null;if("object"==typeof a)return 3600*a.getHours()+60*a.getMinutes()+a.getSeconds();if("string"!=typeof a)return a;a=a.toLowerCase().replace(/[\s\.]/g,""),"a"!=a.slice(-1)&&"p"!=a.slice(-1)||(a+="m");var c="("+w.am.replace(".","")+"|"+w.pm.replace(".","")+"|"+w.AM.replace(".","")+"|"+w.PM.replace(".","")+")?",d=new RegExp("^"+c+"([0-9]?[0-9])\\W?([0-5][0-9])?\\W?([0-5][0-9])?"+c+"$"),e=a.match(d);if(!e)return null;var f=parseInt(1*e[2],10),g=e[1]||e[5],h=f,i=1*e[3]||0,j=1*e[4]||0;if(f<=12&&g){var k=g==w.pm||g==w.PM;h=12==f?k?12:0:f+(k?12:0)}else if(b){var l=3600*f+60*i+j;if(l>=v+(b.show2400?1:0)){if(b.wrapHours===!1)return null;h=f%24}}var m=3600*h+60*i+j;if(f<12&&!g&&b&&b._twelveHourTime&&b.scrollDefault){var n=m-b.scrollDefault();n<0&&n>=v/-2&&(m=(m+v/2)%v)}return m}function u(a,b){return a==v&&b.show2400?a:a%v}var v=86400,w={am:"am",pm:"pm",AM:"AM",PM:"PM",decimal:".",mins:"mins",hr:"hr",hrs:"hrs"},x={appendTo:"body",className:null,closeOnWindowScroll:!1,disableTextInput:!1,disableTimeRanges:[],disableTouchKeyboard:!1,durationTime:null,forceRoundTime:!1,maxTime:null,minTime:null,noneOption:!1,orientation:"l",roundingFunction:function(a,b){if(null===a)return null;if("number"!=typeof b.step)return a;var c=a%(60*b.step),d=b.minTime||0;return c-=d%(60*b.step),c>=30*b.step?a+=60*b.step-c:a-=c,u(a,b)},scrollDefault:null,selectOnBlur:!1,show2400:!1,showDuration:!1,showOn:["click","focus"],showOnFocus:!0,step:30,stopScrollPropagation:!1,timeFormat:"g:ia",typeaheadHighlight:!0,useSelect:!1,wrapHours:!0},y={init:function(b){return this.each(function(){var e=a(this),f=[];for(var g in x)e.data(g)&&(f[g]=e.data(g));var h=a.extend({},x,b,f);if(h.lang&&(w=a.extend(w,h.lang)),h=c(h),e.data("timepicker-settings",h),e.addClass("ui-timepicker-input"),h.useSelect)d(e);else{if(e.prop("autocomplete","off"),h.showOn)for(var i in h.showOn)e.on(h.showOn[i]+".timepicker",y.show);e.on("change.timepicker",k),e.on("keydown.timepicker",o),e.on("keyup.timepicker",p),h.disableTextInput&&e.on("keydown.timepicker",n),e.on("cut.timepicker",p),e.on("paste.timepicker",p),k.call(e.get(0),null,"initial")}})},show:function(c){var e=a(this),f=e.data("timepicker-settings");if(c&&c.preventDefault(),f.useSelect)return void e.data("timepicker-list").focus();h(e)&&e.blur();var k=e.data("timepicker-list");if(!e.prop("readonly")&&(k&&0!==k.length&&"function"!=typeof f.durationTime||(d(e),k=e.data("timepicker-list")),!b(k))){e.data("ui-timepicker-value",e.val()),j(e,k),y.hide(),k.show();var m={};f.orientation.match(/r/)?m.left=e.offset().left+e.outerWidth()-k.outerWidth()+parseInt(k.css("marginLeft").replace("px",""),10):m.left=e.offset().left+parseInt(k.css("marginLeft").replace("px",""),10);var n;n=f.orientation.match(/t/)?"t":f.orientation.match(/b/)?"b":e.offset().top+e.outerHeight(!0)+k.outerHeight()>a(window).height()+a(window).scrollTop()?"t":"b","t"==n?(k.addClass("ui-timepicker-positioned-top"),m.top=e.offset().top-k.outerHeight()+parseInt(k.css("marginTop").replace("px",""),10)):(k.removeClass("ui-timepicker-positioned-top"),m.top=e.offset().top+e.outerHeight()+parseInt(k.css("marginTop").replace("px",""),10)),k.offset(m);var o=k.find(".ui-timepicker-selected");if(!o.length){var p=t(l(e));null!==p?o=i(e,k,p):f.scrollDefault&&(o=i(e,k,f.scrollDefault()))}if(o.length&&!o.hasClass("ui-timepicker-disabled")||(o=k.find("li:not(.ui-timepicker-disabled):first")),o&&o.length){var q=k.scrollTop()+o.position().top-o.outerHeight();k.scrollTop(q)}else k.scrollTop(0);return f.stopScrollPropagation&&a(document).on("wheel.ui-timepicker",".ui-timepicker-wrapper",function(b){b.preventDefault();var c=a(this).scrollTop();a(this).scrollTop(c+b.originalEvent.deltaY)}),a(document).on("touchstart.ui-timepicker mousedown.ui-timepicker",g),a(window).on("resize.ui-timepicker",g),f.closeOnWindowScroll&&a(document).on("scroll.ui-timepicker",g),e.trigger("showTimepicker"),this}},hide:function(c){var d=a(this),e=d.data("timepicker-settings");return e&&e.useSelect&&d.blur(),a(".ui-timepicker-wrapper").each(function(){var c=a(this);if(b(c)){var d=c.data("timepicker-input"),e=d.data("timepicker-settings");e&&e.selectOnBlur&&q(d),c.hide(),d.trigger("hideTimepicker")}}),this},option:function(b,e){return"string"==typeof b&&"undefined"==typeof e?a(this).data("timepicker-settings")[b]:this.each(function(){var f=a(this),g=f.data("timepicker-settings"),h=f.data("timepicker-list");"object"==typeof b?g=a.extend(g,b):"string"==typeof b&&(g[b]=e),g=c(g),f.data("timepicker-settings",g),k.call(f.get(0),{type:"change"},"initial"),h&&(h.remove(),f.data("timepicker-list",!1)),g.useSelect&&d(f)})},getSecondsFromMidnight:function(){return t(l(this))},getTime:function(a){var b=this,c=l(b);if(!c)return null;var d=t(c);if(null===d)return null;a||(a=new Date);var e=new Date(a);return e.setHours(d/3600),e.setMinutes(d%3600/60),e.setSeconds(d%60),e.setMilliseconds(0),e},isVisible:function(){var a=this,c=a.data("timepicker-list");return!(!c||!b(c))},setTime:function(a){var b=this,c=b.data("timepicker-settings");if(c.forceRoundTime)var d=f(t(a),c);else var d=s(t(a),c);return a&&null===d&&c.noneOption&&(d=a),m(b,d,"initial"),k.call(b.get(0),{type:"change"},"initial"),b.data("timepicker-list")&&j(b,b.data("timepicker-list")),this},remove:function(){var a=this;if(a.hasClass("ui-timepicker-input")){var b=a.data("timepicker-settings");return a.removeAttr("autocomplete","off"),a.removeClass("ui-timepicker-input"),a.removeData("timepicker-settings"),a.off(".timepicker"),a.data("timepicker-list")&&a.data("timepicker-list").remove(),b.useSelect&&a.show(),a.removeData("timepicker-list"),this}}};a.fn.timepicker=function(b){return this.length?y[b]?this.hasClass("ui-timepicker-input")?y[b].apply(this,Array.prototype.slice.call(arguments,1)):this:"object"!=typeof b&&b?void a.error("Method "+b+" does not exist on jQuery.timepicker"):y.init.apply(this,arguments):this}});
 
-},{"jquery":11}],24:[function(require,module,exports){
-/*!
- * validate.js 0.12.0
- *
- * (c) 2013-2017 Nicklas Ansman, 2013 Wrapp
- * Validate.js may be freely distributed under the MIT license.
- * For all details and documentation:
- * http://validatejs.org/
- */
+},{"jquery":10}],15:[function(require,module,exports){
+const $ = require('../../jquery/jquery');
 
-(function(exports, module, define) {
-  "use strict";
+module.exports = function(errorContainerId, validationErrors){
 
-  // The main function that calls the validators specified by the constraints.
-  // The options are the following:
-  //   - format (string) - An option that controls how the returned value is formatted
-  //     * flat - Returns a flat array of just the error messages
-  //     * grouped - Returns the messages grouped by attribute (default)
-  //     * detailed - Returns an array of the raw validation data
-  //   - fullMessages (boolean) - If `true` (default) the attribute name is prepended to the error.
-  //
-  // Please note that the options are also passed to each validator.
-  var validate = function(attributes, constraints, options) {
-    options = v.extend({}, v.options, options);
-
-    var results = v.runValidations(attributes, constraints, options)
-      , attr
-      , validator;
-
-    if (results.some(function(r) { return v.isPromise(r.error); })) {
-      throw new Error("Use validate.async if you want support for promises");
+  var $errorContainer = $('#' + errorContainerId);
+  if(!$errorContainer.length) throw new Error('error container w/ id ' + errorContainerId + ' not found');
+  // clear container
+  $errorContainer.html('');
+  for (var name in validationErrors) {
+    if (validationErrors.hasOwnProperty(name)) {
+      var errorMessages = validationErrors[name];
+      errorMessages.forEach(function(msg){
+        $errorContainer.append('<div class="alert alert-danger" role="alert">' + msg + '</div>')
+      });
     }
-    return validate.processValidationResults(results, options);
-  };
+  }
+  // scroll to top
+  $("html, body").animate({ scrollTop: 0 }, "slow");
 
-  var v = validate;
+};
 
-  // Copies over attributes from one or more sources to a single destination.
-  // Very much similar to underscore's extend.
-  // The first argument is the target object and the remaining arguments will be
-  // used as sources.
-  v.extend = function(obj) {
-    [].slice.call(arguments, 1).forEach(function(source) {
-      for (var attr in source) {
-        obj[attr] = source[attr];
-      }
-    });
-    return obj;
-  };
-
-  v.extend(validate, {
-    // This is the version of the library as a semver.
-    // The toString function will allow it to be coerced into a string
-    version: {
-      major: 0,
-      minor: 12,
-      patch: 0,
-      metadata: null,
-      toString: function() {
-        var version = v.format("%{major}.%{minor}.%{patch}", v.version);
-        if (!v.isEmpty(v.version.metadata)) {
-          version += "+" + v.version.metadata;
-        }
-        return version;
-      }
-    },
-
-    // Below is the dependencies that are used in validate.js
-
-    // The constructor of the Promise implementation.
-    // If you are using Q.js, RSVP or any other A+ compatible implementation
-    // override this attribute to be the constructor of that promise.
-    // Since jQuery promises aren't A+ compatible they won't work.
-    Promise: typeof Promise !== "undefined" ? Promise : /* istanbul ignore next */ null,
-
-    EMPTY_STRING_REGEXP: /^\s*$/,
-
-    // Runs the validators specified by the constraints object.
-    // Will return an array of the format:
-    //     [{attribute: "<attribute name>", error: "<validation result>"}, ...]
-    runValidations: function(attributes, constraints, options) {
-      var results = []
-        , attr
-        , validatorName
-        , value
-        , validators
-        , validator
-        , validatorOptions
-        , error;
-
-      if (v.isDomElement(attributes) || v.isJqueryElement(attributes)) {
-        attributes = v.collectFormValues(attributes);
-      }
-
-      // Loops through each constraints, finds the correct validator and run it.
-      for (attr in constraints) {
-        value = v.getDeepObjectValue(attributes, attr);
-        // This allows the constraints for an attribute to be a function.
-        // The function will be called with the value, attribute name, the complete dict of
-        // attributes as well as the options and constraints passed in.
-        // This is useful when you want to have different
-        // validations depending on the attribute value.
-        validators = v.result(constraints[attr], value, attributes, attr, options, constraints);
-
-        for (validatorName in validators) {
-          validator = v.validators[validatorName];
-
-          if (!validator) {
-            error = v.format("Unknown validator %{name}", {name: validatorName});
-            throw new Error(error);
-          }
-
-          validatorOptions = validators[validatorName];
-          // This allows the options to be a function. The function will be
-          // called with the value, attribute name, the complete dict of
-          // attributes as well as the options and constraints passed in.
-          // This is useful when you want to have different
-          // validations depending on the attribute value.
-          validatorOptions = v.result(validatorOptions, value, attributes, attr, options, constraints);
-          if (!validatorOptions) {
-            continue;
-          }
-          results.push({
-            attribute: attr,
-            value: value,
-            validator: validatorName,
-            globalOptions: options,
-            attributes: attributes,
-            options: validatorOptions,
-            error: validator.call(validator,
-                value,
-                validatorOptions,
-                attr,
-                attributes,
-                options)
-          });
-        }
-      }
-
-      return results;
-    },
-
-    // Takes the output from runValidations and converts it to the correct
-    // output format.
-    processValidationResults: function(errors, options) {
-      errors = v.pruneEmptyErrors(errors, options);
-      errors = v.expandMultipleErrors(errors, options);
-      errors = v.convertErrorMessages(errors, options);
-
-      var format = options.format || "grouped";
-
-      if (typeof v.formatters[format] === 'function') {
-        errors = v.formatters[format](errors);
-      } else {
-        throw new Error(v.format("Unknown format %{format}", options));
-      }
-
-      return v.isEmpty(errors) ? undefined : errors;
-    },
-
-    // Runs the validations with support for promises.
-    // This function will return a promise that is settled when all the
-    // validation promises have been completed.
-    // It can be called even if no validations returned a promise.
-    async: function(attributes, constraints, options) {
-      options = v.extend({}, v.async.options, options);
-
-      var WrapErrors = options.wrapErrors || function(errors) {
-        return errors;
-      };
-
-      // Removes unknown attributes
-      if (options.cleanAttributes !== false) {
-        attributes = v.cleanAttributes(attributes, constraints);
-      }
-
-      var results = v.runValidations(attributes, constraints, options);
-
-      return new v.Promise(function(resolve, reject) {
-        v.waitForResults(results).then(function() {
-          var errors = v.processValidationResults(results, options);
-          if (errors) {
-            reject(new WrapErrors(errors, options, attributes, constraints));
-          } else {
-            resolve(attributes);
-          }
-        }, function(err) {
-          reject(err);
-        });
-      });
-    },
-
-    single: function(value, constraints, options) {
-      options = v.extend({}, v.single.options, options, {
-        format: "flat",
-        fullMessages: false
-      });
-      return v({single: value}, {single: constraints}, options);
-    },
-
-    // Returns a promise that is resolved when all promises in the results array
-    // are settled. The promise returned from this function is always resolved,
-    // never rejected.
-    // This function modifies the input argument, it replaces the promises
-    // with the value returned from the promise.
-    waitForResults: function(results) {
-      // Create a sequence of all the results starting with a resolved promise.
-      return results.reduce(function(memo, result) {
-        // If this result isn't a promise skip it in the sequence.
-        if (!v.isPromise(result.error)) {
-          return memo;
-        }
-
-        return memo.then(function() {
-          return result.error.then(function(error) {
-            result.error = error || null;
-          });
-        });
-      }, new v.Promise(function(r) { r(); })); // A resolved promise
-    },
-
-    // If the given argument is a call: function the and: function return the value
-    // otherwise just return the value. Additional arguments will be passed as
-    // arguments to the function.
-    // Example:
-    // ```
-    // result('foo') // 'foo'
-    // result(Math.max, 1, 2) // 2
-    // ```
-    result: function(value) {
-      var args = [].slice.call(arguments, 1);
-      if (typeof value === 'function') {
-        value = value.apply(null, args);
-      }
-      return value;
-    },
-
-    // Checks if the value is a number. This function does not consider NaN a
-    // number like many other `isNumber` functions do.
-    isNumber: function(value) {
-      return typeof value === 'number' && !isNaN(value);
-    },
-
-    // Returns false if the object is not a function
-    isFunction: function(value) {
-      return typeof value === 'function';
-    },
-
-    // A simple check to verify that the value is an integer. Uses `isNumber`
-    // and a simple modulo check.
-    isInteger: function(value) {
-      return v.isNumber(value) && value % 1 === 0;
-    },
-
-    // Checks if the value is a boolean
-    isBoolean: function(value) {
-      return typeof value === 'boolean';
-    },
-
-    // Uses the `Object` function to check if the given argument is an object.
-    isObject: function(obj) {
-      return obj === Object(obj);
-    },
-
-    // Simply checks if the object is an instance of a date
-    isDate: function(obj) {
-      return obj instanceof Date;
-    },
-
-    // Returns false if the object is `null` of `undefined`
-    isDefined: function(obj) {
-      return obj !== null && obj !== undefined;
-    },
-
-    // Checks if the given argument is a promise. Anything with a `then`
-    // function is considered a promise.
-    isPromise: function(p) {
-      return !!p && v.isFunction(p.then);
-    },
-
-    isJqueryElement: function(o) {
-      return o && v.isString(o.jquery);
-    },
-
-    isDomElement: function(o) {
-      if (!o) {
-        return false;
-      }
-
-      if (!o.querySelectorAll || !o.querySelector) {
-        return false;
-      }
-
-      if (v.isObject(document) && o === document) {
-        return true;
-      }
-
-      // http://stackoverflow.com/a/384380/699304
-      /* istanbul ignore else */
-      if (typeof HTMLElement === "object") {
-        return o instanceof HTMLElement;
-      } else {
-        return o &&
-          typeof o === "object" &&
-          o !== null &&
-          o.nodeType === 1 &&
-          typeof o.nodeName === "string";
-      }
-    },
-
-    isEmpty: function(value) {
-      var attr;
-
-      // Null and undefined are empty
-      if (!v.isDefined(value)) {
-        return true;
-      }
-
-      // functions are non empty
-      if (v.isFunction(value)) {
-        return false;
-      }
-
-      // Whitespace only strings are empty
-      if (v.isString(value)) {
-        return v.EMPTY_STRING_REGEXP.test(value);
-      }
-
-      // For arrays we use the length property
-      if (v.isArray(value)) {
-        return value.length === 0;
-      }
-
-      // Dates have no attributes but aren't empty
-      if (v.isDate(value)) {
-        return false;
-      }
-
-      // If we find at least one property we consider it non empty
-      if (v.isObject(value)) {
-        for (attr in value) {
-          return false;
-        }
-        return true;
-      }
-
-      return false;
-    },
-
-    // Formats the specified strings with the given values like so:
-    // ```
-    // format("Foo: %{foo}", {foo: "bar"}) // "Foo bar"
-    // ```
-    // If you want to write %{...} without having it replaced simply
-    // prefix it with % like this `Foo: %%{foo}` and it will be returned
-    // as `"Foo: %{foo}"`
-    format: v.extend(function(str, vals) {
-      if (!v.isString(str)) {
-        return str;
-      }
-      return str.replace(v.format.FORMAT_REGEXP, function(m0, m1, m2) {
-        if (m1 === '%') {
-          return "%{" + m2 + "}";
-        } else {
-          return String(vals[m2]);
-        }
-      });
-    }, {
-      // Finds %{key} style patterns in the given string
-      FORMAT_REGEXP: /(%?)%\{([^\}]+)\}/g
-    }),
-
-    // "Prettifies" the given string.
-    // Prettifying means replacing [.\_-] with spaces as well as splitting
-    // camel case words.
-    prettify: function(str) {
-      if (v.isNumber(str)) {
-        // If there are more than 2 decimals round it to two
-        if ((str * 100) % 1 === 0) {
-          return "" + str;
-        } else {
-          return parseFloat(Math.round(str * 100) / 100).toFixed(2);
-        }
-      }
-
-      if (v.isArray(str)) {
-        return str.map(function(s) { return v.prettify(s); }).join(", ");
-      }
-
-      if (v.isObject(str)) {
-        return str.toString();
-      }
-
-      // Ensure the string is actually a string
-      str = "" + str;
-
-      return str
-        // Splits keys separated by periods
-        .replace(/([^\s])\.([^\s])/g, '$1 $2')
-        // Removes backslashes
-        .replace(/\\+/g, '')
-        // Replaces - and - with space
-        .replace(/[_-]/g, ' ')
-        // Splits camel cased words
-        .replace(/([a-z])([A-Z])/g, function(m0, m1, m2) {
-          return "" + m1 + " " + m2.toLowerCase();
-        })
-        .toLowerCase();
-    },
-
-    stringifyValue: function(value, options) {
-      var prettify = options && options.prettify || v.prettify;
-      return prettify(value);
-    },
-
-    isString: function(value) {
-      return typeof value === 'string';
-    },
-
-    isArray: function(value) {
-      return {}.toString.call(value) === '[object Array]';
-    },
-
-    // Checks if the object is a hash, which is equivalent to an object that
-    // is neither an array nor a function.
-    isHash: function(value) {
-      return v.isObject(value) && !v.isArray(value) && !v.isFunction(value);
-    },
-
-    contains: function(obj, value) {
-      if (!v.isDefined(obj)) {
-        return false;
-      }
-      if (v.isArray(obj)) {
-        return obj.indexOf(value) !== -1;
-      }
-      return value in obj;
-    },
-
-    unique: function(array) {
-      if (!v.isArray(array)) {
-        return array;
-      }
-      return array.filter(function(el, index, array) {
-        return array.indexOf(el) == index;
-      });
-    },
-
-    forEachKeyInKeypath: function(object, keypath, callback) {
-      if (!v.isString(keypath)) {
-        return undefined;
-      }
-
-      var key = ""
-        , i
-        , escape = false;
-
-      for (i = 0; i < keypath.length; ++i) {
-        switch (keypath[i]) {
-          case '.':
-            if (escape) {
-              escape = false;
-              key += '.';
-            } else {
-              object = callback(object, key, false);
-              key = "";
-            }
-            break;
-
-          case '\\':
-            if (escape) {
-              escape = false;
-              key += '\\';
-            } else {
-              escape = true;
-            }
-            break;
-
-          default:
-            escape = false;
-            key += keypath[i];
-            break;
-        }
-      }
-
-      return callback(object, key, true);
-    },
-
-    getDeepObjectValue: function(obj, keypath) {
-      if (!v.isObject(obj)) {
-        return undefined;
-      }
-
-      return v.forEachKeyInKeypath(obj, keypath, function(obj, key) {
-        if (v.isObject(obj)) {
-          return obj[key];
-        }
-      });
-    },
-
-    // This returns an object with all the values of the form.
-    // It uses the input name as key and the value as value
-    // So for example this:
-    // <input type="text" name="email" value="foo@bar.com" />
-    // would return:
-    // {email: "foo@bar.com"}
-    collectFormValues: function(form, options) {
-      var values = {}
-        , i
-        , j
-        , input
-        , inputs
-        , option
-        , value;
-
-      if (v.isJqueryElement(form)) {
-        form = form[0];
-      }
-
-      if (!form) {
-        return values;
-      }
-
-      options = options || {};
-
-      inputs = form.querySelectorAll("input[name], textarea[name]");
-      for (i = 0; i < inputs.length; ++i) {
-        input = inputs.item(i);
-
-        if (v.isDefined(input.getAttribute("data-ignored"))) {
-          continue;
-        }
-
-        name = input.name.replace(/\./g, "\\\\.");
-        value = v.sanitizeFormValue(input.value, options);
-        if (input.type === "number") {
-          value = value ? +value : null;
-        } else if (input.type === "checkbox") {
-          if (input.attributes.value) {
-            if (!input.checked) {
-              value = values[name] || null;
-            }
-          } else {
-            value = input.checked;
-          }
-        } else if (input.type === "radio") {
-          if (!input.checked) {
-            value = values[name] || null;
-          }
-        }
-        values[name] = value;
-      }
-
-      inputs = form.querySelectorAll("select[name]");
-      for (i = 0; i < inputs.length; ++i) {
-        input = inputs.item(i);
-        if (v.isDefined(input.getAttribute("data-ignored"))) {
-          continue;
-        }
-
-        if (input.multiple) {
-          value = [];
-          for (j in input.options) {
-            option = input.options[j];
-             if (option && option.selected) {
-              value.push(v.sanitizeFormValue(option.value, options));
-            }
-          }
-        } else {
-          var _val = typeof input.options[input.selectedIndex] !== 'undefined' ? input.options[input.selectedIndex].value : '';
-          value = v.sanitizeFormValue(_val, options);
-        }
-        values[input.name] = value;
-      }
-
-      return values;
-    },
-
-    sanitizeFormValue: function(value, options) {
-      if (options.trim && v.isString(value)) {
-        value = value.trim();
-      }
-
-      if (options.nullify !== false && value === "") {
-        return null;
-      }
-      return value;
-    },
-
-    capitalize: function(str) {
-      if (!v.isString(str)) {
-        return str;
-      }
-      return str[0].toUpperCase() + str.slice(1);
-    },
-
-    // Remove all errors who's error attribute is empty (null or undefined)
-    pruneEmptyErrors: function(errors) {
-      return errors.filter(function(error) {
-        return !v.isEmpty(error.error);
-      });
-    },
-
-    // In
-    // [{error: ["err1", "err2"], ...}]
-    // Out
-    // [{error: "err1", ...}, {error: "err2", ...}]
-    //
-    // All attributes in an error with multiple messages are duplicated
-    // when expanding the errors.
-    expandMultipleErrors: function(errors) {
-      var ret = [];
-      errors.forEach(function(error) {
-        // Removes errors without a message
-        if (v.isArray(error.error)) {
-          error.error.forEach(function(msg) {
-            ret.push(v.extend({}, error, {error: msg}));
-          });
-        } else {
-          ret.push(error);
-        }
-      });
-      return ret;
-    },
-
-    // Converts the error mesages by prepending the attribute name unless the
-    // message is prefixed by ^
-    convertErrorMessages: function(errors, options) {
-      options = options || {};
-
-      var ret = []
-        , prettify = options.prettify || v.prettify;
-      errors.forEach(function(errorInfo) {
-        var error = v.result(errorInfo.error,
-            errorInfo.value,
-            errorInfo.attribute,
-            errorInfo.options,
-            errorInfo.attributes,
-            errorInfo.globalOptions);
-
-        if (!v.isString(error)) {
-          ret.push(errorInfo);
-          return;
-        }
-
-        if (error[0] === '^') {
-          error = error.slice(1);
-        } else if (options.fullMessages !== false) {
-          error = v.capitalize(prettify(errorInfo.attribute)) + " " + error;
-        }
-        error = error.replace(/\\\^/g, "^");
-        error = v.format(error, {
-          value: v.stringifyValue(errorInfo.value, options)
-        });
-        ret.push(v.extend({}, errorInfo, {error: error}));
-      });
-      return ret;
-    },
-
-    // In:
-    // [{attribute: "<attributeName>", ...}]
-    // Out:
-    // {"<attributeName>": [{attribute: "<attributeName>", ...}]}
-    groupErrorsByAttribute: function(errors) {
-      var ret = {};
-      errors.forEach(function(error) {
-        var list = ret[error.attribute];
-        if (list) {
-          list.push(error);
-        } else {
-          ret[error.attribute] = [error];
-        }
-      });
-      return ret;
-    },
-
-    // In:
-    // [{error: "<message 1>", ...}, {error: "<message 2>", ...}]
-    // Out:
-    // ["<message 1>", "<message 2>"]
-    flattenErrorsToArray: function(errors) {
-      return errors
-        .map(function(error) { return error.error; })
-        .filter(function(value, index, self) {
-          return self.indexOf(value) === index;
-        });
-    },
-
-    cleanAttributes: function(attributes, whitelist) {
-      function whitelistCreator(obj, key, last) {
-        if (v.isObject(obj[key])) {
-          return obj[key];
-        }
-        return (obj[key] = last ? true : {});
-      }
-
-      function buildObjectWhitelist(whitelist) {
-        var ow = {}
-          , lastObject
-          , attr;
-        for (attr in whitelist) {
-          if (!whitelist[attr]) {
-            continue;
-          }
-          v.forEachKeyInKeypath(ow, attr, whitelistCreator);
-        }
-        return ow;
-      }
-
-      function cleanRecursive(attributes, whitelist) {
-        if (!v.isObject(attributes)) {
-          return attributes;
-        }
-
-        var ret = v.extend({}, attributes)
-          , w
-          , attribute;
-
-        for (attribute in attributes) {
-          w = whitelist[attribute];
-
-          if (v.isObject(w)) {
-            ret[attribute] = cleanRecursive(ret[attribute], w);
-          } else if (!w) {
-            delete ret[attribute];
-          }
-        }
-        return ret;
-      }
-
-      if (!v.isObject(whitelist) || !v.isObject(attributes)) {
-        return {};
-      }
-
-      whitelist = buildObjectWhitelist(whitelist);
-      return cleanRecursive(attributes, whitelist);
-    },
-
-    exposeModule: function(validate, root, exports, module, define) {
-      if (exports) {
-        if (module && module.exports) {
-          exports = module.exports = validate;
-        }
-        exports.validate = validate;
-      } else {
-        root.validate = validate;
-        if (validate.isFunction(define) && define.amd) {
-          define([], function () { return validate; });
-        }
-      }
-    },
-
-    warn: function(msg) {
-      if (typeof console !== "undefined" && console.warn) {
-        console.warn("[validate.js] " + msg);
-      }
-    },
-
-    error: function(msg) {
-      if (typeof console !== "undefined" && console.error) {
-        console.error("[validate.js] " + msg);
-      }
-    }
-  });
-
-  validate.validators = {
-    // Presence validates that the value isn't empty
-    presence: function(value, options) {
-      options = v.extend({}, this.options, options);
-      if (options.allowEmpty !== false ? !v.isDefined(value) : v.isEmpty(value)) {
-        return options.message || this.message || "can't be blank";
-      }
-    },
-    length: function(value, options, attribute) {
-      // Empty values are allowed
-      if (!v.isDefined(value)) {
-        return;
-      }
-
-      options = v.extend({}, this.options, options);
-
-      var is = options.is
-        , maximum = options.maximum
-        , minimum = options.minimum
-        , tokenizer = options.tokenizer || function(val) { return val; }
-        , err
-        , errors = [];
-
-      value = tokenizer(value);
-      var length = value.length;
-      if(!v.isNumber(length)) {
-        v.error(v.format("Attribute %{attr} has a non numeric value for `length`", {attr: attribute}));
-        return options.message || this.notValid || "has an incorrect length";
-      }
-
-      // Is checks
-      if (v.isNumber(is) && length !== is) {
-        err = options.wrongLength ||
-          this.wrongLength ||
-          "is the wrong length (should be %{count} characters)";
-        errors.push(v.format(err, {count: is}));
-      }
-
-      if (v.isNumber(minimum) && length < minimum) {
-        err = options.tooShort ||
-          this.tooShort ||
-          "is too short (minimum is %{count} characters)";
-        errors.push(v.format(err, {count: minimum}));
-      }
-
-      if (v.isNumber(maximum) && length > maximum) {
-        err = options.tooLong ||
-          this.tooLong ||
-          "is too long (maximum is %{count} characters)";
-        errors.push(v.format(err, {count: maximum}));
-      }
-
-      if (errors.length > 0) {
-        return options.message || errors;
-      }
-    },
-    numericality: function(value, options, attribute, attributes, globalOptions) {
-      // Empty values are fine
-      if (!v.isDefined(value)) {
-        return;
-      }
-
-      options = v.extend({}, this.options, options);
-
-      var errors = []
-        , name
-        , count
-        , checks = {
-            greaterThan:          function(v, c) { return v > c; },
-            greaterThanOrEqualTo: function(v, c) { return v >= c; },
-            equalTo:              function(v, c) { return v === c; },
-            lessThan:             function(v, c) { return v < c; },
-            lessThanOrEqualTo:    function(v, c) { return v <= c; },
-            divisibleBy:          function(v, c) { return v % c === 0; }
-          }
-        , prettify = options.prettify ||
-          (globalOptions && globalOptions.prettify) ||
-          v.prettify;
-
-      // Strict will check that it is a valid looking number
-      if (v.isString(value) && options.strict) {
-        var pattern = "^-?(0|[1-9]\\d*)";
-        if (!options.onlyInteger) {
-          pattern += "(\\.\\d+)?";
-        }
-        pattern += "$";
-
-        if (!(new RegExp(pattern).test(value))) {
-          return options.message ||
-            options.notValid ||
-            this.notValid ||
-            this.message ||
-            "must be a valid number";
-        }
-      }
-
-      // Coerce the value to a number unless we're being strict.
-      if (options.noStrings !== true && v.isString(value) && !v.isEmpty(value)) {
-        value = +value;
-      }
-
-      // If it's not a number we shouldn't continue since it will compare it.
-      if (!v.isNumber(value)) {
-        return options.message ||
-          options.notValid ||
-          this.notValid ||
-          this.message ||
-          "is not a number";
-      }
-
-      // Same logic as above, sort of. Don't bother with comparisons if this
-      // doesn't pass.
-      if (options.onlyInteger && !v.isInteger(value)) {
-        return options.message ||
-          options.notInteger ||
-          this.notInteger ||
-          this.message ||
-          "must be an integer";
-      }
-
-      for (name in checks) {
-        count = options[name];
-        if (v.isNumber(count) && !checks[name](value, count)) {
-          // This picks the default message if specified
-          // For example the greaterThan check uses the message from
-          // this.notGreaterThan so we capitalize the name and prepend "not"
-          var key = "not" + v.capitalize(name);
-          var msg = options[key] ||
-            this[key] ||
-            this.message ||
-            "must be %{type} %{count}";
-
-          errors.push(v.format(msg, {
-            count: count,
-            type: prettify(name)
-          }));
-        }
-      }
-
-      if (options.odd && value % 2 !== 1) {
-        errors.push(options.notOdd ||
-            this.notOdd ||
-            this.message ||
-            "must be odd");
-      }
-      if (options.even && value % 2 !== 0) {
-        errors.push(options.notEven ||
-            this.notEven ||
-            this.message ||
-            "must be even");
-      }
-
-      if (errors.length) {
-        return options.message || errors;
-      }
-    },
-    datetime: v.extend(function(value, options) {
-      if (!v.isFunction(this.parse) || !v.isFunction(this.format)) {
-        throw new Error("Both the parse and format functions needs to be set to use the datetime/date validator");
-      }
-
-      // Empty values are fine
-      if (!v.isDefined(value)) {
-        return;
-      }
-
-      options = v.extend({}, this.options, options);
-
-      var err
-        , errors = []
-        , earliest = options.earliest ? this.parse(options.earliest, options) : NaN
-        , latest = options.latest ? this.parse(options.latest, options) : NaN;
-
-      value = this.parse(value, options);
-
-      // 86400000 is the number of milliseconds in a day, this is used to remove
-      // the time from the date
-      if (isNaN(value) || options.dateOnly && value % 86400000 !== 0) {
-        err = options.notValid ||
-          options.message ||
-          this.notValid ||
-          "must be a valid date";
-        return v.format(err, {value: arguments[0]});
-      }
-
-      if (!isNaN(earliest) && value < earliest) {
-        err = options.tooEarly ||
-          options.message ||
-          this.tooEarly ||
-          "must be no earlier than %{date}";
-        err = v.format(err, {
-          value: this.format(value, options),
-          date: this.format(earliest, options)
-        });
-        errors.push(err);
-      }
-
-      if (!isNaN(latest) && value > latest) {
-        err = options.tooLate ||
-          options.message ||
-          this.tooLate ||
-          "must be no later than %{date}";
-        err = v.format(err, {
-          date: this.format(latest, options),
-          value: this.format(value, options)
-        });
-        errors.push(err);
-      }
-
-      if (errors.length) {
-        return v.unique(errors);
-      }
-    }, {
-      parse: null,
-      format: null
-    }),
-    date: function(value, options) {
-      options = v.extend({}, options, {dateOnly: true});
-      return v.validators.datetime.call(v.validators.datetime, value, options);
-    },
-    format: function(value, options) {
-      if (v.isString(options) || (options instanceof RegExp)) {
-        options = {pattern: options};
-      }
-
-      options = v.extend({}, this.options, options);
-
-      var message = options.message || this.message || "is invalid"
-        , pattern = options.pattern
-        , match;
-
-      // Empty values are allowed
-      if (!v.isDefined(value)) {
-        return;
-      }
-      if (!v.isString(value)) {
-        return message;
-      }
-
-      if (v.isString(pattern)) {
-        pattern = new RegExp(options.pattern, options.flags);
-      }
-      match = pattern.exec(value);
-      if (!match || match[0].length != value.length) {
-        return message;
-      }
-    },
-    inclusion: function(value, options) {
-      // Empty values are fine
-      if (!v.isDefined(value)) {
-        return;
-      }
-      if (v.isArray(options)) {
-        options = {within: options};
-      }
-      options = v.extend({}, this.options, options);
-      if (v.contains(options.within, value)) {
-        return;
-      }
-      var message = options.message ||
-        this.message ||
-        "^%{value} is not included in the list";
-      return v.format(message, {value: value});
-    },
-    exclusion: function(value, options) {
-      // Empty values are fine
-      if (!v.isDefined(value)) {
-        return;
-      }
-      if (v.isArray(options)) {
-        options = {within: options};
-      }
-      options = v.extend({}, this.options, options);
-      if (!v.contains(options.within, value)) {
-        return;
-      }
-      var message = options.message || this.message || "^%{value} is restricted";
-      return v.format(message, {value: value});
-    },
-    email: v.extend(function(value, options) {
-      options = v.extend({}, this.options, options);
-      var message = options.message || this.message || "is not a valid email";
-      // Empty values are fine
-      if (!v.isDefined(value)) {
-        return;
-      }
-      if (!v.isString(value)) {
-        return message;
-      }
-      if (!this.PATTERN.exec(value)) {
-        return message;
-      }
-    }, {
-      PATTERN: /^[a-z0-9\u007F-\uffff!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9\u007F-\uffff!#$%&'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i
-    }),
-    equality: function(value, options, attribute, attributes, globalOptions) {
-      if (!v.isDefined(value)) {
-        return;
-      }
-
-      if (v.isString(options)) {
-        options = {attribute: options};
-      }
-      options = v.extend({}, this.options, options);
-      var message = options.message ||
-        this.message ||
-        "is not equal to %{attribute}";
-
-      if (v.isEmpty(options.attribute) || !v.isString(options.attribute)) {
-        throw new Error("The attribute must be a non empty string");
-      }
-
-      var otherValue = v.getDeepObjectValue(attributes, options.attribute)
-        , comparator = options.comparator || function(v1, v2) {
-          return v1 === v2;
-        }
-        , prettify = options.prettify ||
-          (globalOptions && globalOptions.prettify) ||
-          v.prettify;
-
-      if (!comparator(value, otherValue, options, attribute, attributes)) {
-        return v.format(message, {attribute: prettify(options.attribute)});
-      }
-    },
-
-    // A URL validator that is used to validate URLs with the ability to
-    // restrict schemes and some domains.
-    url: function(value, options) {
-      if (!v.isDefined(value)) {
-        return;
-      }
-
-      options = v.extend({}, this.options, options);
-
-      var message = options.message || this.message || "is not a valid url"
-        , schemes = options.schemes || this.schemes || ['http', 'https']
-        , allowLocal = options.allowLocal || this.allowLocal || false;
-
-      if (!v.isString(value)) {
-        return message;
-      }
-
-      // https://gist.github.com/dperini/729294
-      var regex =
-        "^" +
-        // protocol identifier
-        "(?:(?:" + schemes.join("|") + ")://)" +
-        // user:pass authentication
-        "(?:\\S+(?::\\S*)?@)?" +
-        "(?:";
-
-      var tld = "(?:\\.(?:[a-z\\u00a1-\\uffff]{2,}))";
-
-      if (allowLocal) {
-        tld += "?";
-      } else {
-        regex +=
-          // IP address exclusion
-          // private & local networks
-          "(?!(?:10|127)(?:\\.\\d{1,3}){3})" +
-          "(?!(?:169\\.254|192\\.168)(?:\\.\\d{1,3}){2})" +
-          "(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})";
-      }
-
-      regex +=
-          // IP address dotted notation octets
-          // excludes loopback network 0.0.0.0
-          // excludes reserved space >= 224.0.0.0
-          // excludes network & broacast addresses
-          // (first & last IP address of each class)
-          "(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])" +
-          "(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}" +
-          "(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))" +
-        "|" +
-          // host name
-          "(?:(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)" +
-          // domain name
-          "(?:\\.(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)*" +
-          tld +
-        ")" +
-        // port number
-        "(?::\\d{2,5})?" +
-        // resource path
-        "(?:[/?#]\\S*)?" +
-      "$";
-
-      var PATTERN = new RegExp(regex, 'i');
-      if (!PATTERN.exec(value)) {
-        return message;
-      }
-    }
-  };
-
-  validate.formatters = {
-    detailed: function(errors) {return errors;},
-    flat: v.flattenErrorsToArray,
-    grouped: function(errors) {
-      var attr;
-
-      errors = v.groupErrorsByAttribute(errors);
-      for (attr in errors) {
-        errors[attr] = v.flattenErrorsToArray(errors[attr]);
-      }
-      return errors;
-    },
-    constraint: function(errors) {
-      var attr;
-      errors = v.groupErrorsByAttribute(errors);
-      for (attr in errors) {
-        errors[attr] = errors[attr].map(function(result) {
-          return result.validator;
-        }).sort();
-      }
-      return errors;
-    }
-  };
-
-  validate.exposeModule(validate, this, exports, module, define);
-}).call(this,
-        typeof exports !== 'undefined' ? /* istanbul ignore next */ exports : null,
-        typeof module !== 'undefined' ? /* istanbul ignore next */ module : null,
-        typeof define !== 'undefined' ? /* istanbul ignore next */ define : null);
-
-},{}],25:[function(require,module,exports){
+},{"../../jquery/jquery":2}],16:[function(require,module,exports){
 /**
  * Territory - Householder Contacted
  */
-const moment = require('moment');
-const Promise = require('promise');
-const form2js = require('../../vendor/form2js');
-const timepicker = require('timepicker');
+var moment = require('moment');
+var EventEmitter = require('events').EventEmitter;
+var form2js = require('../../vendor/form2js');
+var timepicker = require('timepicker');
 
 // global version of jquery with bootstrap plugin enabled
-const w$ = window.jQuery;
+var w$ = window.jQuery;
 
-const $ = require('../../jquery/jquery');
+var $ = require('../../jquery/jquery');
+var bootstrapValidationHandler = require('../modules/bootstrap-form-error-handler');
 
-const validators = {
-  householder_contacted_form: require('../validators/HouseholderContacted'),
-};
-
-const DOM_CACHE = {
+/**
+ * Cached DOM elements
+ */
+var DOM_CACHE = {
   $errorModal: w$('#bootstrap-error-modal'),
   $visit_form: $('#add-visit-form'),
   $visit_form_submit_button: $('#visit-form-submit'),
   $form_error_container: $('#visit-form-errors'),
   $success_modal: $('#visit-added-modal'),
   $householder_options: $("#householder-options"),
+  $timepicker: $('#visit-time-picker'),
   new_householder: {
     button: w$('#new-householder-button'),
     modal: w$('#new-householder-modal'),
@@ -35334,248 +33831,137 @@ const DOM_CACHE = {
 };
 
 /**
- * Configure new householder button and modal
- */
-(function(elements){
-
-  var btn = elements.button;
-  var modal = elements.modal;
-  var saveBtn = elements.save_button;
-  var form = elements.form;
-
-  btn.on('click', showModal);
-
-  /**
-   * Show modal
-   */
-  function showModal(){
-
-    modal.modal('show');
-
-  }
-
-  // configure modal save button
-  saveBtn.on('click', saveNewHouseholder);
-
-  function saveNewHouseholder(){
-    // get form data
-    var formData = form2js(form[0]);
-    var validation = validators.new_householder_form(formData);
-    if(validation !== undefined){
-      return validationHandler(validation);
-    }
-    sendData(formData)
-      .done(function(r){
-        if(r.data.householder){
-          console.log(r);
-          form[0].reset();
-          updateHouseholderOptions(r.data.householder);
-          modal.modal('hide');
-        }else{
-          elements.error_container.append('<div class="alert alert-danger" role="alert">Unable to save householder</div>');
-        }
-      })
-      .fail(function(){
-        elements.error_container.append('<div class="alert alert-danger" role="alert">Unable to save householder</div>');
-      });
-  }
-
-  /**
-   * Add householder to selections and make selected
-   * @param  {Object} householder Returned householder objet
-   */
-  function updateHouseholderOptions(householder){
-
-    var html = '<label class="btn btn-secondary m-1 active" for="' + householder._id.toString() + '">' + householder.name + '<input type="checkbox" checked="checked" id="sjg" value="' + householder.name + '" name="householders.contacted[]"/></label>';
-    DOM_CACHE.$householder_options.append(html);
-
-  }
-
-  function sendData(formData){
-    return $.ajax({
-      url: window.rajax_householder_url,
-      method: 'post',
-      data: JSON.stringify( {householder: formData.householder} ),
-      contentType: "application/json"
-    });
-  }
-
-  function validationHandler(validation){
-    var $container = elements.error_container;
-    $container.html('');
-    for (var name in validation) {
-      if (validation.hasOwnProperty(name)) {
-        var errorMessages = validation[name];
-        errorMessages.forEach(function(msg){
-          $container.append('<div class="alert alert-danger" role="alert">' + msg + '</div>')
-        });
-      }
-    }
-    // scroll to top
-    $("html, body").animate({ scrollTop: 0 }, "slow");
-  }
-
-}(DOM_CACHE.new_householder));
-
-/**
  * Activate time and date picker
  */
-(function(){
+DOM_CACHE.$timepicker.timepicker({ 'scrollDefault': 'now' , 'timeFormat': 'h:i A'});
 
-  $('#visit-time-picker').timepicker({ 'scrollDefault': 'now' , 'timeFormat': 'h:i A'});
-
-  datepicker('#visit-date-picker', {
-    startDate: new Date(),
-    formatter: function(el, date, instance){
-      // format date Saturday March 26, 2019
-      var formattedDate = moment(date.getTime()).format('MMMM Do, YYYY');
-      el.value = formattedDate;
-    }
-  });
-
-}());
-
+datepicker('#visit-date-picker', {
+  startDate: new Date(),
+  formatter: function(el, date, instance){
+    // format date Saturday March 26, 2019
+    var formattedDate = moment(date.getTime()).format('MMMM Do, YYYY');
+    el.value = formattedDate;
+  }
+});
 
 /**
- * Handle form submission
+ * Define Householder events
  */
-(function(){
+var HouseholderEvents = new EventEmitter();
 
-  var $btn = DOM_CACHE.$visit_form_submit_button;
+// show "new householder" modal event
+HouseholderEvents.on('modal:show', function(){
 
-  $btn.click(formSubmission);
+  DOM_CACHE.new_householder.modal.modal('show');
 
-  function formSubmission(){
-    var formData = form2js(DOM_CACHE.$visit_form[0]);
-    var validation = validators.householder_contacted_form(formData);
-    if(validation !== undefined){
-      // validation failed, display error messages
-      return validationHandler(validation);
-    }
-    // send ajax request
-    sendData(formData)
-      .done(function(res){
-        // init and show success modal and send to unit overview page
-        if(res.data.id){
-          window.location.replace(window.unit_overview_url);
-        }else{
-          DOM_CACHE.$errorModal.modal('show');
-        }
-      })
-      .fail(function(jqXHR, textStatus, errorThrown){
-        // show error modal
-        DOM_CACHE.$errorModal.modal('show');
-      });
-  }
+});
 
+// hide "new householder" modal event
+HouseholderEvents.on('modal:hide', function(){
 
-  /**
-   * Use raw date and time to construct a UNIX timestamp
-   * @param  {String} date
-   * @param  {String} time
-   * @return {Number} timestamp
-   */
-  function constructTimestamp(date, time){
-    var combined = date + ' ' + time;
-    var timestamp = moment( date + ' ' + time, 'MMMM Do, YYYY h:mm A' ).valueOf();
-    return timestamp;
-  }
+  DOM_CACHE.new_householder.modal.modal('hide');
 
-  /**
-   * Organize data to send
-   * @param  {Object} formData Form data
-   * @return {Promise}
-   */
-  function sendData(formData){
+});
 
-    var timestamp = constructTimestamp(formData.visit.date, formData.visit.time);
-    var data = {
-      householders_contacted: formData.householders.contacted,
-      contacted_by: formData.publisher.name,
-      details: formData.visit.details,
-      timestamp: timestamp,
-      id: null
-    };
-    var json = JSON.stringify(data);
-    return $.ajax({
-      url: window.rajax_visit_url,
-      method: 'post',
-      data: json,
-      contentType: "application/json"
-    });
+HouseholderEvents.on('updateList', function(householder){
 
-  }
+  var html = '<label class="btn btn-secondary m-1 active" for="' + householder._id.toString() + '">' + householder.name + '<input type="checkbox" checked="checked" id="sjg" value="' + householder.name + '" name="householders.contacted[]"/></label>';
+  DOM_CACHE.$householder_options.append(html);
 
-  function validationHandler(validation){
-    var $container = DOM_CACHE.$form_error_container;
-    $container.html('');
-    for (var name in validation) {
-      if (validation.hasOwnProperty(name)) {
-        var errorMessages = validation[name];
-        errorMessages.forEach(function(msg){
-          $container.append('<div class="alert alert-danger" role="alert">' + msg + '</div>')
-        });
+});
+
+HouseholderEvents.on('add', function(){
+
+  // get form data
+  var formData = form2js(DOM_CACHE.new_householder.form[0]);
+  // send data
+  $.ajax({
+    url: window.ajax_add_householder_url,
+    method: 'post',
+    data: JSON.stringify( formData ),
+    contentType: "application/json"
+  })
+  .done(function(res){
+    if(res.error.type && !res.data.householder){
+      if(res.error.type === 'VALIDATION_ERROR'){
+        return bootstrapValidationHandler('new-householder-form-errors', res.error.validationErrors);
+      }else{
+        HouseholderEvent.emit('modal:hide');
+        return DOM_CACHE.$errorModal.modal('show');
       }
     }
-    // scroll to top
-    $("html, body").animate({ scrollTop: 0 }, "slow");
-  }
+    HouseholderEvents.emit('updateList', res.data.householder);
+    HouseholderEvents.emit('modal:hide');
+  })
+  .fail(function(){
+    HouseholderEvent.emit('modal:hide');
+    DOM_CACHE.$errorModal.modal('show');
+  });
 
-}())
+});
 
-},{"../../jquery/jquery":1,"../../vendor/form2js":27,"../validators/HouseholderContacted":26,"moment":13,"promise":15,"timepicker":23}],26:[function(require,module,exports){
-var validate = require('validate.js');
-const _ = require('lodash');
+// bind show modal event to "new householder" button
+DOM_CACHE.new_householder.button.on('click', function(){
 
-const HouseholderContactedContraints = {
+  HouseholderEvents.emit('modal:show');
 
-  'householders.contacted': {
-    presence: {
-      allowEmpty: false,
-      message: 'Please select or add the housholder who was contacted'
-    },
-  },
+});
 
-  'publisher.name': {
-    presence: {
-      allowEmpty: false,
-      message: 'Please provide the name of the publisher who spoke to the householder'
-    },
-  },
+// bind save even to save button
+DOM_CACHE.new_householder.save_button.on('click', function() {
 
-  // 'publisher.returning': {
-  //   presence: {
-  //     allowEmpty: false,
-  //     message: 'Please specify whether or not the publisher will be returning on householder'
-  //   },
-  // },
+  HouseholderEvents.emit('add');
 
-  'visit.details': {
-    presence: {
-      allowEmpty: false,
-      message: 'Please provide at least a brief summary of the visit'
-    },
-  },
+});
 
-  'visit.date': {
-    presence: {
-      allowEmpty: false,
-      message: 'Please provide the date this visit took place'
-    },
-  },
+/**
+ * Define Visit events
+ */
 
-  'visit.time': {
-    presence: {
-      allowEmpty: false,
-      message: 'Please provide the time this visit took place'
-    },
-  }
+var VisitEvents = new EventEmitter();
 
-};
+VisitEvents.on('add', function(){
 
-module.exports = function(formData){ return validate(formData, HouseholderContactedContraints, {fullMessages: false}) };
+  var formData = form2js(DOM_CACHE.$visit_form[0]);
+  // stringify data
+  var jsonData = JSON.stringify(formData);
+  return $.ajax({
+    url: window.ajax_add_visit_url,
+    method: 'post',
+    data: jsonData,
+    contentType: 'application/json',
+  })
+  .done(function(res){
+    // init and show success modal and send to unit overview page
+    if(res.error.type){
+      if(res.error.type === 'VALIDATION_ERROR'){
+        return bootstrapValidationHandler('visit-form-errors', res.error.validationErrors);
+      }else{
+        console.log( 'this 1 ran' );
+        DOM_CACHE.$errorModal.modal('show');
+      }
+    }
+    if(!res.data.visit){
+      console.log('this ran ahain');
+      return DOM_CACHE.$errorModal.modal('show');
+    }
+    // on success redirect to unit overview page
+    window.location.replace(window.unit_overview_url);
+  })
+  .fail(function(jqXHR, textStatus, errorThrown){
+    // show error modal
+    DOM_CACHE.$errorModal.modal('show');
+  });
 
-},{"lodash":12,"validate.js":24}],27:[function(require,module,exports){
+});
+
+// bind add event to submit button
+DOM_CACHE.$visit_form_submit_button.on('click', function(){
+  // console.log( form2js(DOM_CACHE.$visit_form[0]) );
+  VisitEvents.emit('add');
+})
+
+},{"../../jquery/jquery":2,"../../vendor/form2js":17,"../modules/bootstrap-form-error-handler":15,"events":1,"moment":12,"timepicker":14}],17:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *
@@ -35926,4 +34312,4 @@ module.exports = function(formData){ return validate(formData, HouseholderContac
 
 }));
 
-},{}]},{},[25]);
+},{}]},{},[16]);
