@@ -42,6 +42,10 @@ html
     #templates
       block templates
     // SCRIPTS 
+    prepend scripts
+      script(type="text/javascript").
+        window.localized = !{localize ? JSON.stringify(localize) : JSON.stringify({})}
+        
     block scripts
       //- Constants
       script(src=constants.base_url + "/js/dist/localize-constants.bundle.js", type="text/javascript")
