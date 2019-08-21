@@ -124,7 +124,9 @@ exports.streetStats = (territoryDoc, streetName) => {
   for (let hundred of street.hundreds) {
     stats.hundreds[hundred.hundred] = {
       even_count: hundred.even.units.length,
+      even_id: hundred.even._id,
       odd_count: hundred.odd.units.length,
+      odd_id: hundred.odd._id,
     };
     // add hundred unit count to totals
     stats.totals.units += (hundred.even.units.length + hundred.odd.units.length);

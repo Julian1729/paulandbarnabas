@@ -116,11 +116,15 @@ describe('Territory Service', () => {
           hundreds: {
             '1200': {
               even_count: 3,
-              odd_count: 1
+              odd_count: 1,
+              even_id: seedHundred1.even._id,
+              odd_id: seedHundred1.odd._id,
             },
             '1300': {
               even_count: 2,
-              odd_count: 0
+              odd_count: 0,
+              even_id: seedHundred2.even._id,
+              odd_id: seedHundred2.odd._id,
             }
           }
         }
