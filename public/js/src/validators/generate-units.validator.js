@@ -12,7 +12,7 @@ validate.validators.greaterThanAttribute = function(value, options, key, attribu
   }
 };
 
-var GenerateUnitsConstraints = {
+var generateUnitsConstraints = {
   block_hundred: {
     presence: {
       allowEmpty: false
@@ -49,8 +49,8 @@ var GenerateUnitsConstraints = {
   }
 };
 
-module.exports = (formValues) => {
-    var c = _.cloneDeep(GenerateUnitsConstraints);
+module.exports = function (formValues){
+  var c = _.cloneDeep(generateUnitsConstraints);
   // validate generation values based on odd or even
   switch (formValues.odd_even) {
     case "odd":
@@ -62,7 +62,6 @@ module.exports = (formValues) => {
       // validate generate to and from values
       c.generate_to.numericality.even = true;
       c.generate_from.numericality.even = true;
-      break;
   }
   return validate(formValues, c);
 };

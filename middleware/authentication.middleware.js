@@ -90,6 +90,9 @@ exports.loggedInRedirect = (req, res, next) => {
  * to make available to pug templates
  */
 exports.localizeSession =  (req, res, next) => {
+
   res.locals.user = _.pick(req.session, ['first_name', 'last_name', 'user_id', 'congregation', 'isAdmin']);
+
   return next();
+  
 };

@@ -31,6 +31,8 @@ block panel
       .select-street
         +select_input()(name="street", id="street_selector")
           option(selected, disabled) select street
+          each street in streets
+            option(value=street.name)= street.name
             
         span#createstreetbtn #[strong or] create new street
       .newstreet
@@ -90,6 +92,8 @@ block panel
       +section_header('assign to fragment')
       +select_input()(name="fragment_assignment")
         option(value="", selected) Choose Fragment
+        each fragment in fragments
+          option(value=fragment.number)= fragment.number
           
       label leave fragment unassigned
       input(type="checkbox", name="fragment_unassigned")

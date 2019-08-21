@@ -1,8 +1,4 @@
-var land = (req, res, next) => {
+exports.land = (req, res) => {
   // show signup landing page
   res.render('Register');
-};
-
-module.exports = {
-  land,
 };

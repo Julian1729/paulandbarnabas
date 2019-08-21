@@ -26,6 +26,7 @@ const CONFIG = {
       'territory-unitoverview',
       'localize-constants'
     ],
+    dir: './public/js/src/**/*.js',
     src: './public/js/src/app.js',
     inputDir: './public/js/src/pages/',
     outputDir: './public/js/dist/',
@@ -122,7 +123,7 @@ gulp.task('set-development-env-var', function(){
 gulp.task('watch-public', function(){
 
   gulp.watch(CONFIG.css.sass, ['build-css-development']);
-  gulp.watch(CONFIG.js.inputDir, ['bundle-all']);
+  gulp.watch(CONFIG.js.dir, ['bundle-all']);
 
 });
 

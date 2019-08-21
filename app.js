@@ -88,7 +88,7 @@ app.set('views', __dirname + '/views');
   app.use('/dashboard', routes.dashboardRoute);
 
   // Admin Panel
-  app.use('/adminpanel', routes.adminPanelRoute);
+  app.use('/admin-panel', routes.adminPanelRoute);
 
   // User Territory CRUD
   app.use('/fragment', routes.fragmentRoute);

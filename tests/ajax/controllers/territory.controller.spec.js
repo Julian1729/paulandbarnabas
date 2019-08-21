@@ -38,9 +38,9 @@ describe('AJAX Territory Controller', () => {
 
       let res = mockResponse({locals: {}});
       let req = mockRequest({body: {
-        'block_hundred': 1200,
+        'block_hundred': '1200',
         'odd_even': 'even',
-        'units': [{number: 1200}, {number: 1202}],
+        'units': [{number: '1200'}, {number: '1202'}],
         'street': 'Tampa',
         'new_street_name': null,
         'fragment_assignment': null,
@@ -98,6 +98,33 @@ describe('AJAX Territory Controller', () => {
       AjaxResponse.prototype.error.restore();
       AjaxResponse.prototype.send.restore();
       AjaxResponse.prototype.data.restore();
+
+    });
+
+    it('should send FORM_VALIDATION_ERROR', async () => {
+
+      // create fragement
+      seedTerritory.addFragment(2);
+
+      let res = mockResponse({locals: {}});
+      let req = mockRequest({body: {
+        'block_hundred': '1200',
+        'odd_even': 'even',
+        'units': [{number: '1200'}, {number: '1202'}],
+        'fragment_assignment': '2',
+        'fragment_unassigned': 'off'
+      }});
+      // set territory
+      res.locals.territory = seedTerritory;
+      sinon.spy(AjaxResponse.prototype, 'error');
+
+      await controllers.territoryController.saveBlock(req, res);
+
+      expect(AjaxResponse.prototype.error).to.have.been.calledWith('FORM_VALIDATION_ERROR');
+      // error object should have street "new_street_name"
+      expect(AjaxResponse.prototype.error.getCall(0).args[2].validationErrors).to.have.property('new_street_name');
+
+      AjaxResponse.prototype.error.restore();
 
     });
 

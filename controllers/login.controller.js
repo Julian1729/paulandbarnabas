@@ -1,8 +1,4 @@
-var land = (req, res, next) => {
+exports.land = (req, res) => {
   // FIXME: Handle logout
   res.render('Login');
-};
-
-module.exports = {
-  land,
 };

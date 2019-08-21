@@ -30001,12 +30001,12 @@ const _ = require('lodash');
 const validate = require('validate.js');
 
 const $ = require('../../jquery/jquery');
+const {reloadPage} = require('../../utils');
 const ti = require('../modules/text-input.js');
 const error_modals = require('../modules/generic_modals');
 const form2js = require('../../vendor/form2js');
-const Utils = require('../../utils');
 const {getTemplate, getTextTemplate} = require('../modules/template.js');
-const GenerateUnitsValidation = require('../validators/GenerateUnits');
+const generateUnitsValidator = require('../validators/generate-units.validator');
 const {simpleHandler, clearErrors} = require('../modules/validationHandler.js');
 
 
@@ -30053,8 +30053,8 @@ var unitContainer = panes.units.find('.units-container');
    * @param {Object} streetData Response from ajax call
    * @return {void}
    */
-  function populate(streetData){
-    var rowElements = generateRows(streetData);
+  function populate(stats){
+    var rowElements = generateRows(stats);
     rowElements.forEach(function(row){
       this.$table.append(row);
     }, this);
@@ -30066,22 +30066,24 @@ var unitContainer = panes.units.find('.units-container');
    * @return {Array} Array of generated row elements
    * OPTIMIZE: add unit counts to table if > 0
    */
-  function generateRows(streetData){
+  function generateRows(stats){
     var elements = [];
-    streetData.forEach(function(hundred){
-      var $row = $('#existing-row-template').clone();
-      // remove default hide class
-      $row.removeClass('hide');
-      $row.addClass('existing-block-tr');
-      $row.find('.hundred').text(hundred.hundred);
-      if(hundred.unit_counts.odd > 0){
-        $row.find('td.odd').addClass('filled');
+    for (var hundred in stats.hundreds) {
+      if (stats.hundreds.hasOwnProperty(hundred)) {
+        var $row = $('#existing-row-template').clone();
+        // remove default hide class
+        $row.removeClass('hide');
+        $row.addClass('existing-block-tr');
+        $row.find('.hundred').text(hundred);
+        if(stats.hundreds[hundred].odd_count > 0){
+          $row.find('td.odd').addClass('filled');
+        }
+        if(stats.hundreds[hundred].even_count > 0){
+          $row.find('td.even').addClass('filled');
+        }
+        elements.push($row);
       }
-      if(hundred.unit_counts.even > 0){
-        $row.find('td.even').addClass('filled');
-      }
-      elements.push($row);
-    });
+    }
     return elements;
   }
 
@@ -30098,7 +30100,7 @@ var unitContainer = panes.units.find('.units-container');
 }(window));
 
 /**
- * Existing Blocks Loader
+ * Street selector
  */
 (function(g, table){
 
@@ -30112,38 +30114,25 @@ var unitContainer = panes.units.find('.units-container');
   function refreshTable(streetName){
     var $this = $(this);
     var $selectElement = $this.find('select');
-    var street = $selectElement.val();
-    if(Utils.isEmptyString(street)) return false;
+    var streetName = $selectElement.val();
 
     // change street label
-    $('.street-label').text(street);
-    $.ajax({
-      url: g.PB_CONSTANTS.ajax_url + '/territory/get-street-stats',
-      method: 'post',
-      data: {
-        street: street
-      },
-      success: morphTable,
-      error: function(){
-        error_modals.request_error_modal.show();
-      }
-    });
+    $('.street-label').text(streetName);
+
+    morphTable(streetName);
+
   }
 
-  function morphTable(ajaxResponse){
-    if(ajaxResponse.error){
-      // FIXME: pop error modal
-      return console.log('HANDLE THIS ERROR!', ajaxResponse.error);
-    }
+  function morphTable(streetName){
     // clear out old rows
     table.clear();
     // re-hide message
     table.empty_message.hide();
-    var streetData = ajaxResponse.data
+    var streetData = _.find(localized.streets, ['name', streetName]);
     if(!streetData){
       return table.empty_message.show();
     }
-    table.populate(streetData);
+    table.populate(streetData.stats);
   }
 
 
@@ -30164,31 +30153,26 @@ var unitContainer = panes.units.find('.units-container');
      // send to backend
      formData = JSON.stringify(formData);
      $.ajax({
-       url: g.PB_CONSTANTS.ajax_url + '/territory/save-territory',
-       method: 'POST',
-       contentType: 'application/json',
-       dataType: 'json',
-       data: formData,
-       success: function(response){
-        // handle errors
-        if(response.error){
-          if(response.error.name === 'FormValidationError'){
-            return simpleHandler(response.error.validationErrors);
+      url: localized.endpoints.save_territory,
+      method: 'POST',
+      contentType: 'application/json',
+      dataType: 'json',
+      data: formData,
+      success: function(res){
+        if(res.error.type){
+          if(res.error.type === 'VALIDATION_ERROR'){
+            return bootstrapValidationHandler('new-householder-form-errors', res.error.validationErrors);
           }else{
-            return error_modals.page_error_modal.show();
+            return error_modals.request_error_modal.show();
           }
         }
-        // show success modal
-        $('#territory-saved-modal').pbmodal({
-          onClose: function(){
-            window.location.reload(true);
-          }
-        }).show();
-
-       },
-       error: function(){
-         error_modals.request_error_modal.show();
-       }
+        // OPTIMIZE: should be success modal here
+        // reload page
+        reloadPage();
+      },
+      error: function(){
+        error_modals.request_error_modal.show();
+      }
      });
    });
 
@@ -30285,7 +30269,7 @@ var unitContainer = panes.units.find('.units-container');
     // get form values
     var formData = form2js('createblock');
     // validate
-    var validation = GenerateUnitsValidation(formData);
+    var validation = generateUnitsValidator(formData);
     if(validation) return simpleHandler(validation);
     // start unit generation
       // clean out all units in container OPTIMIZE: ask before doing so
@@ -30374,27 +30358,7 @@ var unitContainer = panes.units.find('.units-container');
 
 }(panes.streetselect));
 
-/**
- * Populate fragment holders on page load
- */
-(function(pane){
-
-  var $selector = pane.find('select[name=fragment_assignment]');
-  $selector.populatefragments();
-
-}(panes.fragmentassignment));
-
-/**
- * Populate Streets in selector on page load
- */
-(function(pane){
-
-  var $selector = pane.find('select[name=street]');
-  $selector.populatestreetnames(true);
-
-}(panes.streetselect));
-
-},{"../../jquery/jquery":1,"../../utils":19,"../../vendor/form2js":20,"../modules/generic_modals":13,"../modules/template.js":14,"../modules/text-input.js":15,"../modules/validationHandler.js":16,"../validators/GenerateUnits":18,"lodash":10,"validate.js":12}],18:[function(require,module,exports){
+},{"../../jquery/jquery":1,"../../utils":19,"../../vendor/form2js":20,"../modules/generic_modals":13,"../modules/template.js":14,"../modules/text-input.js":15,"../modules/validationHandler.js":16,"../validators/generate-units.validator":18,"lodash":10,"validate.js":12}],18:[function(require,module,exports){
 var validate = require('validate.js');
 const _ = require('lodash');
 
@@ -30409,7 +30373,7 @@ validate.validators.greaterThanAttribute = function(value, options, key, attribu
   }
 };
 
-var GenerateUnitsConstraints = {
+var generateUnitsConstraints = {
   block_hundred: {
     presence: {
       allowEmpty: false
@@ -30446,8 +30410,8 @@ var GenerateUnitsConstraints = {
   }
 };
 
-module.exports = (formValues) => {
-    var c = _.cloneDeep(GenerateUnitsConstraints);
+module.exports = function (formValues){
+  var c = _.cloneDeep(generateUnitsConstraints);
   // validate generation values based on odd or even
   switch (formValues.odd_even) {
     case "odd":
@@ -30459,7 +30423,6 @@ module.exports = (formValues) => {
       // validate generate to and from values
       c.generate_to.numericality.even = true;
       c.generate_from.numericality.even = true;
-      break;
   }
   return validate(formValues, c);
 };
@@ -30469,23 +30432,17 @@ module.exports = (formValues) => {
  * Utility Functions
  */
 
-var redirect = function(to){
+exports.redirect = function(to){
   window.location.replace(to);
 };
 
-var isEmptyString = function(string){
+exports.isEmptyString = function(string){
   string = string + ""; //cast to string
   return (string.length === 0 || !string.trim());
 };
 
-var reloadPage = function(){
+exports.reloadPage = function(){
   window.location.reload(false);
-};
-
-module.exports = {
-  redirect: redirect,
-  isEmptyString: isEmptyString,
-  reloadPage: reloadPage,
 };
 
 },{}],20:[function(require,module,exports){

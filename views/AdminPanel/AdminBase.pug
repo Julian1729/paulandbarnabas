@@ -20,10 +20,10 @@ block content
           .name-and-title
             p #{user.first_name} #{user.last_name}
         .menu
-          a.item(href=constants.base_url + "/adminpanel/createterritory") create territory
-          a.item(href=constants.base_url + "/adminpanel/createfragment") create territory fragment
+          a.item(href=PBURLConstructor.getRoute('create-territory').url()) create territory
+          a.item(href=PBURLConstructor.getRoute('create-fragment').url()) create territory fragment
           a.item(href="") edit territory fragments
-          a.item(href=constants.base_url + "/adminpanel/managepublishers") manage publishers
+          a.item(href=PBURLConstructor.getRoute('manage-publishers').url()) manage publishers
     .panel
       .wrapper
         block panel

@@ -7,7 +7,7 @@ const {TerritoryModel} = require(`${appRoot}/models`);
 const {territoryServices} = require(`${appRoot}/services`);
 const {logger, PBURLConstructor, Session} = require(`${appRoot}/utils`);
 
-let land = async (req, res) => {
+exports.land = async (req, res) => {
 
   let session = new Session(req);
   let territoryDoc = res.locals.territory;
@@ -42,8 +42,4 @@ let land = async (req, res) => {
 
   res.render('Dashboard', renderVars);
 
-};
-
-module.exports = {
-  land
 };
