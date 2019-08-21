@@ -5,7 +5,7 @@ const appRoot = require('app-root-path');
 const {territoryMiddleware, authenticationMiddleware} = require(`${appRoot}/middleware`);
 const {fragmentController} = require(`${appRoot}/controllers`);
 
-router.use(authenticationMiddleware.session, territoryMiddleware.findTerritory);
+router.use(authenticationMiddleware.session, authenticationMiddleware.localizeSession, territoryMiddleware.findTerritory);
 
 router.param('fragment_number', territoryMiddleware.findRequestedFragment);
 

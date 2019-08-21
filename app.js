@@ -8,7 +8,7 @@ const session = require('express-session');
 const HttpStatus = require('http-status-codes');
 
 const routes = require('./routes');
-const {logger} = require('./utils');
+const {logger, PBURLConstructor} = require('./utils');
 const config = require('./config/config');
 const constants = require('./config/constants');
 const ajaxRouter = require('./ajax/routes/ajax-gateway-router');
@@ -60,6 +60,7 @@ app.set('views', __dirname + '/views');
  app.use((req, res, next) => {
    res.locals.constants = constants;
    app.locals.moment = require('moment');
+   res.locals.PBURLConstructor = PBURLConstructor;
    next();
  });
  // Morgan HTTP logger

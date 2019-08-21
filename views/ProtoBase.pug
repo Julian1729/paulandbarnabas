@@ -21,9 +21,12 @@ block content
       #navbarSupportedContent.collapse.navbar-collapse
         ul.navbar-nav.mr-auto
           li.nav-item.active
-            a.nav-link(href=constants.base_url + "/dashboard")
+            a.nav-link(href=PBURLConstructor.getRoute('dashboard').url())
               | Dashboard 
               span.sr-only (current)
+          if user.isAdmin
+            li.nav-item
+              a.nav-link(href='#', tabindex='-1', aria-disabled='true') Admin Panel
           li.nav-item
             a.nav-link.disabled(href='#', tabindex='-1', aria-disabled='true') My Account
 
