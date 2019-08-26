@@ -71,7 +71,7 @@ exports.saveBlock = async (territoryDoc, streetName, hundredNumber, oddOrEven, n
  * @param  {mixed}  userAssignment ObjectId or string User Id to assign block to
  * @return {Object}                 New or updated fragment
  */
-exports.saveFragment = async (territoryDoc, fragmentNumber, blockIds, userAssignment) => {
+exports.saveFragment = async (territoryDoc, fragmentNumber, blockIds, userAssignment, options) => {
 
   // search for fragment
   let fragment = null;
@@ -88,7 +88,7 @@ exports.saveFragment = async (territoryDoc, fragmentNumber, blockIds, userAssign
     }
   }
 
-  fragment.assignBlocks(blockIds, territoryDoc);
+  fragment.assignBlocks(blockIds, territoryDoc, options);
 
   if(userAssignment){
     fragment.assignHolder(userAssignment);

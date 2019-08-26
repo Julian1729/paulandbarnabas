@@ -8,7 +8,7 @@ chai.use(sinonChai);
 const appRoot = require('app-root-path');
 
 const {helpers} = require(`${appRoot}/utils`);
-const {StreetNotFound, FragmentNotFound} = require(`${appRoot}/errors`);
+const {StreetNotFound, FragmentNotFound, BlocksAlreadyAssignedToFragment} = require(`${appRoot}/errors`);
 const {territoryServices} = require(`${appRoot}/services`);
 const userSeed = require(`${appRoot}/tests/seed/user.seed`);
 const {TerritoryModel, UserModel} = require(`${appRoot}/models`);
@@ -89,6 +89,64 @@ describe('Territory Service', () => {
       let newFragment = seedTerritory.findFragment(2);
       expect(newFragment).to.exist;
       expect(newFragment.holder().toString()).to.equal(userAssignmentId.toString());
+
+    });
+
+    it('should throw BlocksAlreadyAssigned error', async () => {
+
+      // RIGHT THIS TEST TO ENTER AND ASSIGN TO FRAGMENT AND THEN DO AGAIN
+      // TO THROW ERROR
+
+      let blockArray = [new ObjectId(), new ObjectId()];
+      // create fragment to assign to
+      await territoryServices.saveFragment(seedTerritory, 2, blockArray);
+      let newFragment = seedTerritory.findFragment(2);
+      expect(newFragment).to.exist;
+      expect(newFragment.blocks).to.have.lengthOf(2);
+
+      // should throw BlocksAlreadyAssignedToFragment
+      try {
+        await territoryServices.saveFragment(seedTerritory, 3, blockArray);
+        throw 'territoryServices.saveFragment should have thrown BlocksAlreadyAssignedToFragment';
+      } catch (e) {
+        expect(e instanceof BlocksAlreadyAssignedToFragment).to.be.true;
+      }
+
+    });
+
+    it('should throw BlocksAlreadyAssigned error even on same fragment', async () => {
+
+      // RIGHT THIS TEST TO ENTER AND ASSIGN TO FRAGMENT AND THEN DO AGAIN
+      // TO THROW ERROR
+
+      let blockArray = [new ObjectId(), new ObjectId()];
+      // create fragment to assign to
+      await territoryServices.saveFragment(seedTerritory, 2, blockArray);
+      let newFragment = seedTerritory.findFragment(2);
+      expect(newFragment).to.exist;
+      expect(newFragment.blocks).to.have.lengthOf(2);
+
+      // should throw BlocksAlreadyAssignedToFragment
+      try {
+        await territoryServices.saveFragment(seedTerritory, 2, blockArray);
+        throw 'territoryServices.saveFragment should have thrown BlocksAlreadyAssignedToFragment';
+      } catch (e) {
+        expect(e instanceof BlocksAlreadyAssignedToFragment).to.be.true;
+      }
+
+    });
+
+    it('should not throw BlocksAlreadyAssigned w/ overwriteAssignments option', async () => {
+
+      let blockArray = [new ObjectId(), new ObjectId()];
+      // create fragment to assign to
+      await territoryServices.saveFragment(seedTerritory, 2, blockArray);
+      let newFragment = seedTerritory.findFragment(2);
+      expect(newFragment).to.exist;
+      expect(newFragment.blocks).to.have.lengthOf(2);
+
+      // should not throw BlocksAlreadyAssignedToFragment
+      await territoryServices.saveFragment(seedTerritory, 2, blockArray, null, {overwriteAssignments: true});
 
     });
 

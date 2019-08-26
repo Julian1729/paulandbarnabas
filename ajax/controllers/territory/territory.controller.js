@@ -158,7 +158,11 @@ exports.saveFragment = async (req, res) => {
 
   let fragmentData = req.body.fragment;
   let territoryDoc = res.locals.territory;
-  let fragment = await territoryServices.saveFragment(territoryDoc, fragmentData.number, fragmentData.blocks, fragmentData.assignment);
+  // OPTIMIZE: overwriteAssigments is true by default,
+  // catch error and alert user of what blocks have been assigned
+  // and resend request with / or send a query param with overwrite=true
+  // the query param switch would need to be implemented in this controller
+  let fragment = await territoryServices.saveFragment(territoryDoc, fragmentData.number, fragmentData.blocks, fragmentData.assignment, {overwriteAssignments: true});
 
   let fragmentSummary = {number: fragment.number, blocks: fragmentData.blocks.length};
   if(fragmentData.assignment) fragmentSummary.assignedTo = fragmentData.assignment;

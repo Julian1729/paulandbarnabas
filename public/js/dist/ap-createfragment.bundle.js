@@ -28780,13 +28780,6 @@ const error_modals = require('../modules/generic_modals');
 const {simpleHandler, clearErrors} = require('../modules/validationHandler.js');
 require('../modules/text-input');
 
-// OPTIMIZE: when blocks are inserted into block groups, sort them numerically
-
-
-/**
- * Global Vars
- */
-
 /**
  * Cache Prominent DOM Elements
  */
@@ -28800,216 +28793,277 @@ var DOM = {
   $submit_button: $('#save-fragment')
 };
 
-
 /**
- * Populate Select Element w/ users
+ * Street Selector
  */
-(function($selector){
+(function(g, $selector){
 
-  $selector.populateusers();
+  $selector.change(sendToTable);
 
-}(DOM.$fragment_assignment_selector));
-
-/**
- * Populate select elemts w/ streets
- */
-(function($selector){
-
-  $selector.populatestreetnames();
-
-}(DOM.$street_selector));
-
-/**
- * Fragment number input
- */
-(function(g, $input){
-
-  $input.change(updateNumber);
-
-  function updateNumber(){
-    var number = $(this).val();
-    g.Fragment.number.update(number);
+  /**
+   * Check for and handle error,
+   * delegate rest of action to table module
+   * @param  {Object} response Response from ajax request
+   */
+  function sendToTable(){
+    var selectedStreet = $(this).val();
+    g.Table.update(selectedStreet);
   }
 
-}(window, DOM.$fragment_number_input));
+}(window, DOM.$street_selector));
+
+/**
+ * Table Module
+ */
+(function(g, selectedStreet){
+
+  var $table = $('table.select-blocks');
+  var $emptyMessage = $('#table-empty-message');
+
+  var Table = {
+
+    currentStreet: null,
+
+    blocks: {},
+
+    update: update,
+
+    reset: reset
+
+  };
+
+  /**
+   * Bind events using event delegation
+   */
+
+  // Row click
+  $table.on('click', 'tr:not(:first-of-type)', rowClick);
+
+  /**
+   * Event fired on row click
+   * @param  {[type]} e [description]
+   * @return {[type]}   [description]
+   */
+  function rowClick(e){
+    var $row = $(this);
+    var blockReference = $row.data('blockReference');
+    // check if block has already been selected
+    if( Fragment.blockSelected(blockReference.id) ){
+      // deselect block
+      Fragment.removeBlock(Table.currentStreet, blockReference);
+      $row.removeClass('selected')
+    }else{
+      // Add selected class
+      $row.addClass('selected');
+      Fragment.addBlock(Table.currentStreet, blockReference);
+    }
+  }
+
+  /**
+   * Populate table with rows
+   * @param  {Object} blocks Blocks response
+   */
+  function update(streetName){
+    Table.reset();
+    // find street
+    var street = _.find(localized.streets, ['name', streetName]);
+    if(!street){
+      return console.error('No hundreds found for street');
+    }
+    Table.currentStreet = streetName;
+    var rows = generateRows(street.stats);
+    hideEmptyMessage();
+    $table.append(rows);
+  }
+
+  /**
+   * Create table row with block data
+   * @param  {[type]} odd_even [description]
+   * @param  {[type]} block    [description]
+   * @return {[type]}          [description]
+   */
+  function createRow(odd_even, hundred, unitCount, blockId){
+    var element = $('<tr>');
+    var info = element.clone();
+    info.hundred = hundred;
+    info.odd_even = odd_even;
+    info.id = blockId;
+    info.units = unitCount;
+    element.data('blockReference', info);
+    // create tds
+    element.append( $('<td>').text(hundred) );
+    element.append( $('<td>').text(_.capitalize(odd_even)) );
+    element.append( $('<td>').text(unitCount) );
+    element.addClass('selectable');
+    // check if block exists
+    if( Fragment.blockSelected(blockId) ){
+      element.addClass('selected');
+    }
+    return element;
+  }
+
+  /**
+   * Generate jQuery element rows with block
+   * data for even and odd
+   * @param  {Array} even Even blocks array
+   * @param  {Array} odd  Odd blocks array
+   * @return {Array} Array of Jquery elements
+   */
+  function generateRows(stats){
+    var rows = [];
+    var hundreds = stats.hundreds;
+    for (var hundred in hundreds) {
+      if (hundreds.hasOwnProperty(hundred)) {
+        var stats = hundreds[hundred];
+        rows.push(createRow('odd', hundred, stats.odd_count, stats.odd_id));
+        rows.push(createRow('even', hundred, stats.even_count, stats.even_id));
+      }
+    }
+    return rows;
+  }
+
+  function showEmptyMessage(){
+    $emptyMessage.removeClass('hide');
+  }
+
+  function hideEmptyMessage(){
+    $emptyMessage.addClass('hide');
+  }
+
+  /**
+   * Clear all rows from table
+   */
+  function reset(){
+    Table.currentStreet = null;
+    $table.find('tr:not(:first-of-type)').remove();
+    showEmptyMessage();
+  }
+
+  // Expose Table and Fragment Modules to window
+  g.Table = Table;
+
+}(window));
 
 /**
  * Expose Fragment object to window
  */
-(function(g, $street_selector, $fragment_display){
+(function(g, $fragment_display){
 
-  /**
-   * e.g data['wakeling'] = [{hundred: 4600, odd_even: 'odd', units: 17, id: '1324234'}];
-   * @type {Object}
-   */
-  var data = {}
+  // hold fragment data
+  // {'Oakland': {blocks: [{hundred: 4500, odd_even: 'even', units: 34, id: '#blk_(id...)'], id: '#str_Oakland'}}
+  var fragmentData = {};
 
-  Fragment = {
+  var $blockCounter = $('#fragment-block-count');
+  var $unitCounter = $('#fragment-unit-count');
+  var $fragmentNumber = $('#fragment-number');
+  var $emptyMessage = $fragment_display.find('p.empty-message');
+  var $diplayContainer = $fragment_display.find('.container');
 
-    number: {
+  var Fragment = {
 
-      value: 0,
+    number: function(number){
+      $fragmentNumber.text(number);
+    },
 
-      $element: $('#fragment-number'),
+    addBlock: function(streetName, block){
 
-      update: function(number){
-        this.value = number;
-        this.$element.text(this.value);
+      // get current street from table
+      if(fragmentData[streetName] === undefined){
+        // create street record
+        createStreetReference(streetName);
       }
+      var streetReference = fragmentData[streetName];
+      var blockReference = constructBlockReference(block);
+      // create block reference
+      streetReference.blocks.push(blockReference);
+      addToDisplay(streetName, blockReference);
 
     },
 
-    $container: $fragment_display.find('.container'),
+    removeBlock: function(streetName, blockReference){
 
-    $block_counter: $('#fragment-block-count'),
-
-    $unit_counter: $('#fragment-unit-count'),
-
-    empty_message: {
-
-      hidden: false,
-
-      $element: $fragment_display.find('.empty-message'),
-
-      hide: function(){
-        this.$element.addClass('hide');
-        this.hidden = true;
-      },
-
-      show: function(){
-        this.$element.removeClass('hide');
-        this.hidden = false;
-      }
+      var blocks = fragmentData[streetName].blocks;
+      // find block and remove
+      var removedBlockReference = _.remove(blocks, ['id', blockReference.id]);
+      // if no blocks remain remove street entry
+      if(fragmentData[streetName].blocks.length === 0) delete fragmentData[streetName];
+      if(!removedBlockReference) return console.error('Unable to remove block w/ id ' + blockReference.id);
+      removeFromDisplay(streetName, removedBlockReference[0]);
 
     },
 
-    /**
-     * Return raw fragment data.
-     * Not to be used to submit to server
-     * @return {Object} [description]
-     */
-    getData: function(){
-      return data;
-    },
+    blockSelected: function(blockId){
 
-    /**
-     * Get only necessary data from data object.
-     * To be used to submit to server.
-     * @return {Array} Array of objects containing street data.
-     */
-    export: function(){
-      var formattedData = [];
-      for (var streetName in data) {
-        if (data.hasOwnProperty(streetName)) {
-          var blocks = data[streetName];
-          // if street is empty skip
-          if(blocks.length === 0) return;
-          var streetData = {};
-          streetData.name = streetName;
-          streetData.blocks = [];
-          blocks.forEach(function(block){
-            block = _.pick( block, ['hundred', 'odd_even', 'id'] );
-            streetData.blocks.push(block);
-          });
-          formattedData.push(streetData);
+      for (var street in fragmentData) {
+        if (fragmentData.hasOwnProperty(street)) {
+          var street = fragmentData[street];
+          if(_.find(street.blocks, ['id', blockId])){
+            return true;
+          }
         }
       }
-      return formattedData;
-    },
 
-    /**
-     * Update fragment stats by probing
-     * data object
-     */
-    refreshCounts: function(){
-      var blockCount = 0;
-      var unitCount = 0;
-      for (var street in data) {
-        if (data.hasOwnProperty(street)) {
-          var blocks = data[street];
-          // add blocks to count
-          blockCount += blocks.length;
-          blocks.forEach(function(block){
-            // add unit count to total
-            unitCount += block.units;
-          });
-        }
-      }
-      // update UI elements
-      this.$block_counter.text(blockCount);
-      this.$unit_counter.text(unitCount);
-    },
-
-    /**
-     * Front function to update fragment data
-     * @param  {Object} blockData Block data
-     * @return {[type]}           [description]
-     */
-    addBlock : function(blockData){
-      var streetName = g.Table.current_street.name;
-      // enter block data into array
-      if(data[streetName] === undefined){
-        data[streetName] = [];
-      }
-      data[streetName].push(blockData);
-      addToDisplay(blockData);
-    },
-
-    removeBlock: function(id){
-      var streetName = g.Table.current_street.name;
-      // find block
-      var idMap = data[streetName].map(function(b){ return b.id });
-      data[streetName].splice( idMap.indexOf(id) );
-      removeFromDisplay(id);
-    },
-
-    /**
-     * Check if a certain block has already been selected
-     * @return {boolean} True if block already selected
-     */
-    blockSelected: function(street, blockId){
-
-      var streetArray = data[street];
-      if(!streetArray) return false;
-      for (var i = 0; i < streetArray.length; i++) {
-        var block = streetArray[i];
-        if(block.id === blockId) {
-          return true;
-        }
-      }
       return false;
 
     },
 
-    /**
-     * Print Data
-     * @return {void}
-     */
-    print: function(){
-      console.log(data);
-    }
+    export: function(){
+
+      var blockArray = [];
+
+      for (var street in fragmentData) {
+        if (fragmentData.hasOwnProperty(street)) {
+          var blockIds = fragmentData[street].blocks.map(function(blockReference){
+            return blockReference.id;
+          });
+          blockArray = blockArray.concat(blockIds);
+        }
+      }
+
+      return blockArray;
+
+    },
 
   };
+
+  function constructBlockReference(block){
+    return {
+      hundred: block.hundred,
+      odd_even: block.odd_even,
+      id: block.id,
+      units: block.units,
+      blockElementId: '#blk_' + block.id,
+    };
+  }
+
+  function createStreetReference(streetName){
+    fragmentData[streetName] = {
+      blocks: [],
+      streetElementId: '#str_' + streetName,
+    };
+  }
 
   /**
    * Delete a block from fragment UI
    * @param  {Number} id Block Id
    * @return {void}
    */
-  function removeFromDisplay(id){
-    $block_group = findBlockGroupById(g.Table.current_street.id);
-    if(getBlockRowCount($block_group) == 1){
-      // street only has one block, remove entire group
-      $block_group.remove();
-    }else{
-      $block = findBlockRow($block_group, id);
-      $block.remove();
+  function removeFromDisplay(streetName, blockReference){
+    // find block element
+    var $blockElement = $('#' + getBlockElementId(blockReference.id));
+    if(!$blockElement.length) return;
+    $blockElement.remove();
+    // check if street element is empty
+    if(!fragmentData[streetName]){
+      // remove empty street element
+      $('#' + getStreetElementId(streetName)).remove();
+      // check if any streets remain in data
+      if(Object.keys(fragmentData).length === 0){
+        // fragment empty, display empty message
+        showEmptyMessage();
+      }
     }
-    // if there are no more block groups, display empty message
-    if(getAllBlockGroups().length === 0){
-      Fragment.empty_message.show();
-    }
-    Fragment.refreshCounts();
+    subtractFromCount(blockReference.units);
   }
 
   /**
@@ -29018,22 +29072,28 @@ var DOM = {
    * doesn't already exist
    * @param {[type]} block [description]
    */
-  function addToDisplay(block){
-    // remove hidden message if hidden
-    if(!Fragment.empty_message.hidden){
-      Fragment.empty_message.hide();
-    }
-    // find block group
-    $block_group = findBlockGroupById(g.Table.current_street.id);
+  function addToDisplay(streetName, blockReference){
+    // remove hidden message if not hidden
+    hideEmptyMessage();
+    // find street element
+    var $streetElement = $('#' + getStreetElementId(streetName));
     // if street doesnt exist, create block group
-    if( !$block_group.length ){
-      $block_group = createBlockGroup(g.Table.current_street);
-      Fragment.$container.append( $block_group );
+    if( !$streetElement.length ){
+      $streetElement = createStreetElement(streetName);
+      $diplayContainer.append( $streetElement );
     }
-    $block_container = $block_group.find('.blocks');
-    var $block = createBlockElement(block);
-    $block_container.append($block);
-    Fragment.refreshCounts();
+    var $blockContainer = $streetElement.find('.blocks');
+    var $block = createBlockElement(blockReference);
+    $blockContainer.append($block);
+    addToCount(blockReference.units);
+  }
+
+  function getStreetElementId(streetName){
+    return 'str_' + streetName;
+  }
+
+  function getBlockElementId(blockId){
+    return 'blk_' + blockId;
   }
 
   /**
@@ -29052,6 +29112,7 @@ var DOM = {
     // convert to jQuery object
     $block = $.parseHTML(rendered);
     $block = $($block[0]);
+    $block.attr('id', getBlockElementId(block.id));
     $block.data('id', block.id);
     $block.data('hundred', block.hundred);
     $block.data('odd_even', block.odd_even);
@@ -29064,57 +29125,55 @@ var DOM = {
    * @param  {Object} current_street Currently selected street from Table
    * @return {jQuery} Created jquery element
    */
-  function createBlockGroup(current_street){
-    // get template
-    var template = $('#temp-block-group').html();
-    var variables = {
-      street: current_street.name
-    };
+  function createStreetElement(streetName){
+    var template = $('#temp-street-group').html();
     Mustache.parse(template);
-    var rendered = Mustache.render(template, variables);
+    var rendered = Mustache.render(template, {street: streetName});
     // convert to jquery object
-    $block_group = $.parseHTML(rendered);
+    $streetElement = $.parseHTML(rendered);
     // add data
-    var $block_group = $($block_group[0]);
-    $block_group.data('name', current_street.name);
-    $block_group.data('id', current_street.id);
-    return $block_group;
+    var $streetElement = $($streetElement[0]);
+    $streetElement.data('name', streetName);
+    $streetElement.attr('id', getStreetElementId(streetName));
+    return $streetElement;
   }
 
   /**
-   * Search all block groups in fragment container
-   * and filter by passed in street id
-   * @param  {[type]} id [description]
-   * @return {[type]}    [description]
+   * Subtract units from unit counter and
+   * one block from block counter
+   * @param  {Number} units Number of units to subtract from count
    */
-  function findBlockGroupById(id){
-    var $block_group = getAllBlockGroups().filter(function(){
-      return $(this).data('id') == g.Table.current_street.id;
-    });
-    return $block_group;
+  function subtractFromCount(units){
+    var unitCount = parseInt($unitCounter.text()) - units;
+    // this function is to be called when 1 block
+    // is removed, always to remove 1 block
+    var blockCount = parseInt($blockCounter.text()) - 1;
+    // reenter into elements
+    $unitCounter.text(unitCount);
+    $blockCounter.text(blockCount);
   }
 
   /**
-   * Get all block groups
-   * @return {jQuery} All found block groups
+   * Subtract units from unit counter and
+   * one block from block counter
+   * @param  {Number} units Number of units to subtract from count
    */
-  function getAllBlockGroups(){
-    var $all_block_groups = Fragment.$container.find('.block-group');
-    return $all_block_groups;
+  function addToCount(units){
+    var newUnitCount = parseInt($unitCounter.text()) + units;
+    // this function is to be called when 1 block
+    // is removed, always to remove 1 block
+    var newBlockCount = parseInt($blockCounter.text()) + 1;
+    // reenter into elements
+    $unitCounter.text(newUnitCount);
+    $blockCounter.text(newBlockCount);
   }
 
-  /**
-   * Find a block row inside
-   * of a block group by id
-   * @param  {jQuery} $block_group Block group element
-   * @param  {Number} id Block id
-   * @return {jQuery} Found block id
-   */
-  function findBlockRow($block_group, id){
-    $block = $block_group.find('.blocks > .block').filter(function(){
-      return $(this).data('id') == id;
-    })
-    return $block;
+  function hideEmptyMessage(){
+    $emptyMessage.addClass('hide');
+  }
+
+  function showEmptyMessage(){
+    $emptyMessage.removeClass('hide');
   }
 
   /**
@@ -29129,206 +29188,64 @@ var DOM = {
 
   g.Fragment = Fragment;
 
-}(window, DOM.$street_selector, DOM.$fragment_display));
+}(window, DOM.$fragment_display));
 
 /**
- * Table Module
+ * Fragment number input
  */
-(function(g){
+(function(g, $input){
 
-  var Table = {
+  $input.change(updateNumber);
 
-    $table: $('table.select-blocks'),
-
-    current_street: null,
-
-    blocks: {},
-
-    populate: populate,
-
-    clear: clear
-
-  };
-
-  /**
-   * Bind events using event delegation
-   */
-
-  // Row click
-  Table.$table.on('click', 'tr:not(:first-of-type)', rowClick);
-
-  /**
-   * Event fired on row click
-   * @param  {[type]} e [description]
-   * @return {[type]}   [description]
-   */
-  function rowClick(e){
-    $row = $(this);
-    var block = $row.data('details');
-    // check if block has already been selected
-    if( g.Fragment.blockSelected(Table.current_street.name, block.id) ){
-      // deselect block
-      g.Fragment.removeBlock(block.id);
-      $row.removeClass('selected')
-    }else{
-      // Add selected class
-      $row.addClass('selected');
-      // Extract data
-      g.Fragment.addBlock(block)
-    }
+  function updateNumber(){
+    var number = $(this).val();
+    Fragment.number(number);
   }
 
-  /**
-   * Populate table with rows
-   * @param  {Object} blocks Blocks response
-   */
-  function populate(stats){
-    Table.clear();
-    var rows = generateRows(stats);
-    Table.$table.append(rows);
-  }
+}(window, DOM.$fragment_number_input));
 
-  /**
-   * Create table row with block data
-   * @param  {[type]} odd_even [description]
-   * @param  {[type]} block    [description]
-   * @return {[type]}          [description]
-   */
-  function createRow(odd_even, hundred, unitCount, blockId){
-    var element = $('<tr>');
-    var info = element.clone();
-    info.hundred = hundred;
-    info.odd_even = odd_even;
-    info.id = blockId;
-    info.units = unitCount;
-    element.data('details', info);
-    // create tds
-    element.append( $('<td>').text(hundred) );
-    element.append( $('<td>').text(_.capitalize(odd_even)) );
-    element.append( $('<td>').text(unitCount) );
-    // check if block exists
-    if( g.Fragment.blockSelected(g.Table.current_street.name, blockId) ){
-      element.addClass('selected');
-    }
-    return element;
-  }
-
-  /**
-   * Generate jQuery element rows with block
-   * data for even and odd
-   * @param  {Array} even Even blocks array
-   * @param  {Array} odd  Odd blocks array
-   * @return {Array} Array of Jquery elements
-   */
-  function generateRows(stats){
-    var rows = [];
-
-    var dataObj = {
-      hundred: null,
-      odd_even: null,
-      units: null,
-      id: null
-    };
-
-    stats.forEach(function(hundred){
-      rows.push(createRow('odd', hundred.hundred, hundred.unit_counts.odd, hundred.odd_id));
-      rows.push(createRow('even', hundred.hundred, hundred.unit_counts.even, hundred.even_id));
-    });
-
-    return rows;
-
-  }
-
-  /**
-   * Clear all rows from table
-   */
-  function clear(){
-    this.$table.find('tr:not(:first-of-type)').remove();
-  }
-
-  g.Table = Table;
-
-}(window));
-
-/**
- * Street Selector
- */
-(function(g, $, $selector){
-
-  current_street =  {name: null, id: null};
-
-  $selector.change(ajaxRequest);
-
-  /**
-   * Check for and handle error,
-   * delegate rest of action to table module
-   * @param  {Object} response Response from ajax request
-   */
-  function sendToTable(response){
-    g.Table.current_street = current_street;
-    if(response.error){
-      console.log('HANDLE THIS ERROR!');
-    }
-    g.Table.populate(response.data);
-  }
-
-  /**
-   * Called on selector change, make ajax request
-   * to server and call sendToTable on success
-   */
-  function ajaxRequest(){
-    // get textual value of street
-    var streetName = $selector.find('option:selected').text();
-    current_street.name = streetName;
-    current_street.id = $selector.val();
-    $.ajax({
-      url: g.PB_CONSTANTS.ajax_url + '/territory/get-street-stats',
-      method: 'post',
-      data: {
-        street: streetName
-      },
-      success: sendToTable
-    });
-  }
-
-}(window, $, DOM.$street_selector));
 
 /**
  * Submit Fragment
  */
-(function(g, cache){
+(function(g, $fragment_form){
 
-  var $form = cache.$fragment_form;
-  $form.submit(submit);
+  $fragment_form.submit(submit);
 
   function submit(e){
+
     e.preventDefault();
     // gather form data with form js
-    var fragmentObj = _.pick( form2js(cache.$fragment_form[0]), ['fragment.number', 'fragment.assignment']);
+    var formData = _.pick( form2js($fragment_form[0]), ['fragment.number', 'fragment.assignment']);
     // if number or assignment are empty set to null
-    fragmentObj.fragment = fragmentObj.fragment || {};
+    formData.fragment = formData.fragment || {};
     // attach block data to object
-    fragmentObj.fragment.data = g.Fragment.export();
+    formData.fragment.blocks = Fragment.export();
     // stringify object
-    var json = JSON.stringify(fragmentObj);
+    var json = JSON.stringify(formData);
     // make ajax request
     $.ajax({
-      url: g.PB_CONSTANTS.ajax_url + '/territory/save-fragment',
+      url: localized.endpoints.save_fragment,
       method: 'post',
       contentType: 'application/json',
       data: json,
-      success: success,
-      error: function(){
-        error_modals.request_error_modal.show();
-      }
+      success: ajaxSuccess,
+      error: ajaxError,
     });
+
   }
 
-  function success(response){
-    clearErrors(cache.$fragment_form);
-    if(response.error){
-      if (response.error.name === 'FormValidationError'){
-        return simpleHandler(response.error.validationErrors);
+  function ajaxError(){
+    error_modals.request_error_modal.show();
+  }
+
+  function ajaxSuccess(res){
+
+    console.log(res);
+    clearErrors($fragment_form);
+    if(res.error.type){
+      if (res.error.type === 'FORM_VALIDATION_ERROR'){
+        return simpleHandler(res.error.validationErrors);
       }
     }
     // show success modal
@@ -29341,7 +29258,7 @@ var DOM = {
 
   }
 
-}(window, DOM));
+}(window, DOM.$fragment_form));
 
 },{"../../jquery/jquery":1,"../../vendor/form2js":17,"../modules/generic_modals":12,"../modules/text-input":13,"../modules/validationHandler.js":14,"lodash":10,"mustache":11}],16:[function(require,module,exports){
 /**

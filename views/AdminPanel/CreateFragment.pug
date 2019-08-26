@@ -7,7 +7,7 @@ append scripts
   script(src=constants.base_url + "/js/dist/ap-createfragment.bundle.js", type="text/javascript")
 
 append templates
-  script(type="x-tmpl-mustache", id="temp-block-group")
+  script(type="x-tmpl-mustache", id="temp-street-group")
     .block-group
       p.street {{street}}
       .blocks
@@ -30,16 +30,24 @@ block panel
       .fields
         +text_input('fragment number')(name="fragment.number", type="number" class="dark fragment-number")
       .fields
-        h6 assign to
+        h6 assign to holder
         +select_input()(name="fragment.assignment")
           option(value="") leave unassigned
           option(value="", disabled)
-          
-      +section_header('select territory')
-      small select a street to begin assigning blocks to this fragment
+          //- spit out option for all users
+          each user in users
+            option(value=user._id) #{user.first_name} #{user.last_name}
+            
+      +section_header('assign territory')
       .fields
+        small select a street to begin assigning blocks to this territory fragment
         h6 street
         +select_input()(name="current_street_selection")
+          option(value="" disabled selected) select street
+          //- spit out option for streets
+          each street in streets
+            option(value=street.name)= street.name
+            
       .fields
         h6 blocks
         table.select-blocks#block-table
@@ -47,6 +55,7 @@ block panel
             th Hundred
             th Odd/Even
             th Units
+        small#table-empty-message No information to display
     
       button(id="save-fragment") save fragment
         
@@ -59,5 +68,5 @@ block panel
           p.fragment-number Fragment ##[span(id="fragment-number") --- ]
           p.fragment-stats #[span(id="fragment-block-count") 0] Blocks / #[span(id="fragment-unit-count") 0] Units
         .container
-          p.empty-message Please select a street to begin assigning blocks to this fragment
+          p.empty-message Use the "assign territory" pane to begin assigning real territory to this fragment
   

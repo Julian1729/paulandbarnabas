@@ -1,7 +1,7 @@
 const appRoot = require('app-root-path');
 
 const {PBURLConstructor} = require(`${appRoot}/utils`);
-const {territoryServices} = require(`${appRoot}/services`);
+const {territoryServices, congregationServices} = require(`${appRoot}/services`);
 
 exports.land = (req, res) => {
 
@@ -53,9 +53,38 @@ exports.createTerritory = async (req, res) => {
 
 };
 
-exports.createFragment = (req, res) => {
+exports.createFragment = async (req, res) => {
 
-  res.render('AdminPanel/CreateFragment');
+  let territoryDoc = res.locals.territory;
+
+  // pass in list of users
+  let users = await congregationServices.getUsers(req.session.congregation, 'first_name last_name _id');
+
+  let streets = territoryDoc.streets.map(street => {
+
+    let stats = territoryServices.streetStats(territoryDoc, street.name);
+
+    let obj = {
+      name: street.name,
+      stats,
+    };
+
+    return obj;
+
+  });
+
+  let renderVars = {
+    localize: {
+      endpoints: {
+        save_fragment: PBURLConstructor.getRoute('save-fragment').url(),
+      },
+      streets,
+    },
+    users,
+    streets,
+  };
+
+  res.render('AdminPanel/CreateFragment', renderVars);
 
 };
 
