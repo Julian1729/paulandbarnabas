@@ -2,6 +2,8 @@ extends ProtoBase.pug
 
 append content
   .container-fluid
+    p #{user.first_name} #{user.last_name}
+    p= user.email
     .row.mt-md-2
       each val in fragments.length ? fragments : ['No assigned fragments'] 
         .col-sm

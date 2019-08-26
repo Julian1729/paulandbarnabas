@@ -18,6 +18,8 @@ block content
           +text_input('email')(name="email")
           +text_input('password')(name="password", type="password")
         .general-error-message-container
+          if loggedOut
+            p Logged Out
         .button-row.stretch
           button Forgot Password 
           button.cyan.prominent Login

@@ -29,7 +29,9 @@ block content
               a.nav-link(href=PBURLConstructor.getRoute('admin-panel').url(), tabindex='-1', aria-disabled='true') Admin Panel
           li.nav-item
             a.nav-link.disabled(href='#', tabindex='-1', aria-disabled='true') My Account
-
+          li.nav-item
+            a.nav-link(href=PBURLConstructor.getRoute('logout').url(), tabindex='-1', aria-disabled='true') Logout
+            
 block modals
   //- Replace modal block as they are not 
   //- compatable with bootstrap

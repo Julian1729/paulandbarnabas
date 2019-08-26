@@ -15,6 +15,7 @@ PBURLConstructor.setBase(constants.base_url);
  * Page URLs
  */
 PBURLConstructor.addRoute('dashboard', '/dashboard');
+PBURLConstructor.addRoute('logout', '/?logout=true');
 // aka fragment overview
 PBURLConstructor.addRoute('fragment-overview', '/fragment/:fragment_number');
 PBURLConstructor.addRoute('block-overview', '/fragment/:fragment_number/:hundred/:street_name/:side');
