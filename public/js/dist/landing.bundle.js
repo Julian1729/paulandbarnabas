@@ -28753,45 +28753,47 @@ module.exports = {
 
 },{"../../jquery/jquery.js":1}],14:[function(require,module,exports){
 var $ = require('../../jquery/jquery.js');
-var Utils = require('../../utils.js');
-const inputs = require('../modules/text-input.js');
-const {standardHandler, clearErrors} = require('../modules/validationHandler');
+var {redirect} = require('../../utils');
+var inputs = require('../modules/text-input.js');
+var {standardHandler, clearErrors} = require('../modules/validationHandler');
 
 var loginForm = $('#login-form').ajaxform({
-url: '/ajax/account/login',
-method: 'POST',
-validation_handler: standardHandler,
-success: function(response, validation_handler, $form, textStatus){
 
-  console.log(response);
+  url: '/ajax/account/login',
+  method: 'POST',
+  validation_handler: standardHandler,
+  success: function(response, validation_handler, $form, textStatus){
 
-  var $generalErrorMessageContainer = $form.find('.general-error-message-container');
+    console.log(response);
 
-  clearErrors($form)
-  // clear general error messages
-  $form.parent().find('.general-error-message-container').html('');
+    var $generalErrorMessageContainer = $form.find('.general-error-message-container');
 
-  if(response.error){
-    switch (response.error.name) {
-      case 'FormValidationError':
-        return standardHandler(response.error.validationErrors);
-        break;
-      case 'InvalidCredentials':
-        return $generalErrorMessageContainer
-          .append('<p>Invalid Credentials</p>');
-        break;
-      default:
-        return $generalErrorMessageContainer
-          .append('<p>Unable to process login request</p>');
+    clearErrors($form)
+    // clear general error messages
+    $form.parent().find('.general-error-message-container').html('');
+
+    if(response.error.type){
+      switch (response.error.type) {
+        case 'FORM_VALIDATIONN_ERROR':
+          return standardHandler(response.error.validationErrors);
+          break;
+        case 'INVALID_CREDENTIALS':
+          return $generalErrorMessageContainer
+            .append('<p>Invalid Credentials</p>');
+          break;
+        default:
+          return $generalErrorMessageContainer
+            .append('<p>Unable to process login request</p>');
+      }
     }
-  }else if(response.data.redirect){
-    Utils.redirect(response.data.redirect);
+
+    redirect(response.data.redirect);
+
   }
 
-}
 });
 
-},{"../../jquery/jquery.js":1,"../../utils.js":15,"../modules/text-input.js":12,"../modules/validationHandler":13}],15:[function(require,module,exports){
+},{"../../jquery/jquery.js":1,"../../utils":15,"../modules/text-input.js":12,"../modules/validationHandler":13}],15:[function(require,module,exports){
 /**
  * Utility Functions
  */

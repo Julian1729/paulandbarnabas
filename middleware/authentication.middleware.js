@@ -67,6 +67,7 @@ exports.admin = (req, res, next) => {
 exports.devSessionAdmin = async (req, res, next) => {
 
   if(process.env.NODE_ENV !== 'development') return next();
+  if(req.session.authenticated === true) return next();
 
   let session = new Session(req);
   await session.create(cache.primaryUser);
@@ -94,5 +95,5 @@ exports.localizeSession =  (req, res, next) => {
   res.locals.user = _.pick(req.session, ['first_name', 'last_name', 'user_id', 'congregation', 'isAdmin']);
 
   return next();
-  
+
 };
