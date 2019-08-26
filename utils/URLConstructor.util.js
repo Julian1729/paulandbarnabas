@@ -22,6 +22,7 @@ PBURLConstructor.addRoute('unit-overview', '/fragment/:fragment_number/:unit_num
 PBURLConstructor.addRoute('unit-add-visit', '/fragment/:fragment_number/:unit_number/:street_name/contacted');
 
 // Admin Panel
+PBURLConstructor.addRoute('admin-panel', '/admin-panel');
 PBURLConstructor.addRoute('create-territory', '/admin-panel/create-territory');
 PBURLConstructor.addRoute('create-fragment', '/admin-panel/create-fragment');
 PBURLConstructor.addRoute('manage-publishers', '/admin-panel/manage-publishers');
