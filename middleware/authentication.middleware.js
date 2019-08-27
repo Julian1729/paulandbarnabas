@@ -78,9 +78,10 @@ exports.devSessionAdmin = async (req, res, next) => {
 
 exports.loggedInRedirect = (req, res, next) => {
 
-  let session = new Session(req);
-
-  if(session.isAuthenticated() === true) return res.redirect(PBURLConstructor.getRoute('dashboard').url());
+  if(req.session.authenticated === true) {
+    console.log('redirect to db');
+    return res.redirect(PBURLConstructor.getRoute('dashboard').url());
+  }
 
   return next();
 

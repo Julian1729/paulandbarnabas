@@ -7,8 +7,6 @@ const {territoryMiddleware, authenticationMiddleware} = require(`${appRoot}/midd
 
 router.use(authenticationMiddleware.devSessionAdmin, authenticationMiddleware.session, authenticationMiddleware.localizeSession, territoryMiddleware.findTerritory);
 
-router.get('/', (req, res) => {
-  dashboardController.land(req, res);
-});
+router.get('/', dashboardController.land);
 
 module.exports = router;
