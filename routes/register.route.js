@@ -8,6 +8,6 @@ const {authenticationMiddleware} = require(`${appRoot}/middleware`);
 router.all('/', authenticationMiddleware.loggedInRedirect);
 
 // Signup
-router.get('/', registerController.land);
+// router.get('/', registerController.land);
 
 module.exports = router;
