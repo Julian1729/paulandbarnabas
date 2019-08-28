@@ -1,21 +1,58 @@
 extends ../ProtoBase
 
+append stylesheets
+  link(rel="stylesheet" href="https://unpkg.com/js-datepicker/dist/datepicker.min.css")
+  link(rel="stylesheet" href=constants.base_url + '/css/src/vendor/jquery.timepicker.css')
+
 append content
   - var breadcrumbActive = 'block_overview'
   //- include ../inc/TerritoryBreadcrumb
+  
+  .bootstrap-modals
+    include ../inc/BootstrapModals.pug
+    
+    //- mark block worked modal
+    .modal#mark-worked-modal
+      .modal-dialog(role="document")
+        .modal-content
+          .modal-header
+            h5 Mark block as worked
+          .modal-body
+            form.form-inline#mark-block-worked-form
+              .form-group
+                input(type="text", name="date")#block-worked-date-picker
+              .form-group
+                small at
+              .form-group
+                input(type="text", name="time")#block-worked-time-picker
+              small leave empty to use current date and time
+          .modal-footer
+            button.btn.btn-secondary(data-dismiss="modal") close
+            button.btn.btn-primary#mark-block-worked-submit(role="button") mark worked
         
   .container.text-center
     h2 #{block.hundred} #{block.street}
     h5= block.side
-    h6.my-2 tags
-    ul.list-group.list-group-horizontal.unit-tags.my-2
-      each tag in block.tags
+    button.nav-item.dropdown.btn.btn-secondary.btn-sm(data-toggle='modal' data-target="#mark-worked-modal") mark worked
+    if block.lastWorked
+      
+      small.my-2.d-block Last worked on 
+        strong= moment(block.lastWorked).format('MMMM Do, YYYY [at] h:mm a')
+    
+    else 
+      
+      small.my-2.d-block never worked
+    
+    each tag in block.tags
+      h6.my-2 tags
+      ul.list-group.list-group-horizontal.unit-tags.my-2
         li.list-group-item= tag
       
-      else 
-        p No tags
-    
-  .container 
+    else 
+        
+      small.d-block.my-2.text-center No tags
+        
+  .container.pb-5 
     ul.list-group
       //- Not DRY, needs to be optimized...classes are repeated twice
       each unit in units
@@ -54,4 +91,6 @@ append content
               each tag in unit.tags
                 span.badge.badge-primary.badge-pill= tag
             
-      
+append scripts
+  script(src="https://unpkg.com/js-datepicker")
+  script(src=constants.base_url + '/js/dist/territory-blockoverview.bundle.js', type="text/javascript")

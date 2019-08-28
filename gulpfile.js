@@ -24,6 +24,7 @@ const CONFIG = {
       'ap-managepublishers',
       'territory-householdercontacted',
       'territory-unitoverview',
+      'territory-blockoverview',
       'localize-constants'
     ],
     dir: './public/js/src/**/*.js',

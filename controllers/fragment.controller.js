@@ -114,11 +114,17 @@ exports.blockOverview = (req, res) => {
   });
 
   let renderVars = {
+    localize: {
+      endpoints: {
+        mark_block_worked: PBURLConstructor.getRoute('mark-block-worked').url({street_name: block.street, hundred: block.hundred, side: block.odd_even})
+      }
+    },
     block: {
       hundred: block.hundred,
       side: block.odd_even,
       street: block.street,
       tags: block.block.tags,
+      lastWorked: _.last(block.block.worked),
     },
     units: formattedUnits,
   };
@@ -293,7 +299,7 @@ exports.householderContacted = (req, res) => {
 
   // params object
   // FIXME: this could be optimized, url was running rendering
-  // wrong params dues to require vs import i think 
+  // wrong params dues to require vs import i think
   let urlParams = {
     street_name: block.street,
     hundred: block.number,

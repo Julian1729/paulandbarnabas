@@ -62,6 +62,7 @@ PBURLConstructor.addRoute('save-territory', `${ajaxTerritoryBase}/save-territory
 PBURLConstructor.addRoute('save-fragment', `${ajaxTerritoryBase}/save-fragment`);
 PBURLConstructor.addRoute('list-streets', `${ajaxTerritoryBase}/list/streets`);
 PBURLConstructor.addRoute('list-fragments', `${ajaxTerritoryBase}/list/fragments`);
+PBURLConstructor.addRoute('mark-block-worked', `${ajaxTerritoryBase}/street/:street_name/hundred/:hundred/:side/worked`);
 
 PBURLConstructor.addRoute('street-stats', `${ajaxTerritoryBase}/street/:street_name/stats`);
 PBURLConstructor.addRoute('fragment-stats', `${ajaxTerritoryBase}/fragment/:fragment_number/stats`);
