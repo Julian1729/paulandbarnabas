@@ -67,7 +67,7 @@ HouseholderEvents.on('modal:hide', function(){
 
 HouseholderEvents.on('updateList', function(householder){
 
-  var html = '<label class="btn btn-secondary m-1 active" for="' + householder._id.toString() + '">' + householder.name + '<input type="checkbox" checked="checked" id="sjg" value="' + householder.name + '" name="householders.contacted[]"/></label>';
+  var html = '<label class="btn btn-secondary m-1 active" for="' + householder._id.toString() + '">' + householder.name + '<input type="checkbox" checked="checked" value="' + householder.name + '" name="visit.householders_contacted[]"/></label>';
   DOM_CACHE.$householder_options.append(html);
 
 });
@@ -139,12 +139,10 @@ VisitEvents.on('add', function(){
       if(res.error.type === 'VALIDATION_ERROR'){
         return bootstrapValidationHandler('visit-form-errors', res.error.validationErrors);
       }else{
-        console.log( 'this 1 ran' );
         DOM_CACHE.$errorModal.modal('show');
       }
     }
     if(!res.data.visit){
-      console.log('this ran ahain');
       return DOM_CACHE.$errorModal.modal('show');
     }
     // on success redirect to unit overview page
