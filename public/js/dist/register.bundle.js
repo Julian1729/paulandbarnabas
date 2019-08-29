@@ -28726,7 +28726,7 @@ $('#user-registration-form').ajaxform({
 
     if(response.error.type){
       if(response.error.type === 'FORM_VALIDATION_ERROR'){
-        return bootStrapErrorHandler('user-registration-form', response.error.validationErrors);
+        return bootStrapErrorHandler('user-registration-errors', response.error.validationErrors);
       }else{
         return DOM_CACHE.bootStrapErrorModal.modal('show');
       }
