@@ -4,7 +4,7 @@
 
 exports.adminPanelController = require('./admin-panel.controller');
 
-exports.createAccountController = require('./create-account.controller');
+exports.registrationController = require('./registration.controller');
 
 exports.dashboardController = require('./dashboard.controller');
 

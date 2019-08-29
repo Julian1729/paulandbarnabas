@@ -7,7 +7,7 @@ exports.createTerritoryValidator = require('./create-territory.validator');
 
 exports.loginValidator = require('./login.validator');
 
-exports.registrationValidator = require('./registration.validator');
+exports.userRegistrationValidator = require('./user-registration.validator');
 
 exports.addHouseholderValidator = require('./add-householder.validator');
 

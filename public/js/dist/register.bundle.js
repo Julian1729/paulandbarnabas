@@ -131,7 +131,7 @@ function init(form, options){
 
 module.exports = AjaxForm;
 
-},{"../../vendor/form2js":15,"jquery":9}],3:[function(require,module,exports){
+},{"../../vendor/form2js":16,"jquery":9}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 var DisableInputs = function(querySelector, toggle){
@@ -28636,6 +28636,28 @@ return jQuery;
 }));
 
 },{}],12:[function(require,module,exports){
+const $ = require('../../jquery/jquery');
+
+module.exports = function(errorContainerId, validationErrors){
+
+  var $errorContainer = $('#' + errorContainerId);
+  if(!$errorContainer.length) throw new Error('error container w/ id ' + errorContainerId + ' not found');
+  // clear container
+  $errorContainer.html('');
+  for (var name in validationErrors) {
+    if (validationErrors.hasOwnProperty(name)) {
+      var errorMessages = validationErrors[name];
+      errorMessages.forEach(function(msg){
+        $errorContainer.append('<div class="alert alert-danger" role="alert">' + msg + '</div>')
+      });
+    }
+  }
+  // scroll to top
+  $("html, body").animate({ scrollTop: 0 }, "slow");
+
+};
+
+},{"../../jquery/jquery":1}],13:[function(require,module,exports){
 /**
  * Text Input
  * Handle label animation on focus
@@ -28680,22 +28702,42 @@ $inputContainers.each(function(){attachEvents(this)});
 
 module.exports = {attachEvents};
 
-},{"../../utils.js":14,"jquery":9}],13:[function(require,module,exports){
-var $ = require('../../jquery/jquery.js');
-var Utils = require('../../utils.js');
+},{"../../utils.js":15,"jquery":9}],14:[function(require,module,exports){
+/**
+ * Register Page
+ * es6
+ */
+
+const $ = require('../../jquery/jquery.js');
+const {redirect} = require('../../utils.js');
 const inputs = require('../modules/text-input.js');
+const bootStrapErrorHandler = require('../modules/bootstrap-form-error-handler');
 
-var signupForm = $('#signup-form').ajaxform({
-url: '/ajax/account/sign-up',
-method: 'POST',
-success: function(response, validation_handler, form){
+const w$ = window.jQuery;
 
-  console.log(response);
-
+const DOM_CACHE = {
+  bootStrapErrorModal: w$('#bootstrap-error-modal'),
 }
+
+$('#user-registration-form').ajaxform({
+  url: localized.endpoints.user_registration,
+  method: 'post',
+  success: function(response, validation_handler, form){
+
+    if(response.error.type){
+      if(response.error.type === 'FORM_VALIDATION_ERROR'){
+        return bootStrapErrorHandler('user-registration-form', response.error.validationErrors);
+      }else{
+        return DOM_CACHE.bootStrapErrorModal.modal('show');
+      }
+    }
+
+    redirect(response.data.redirect);
+
+  }
 });
 
-},{"../../jquery/jquery.js":1,"../../utils.js":14,"../modules/text-input.js":12}],14:[function(require,module,exports){
+},{"../../jquery/jquery.js":1,"../../utils.js":15,"../modules/bootstrap-form-error-handler":12,"../modules/text-input.js":13}],15:[function(require,module,exports){
 /**
  * Utility Functions
  */
@@ -28713,7 +28755,7 @@ exports.reloadPage = function(){
   window.location.reload(false);
 };
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 /**
  * Copyright (c) 2010 Maxim Vasiliev
  *
@@ -29064,4 +29106,4 @@ exports.reloadPage = function(){
 
 }));
 
-},{}]},{},[13]);
+},{}]},{},[14]);

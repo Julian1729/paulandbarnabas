@@ -9,7 +9,7 @@ const HttpStatus = require('http-status-codes');
 const UserModel = require(`${appRoot}/models`);
 const {accountServices} = require(`${appRoot}/services`);
 const constants = require(`${appRoot}/config/constants`);
-const {loginValidator, registrationValidator} = require(`${appRoot}/utils/validators`);
+const {loginValidator, userRegistrationValidator} = require(`${appRoot}/utils/validators`);
 const {logger, helpers, Session, AjaxResponse, PBURLConstructor} = require(`${appRoot}/utils`);
 const {FormValidationError, InvalidCredentials, SessionUninitialized, EmailAlreadyExists, CongregationNotFound} = require(`${appRoot}/errors.js`);
 
@@ -30,7 +30,7 @@ exports.register = async (req, res) => {
   ], req);
 
   // validate form data
-  let validationErrors = registrationValidator(registration);
+  let validationErrors = userRegistrationValidator(registration);
   if(validationErrors){
     return ajaxRes
         .error('FORM_VALIDATION_ERROR', null, {validationErrors: validationErrors})

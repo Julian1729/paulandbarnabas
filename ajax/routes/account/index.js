@@ -4,7 +4,7 @@ const appRoot = require('app-root-path');
 
 const {accountController} = require(`${appRoot}/ajax/controllers`);
 
-router.post('/register', accountController.register);
+router.post('/register/user', accountController.register);
 
 router.post('/login', accountController.login);
 

@@ -1,31 +1,47 @@
-extends Base.pug
+extends ProtoBase.pug
 
 block GLOBAL_PUG
   - var page_name = 'createaccount';
 
 
 append scripts
-  script(src=constants.base_url + "/js/dist/signup.bundle.js" type="application/javascript")
+  script(src=constants.base_url + "/js/dist/register.bundle.js" type="application/javascript")
 
 block content
-  .content.publisher
-    
-    form(action="/createaccount", method="POST")#signup-form
-      label first name
-      input(type="text", name="first_name")
-      label last name
-      input(type="text", name="last_name")
-      label email
-      input(type="text", name="email")
-      label confirm email
-      input(type="text", name="email_confirm")
-      label phone number
-      input(type="text", name="phone_number")
-      label password
-      input(type="password", name="password")
-      label confirm password
-      input(type="password", name="password_confirm")
-      input(type="submit", name="submit")
+  include ./inc/BootstrapModals.pug
+  
+  nav.navbar.navbar-expand-lg.d-block.py-3
+    p Paul and Barnabas - User Registration
+  .container.py-3
+    form(method="POST")#user-registration-form
+      .row
+        .col-sm
+          #user-registration-errors
+          .form-group
+            label first name
+            input.form-control(type="text", name="first_name")
+          .form-group
+            label last name
+            input.form-control(type="text", name="last_name")
+          .form-group
+            label congregation number
+            input.form-control(type="text", name="congregation_number")
+          .form-group
+            label email
+            input.form-control(type="text", name="email")
+          .form-group
+            label confirm email
+            input.form-control(type="text", name="email_confirm")
+          .form-group
+            label phone number
+            input.form-control(type="text", name="phone_number")
+          .form-group
+            label password
+            input.form-control(type="password", name="password")
+          .form-group
+            label confirm password
+            input.form-control(type="password", name="password_confirm")
+          input(type="submit", name="submit")
     
     
     

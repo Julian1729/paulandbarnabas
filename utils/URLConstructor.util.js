@@ -56,7 +56,13 @@ PBURLConstructor.addRoute('add-householder', `${ajaxUnitBase}/householder/add`);
 PBURLConstructor.addRoute('add-visit', `${ajaxUnitBase}/visit/add`);
 
 /**
- * Ajax Enpoints
+ * Ajax Account Endpoints
+ */
+PBURLConstructor.addRoute('user-registration', '/ajax/account/register/user');
+PBURLConstructor.addRoute('congregation-registration', '/ajax/account/register/congregation');
+
+/**
+ * Ajax Territory Enpoints
  */
 PBURLConstructor.addRoute('save-territory', `${ajaxTerritoryBase}/save-territory`);
 PBURLConstructor.addRoute('save-fragment', `${ajaxTerritoryBase}/save-fragment`);

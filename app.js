@@ -83,7 +83,7 @@ app.set('views', __dirname + '/views');
   app.use('/ajax', ajaxRouter);
 
   // Sign Up
-  app.use('/register', routes.registerRoute);
+  app.use('/register', routes.registrationRoute);
 
   // Dashboard
   app.use('/dashboard', routes.dashboardRoute);

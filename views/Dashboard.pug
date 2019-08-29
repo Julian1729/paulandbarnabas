@@ -5,7 +5,7 @@ append content
     p #{user.first_name} #{user.last_name}
     p= user.email
     .row.mt-md-2
-      each val in fragments.length ? fragments : ['No assigned fragments'] 
+      each val in fragments 
         .col-sm
           .card
             .card-header 
@@ -16,6 +16,12 @@ append content
             ul.list-group.list-group-flush
               li.list-group-item #{val.block_count} blocks
               li.list-group-item #{val.unit_count} units   
+      
+      else 
+        
+        .container
+          .row.text-center
+            small No assigned fragments
 
 
   
