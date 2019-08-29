@@ -792,7 +792,8 @@ let streets =
 let territory1 = {
   congregation: new ObjectId(),
   fragments: fragments,
-  streets: streets
+  streets: streets,
+  description: "Test territory. This field is used to describe the territory, such as rural, metropolitan, suburbian etc",
 };
 
 module.exports = [territory1];

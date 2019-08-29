@@ -4,29 +4,40 @@ const Schema = mongoose.Schema;
 var CongregationSchema = new Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   circuit: {
     type: String,
   },
   language: {
     type: String,
-    required: true
+    required: true,
+  },
+  city: {
+    type: String,
+    required: true,
+  },
+  country: {
+    type: String,
+    required: true,
   },
   number: {
     type: Number,
     required: true,
-    unique: true
+    unique: true,
   },
   territory: {
     type: Schema.Types.ObjectId,
     ref: 'Territory',
-    required: true
+    required: true,
   },
   admin: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
+  },
+  referall: {
+    type: String,
   }
 });
 

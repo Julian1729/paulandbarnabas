@@ -223,7 +223,7 @@ const {helpers, logger} = require(`${appRoot}/utils`);
       // tag already exists remove and return tag
       return this.tags.pop();
     }
-    
+
     return formattedTag;
   }
 
@@ -641,7 +641,8 @@ var fragment_schema = new Schema({
 var TerritorySchema = new Schema({
   congregation: Schema.Types.ObjectId,
   fragments: [fragment_schema],
-  streets: [streets_schema]
+  streets: [streets_schema],
+  description: String,
 });
 
 /**
