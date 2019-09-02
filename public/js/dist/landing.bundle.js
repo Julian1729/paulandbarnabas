@@ -28752,46 +28752,71 @@ module.exports = {
 };
 
 },{"../../jquery/jquery.js":1}],14:[function(require,module,exports){
-var $ = require('../../jquery/jquery.js');
-var {redirect} = require('../../utils');
-var inputs = require('../modules/text-input.js');
-var {standardHandler, clearErrors} = require('../modules/validationHandler');
+/**
+ * Login
+ * es6
+ */
 
-var loginForm = $('#login-form').ajaxform({
+const $ = require('../../jquery/jquery.js');
+const {redirect} = require('../../utils');
+const inputs = require('../modules/text-input.js');
+const {standardHandler, clearErrors} = require('../modules/validationHandler');
 
-  url: '/ajax/account/login',
-  method: 'POST',
-  validation_handler: standardHandler,
-  success: function(response, validation_handler, $form, textStatus){
+/**
+ * Form Submission
+ */
+(() => {
 
-    console.log(response);
+  const loginForm = $('#login-form').ajaxform({
 
-    var $generalErrorMessageContainer = $form.find('.general-error-message-container');
+    url: '/ajax/account/login',
+    method: 'POST',
+    validation_handler: standardHandler,
+    success: (response, validation_handler, $form, textStatus) => {
 
-    clearErrors($form)
-    // clear general error messages
-    $form.parent().find('.general-error-message-container').html('');
+      const $generalErrorMessageContainer = $form.find('.general-error-message-container');
 
-    if(response.error.type){
-      switch (response.error.type) {
-        case 'FORM_VALIDATIONN_ERROR':
-          return standardHandler(response.error.validationErrors);
-          break;
-        case 'INVALID_CREDENTIALS':
-          return $generalErrorMessageContainer
-            .append('<p>Invalid Credentials</p>');
-          break;
-        default:
-          return $generalErrorMessageContainer
-            .append('<p>Unable to process login request</p>');
+      clearErrors($form)
+      // clear general error messages
+      $form.parent().find('.general-error-message-container').html('');
+
+      if(response.error.type){
+        switch (response.error.type) {
+          case 'FORM_VALIDATION_ERROR':
+            return standardHandler(response.error.validationErrors);
+            break;
+          case 'INVALID_CREDENTIALS':
+            return $generalErrorMessageContainer
+              .append('<p>Invalid Credentials</p>');
+            break;
+          default:
+            return $generalErrorMessageContainer
+              .append('<p>Unable to process login request</p>');
+        }
       }
+
+      redirect(response.data.redirect);
+
     }
 
-    redirect(response.data.redirect);
+  });
 
-  }
+})();
 
-});
+/**
+ * Create Account button
+ */
+(() => {
+
+  // button
+  const $button = $('#create-account-button');
+  const modal = $('#create-account-modal').pbmodal();
+
+  $button.on('click', () => {
+    modal.show();
+  });
+
+})();
 
 },{"../../jquery/jquery.js":1,"../../utils":15,"../modules/text-input.js":12,"../modules/validationHandler":13}],15:[function(require,module,exports){
 /**

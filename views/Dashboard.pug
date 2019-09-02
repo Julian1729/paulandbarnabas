@@ -2,8 +2,25 @@ extends ProtoBase.pug
 
 append content
   .container-fluid
-    p #{user.first_name} #{user.last_name}
-    p= user.email
+    .card.border-primary.mb-3.stat-card
+      .card-header #{user.first_name} #{user.last_name}
+        if user.isAdmin
+          span (admin)
+      .card-body
+        p.my-1 #{congregation_name} Congregation
+        
+        if !user.isAdmin
+          p.my-1 Admin: 
+            p.my-0 #{admin.first_name} #{admin.last_name}
+            p.my-0
+              a(href="mailto:" + admin.email)= admin.email
+            p.my-0 
+              a(href="tel:" + admin.phone_number)= admin.phone_number
+              
+        p.my-0 Stats:
+          small #{dashboard_stats.fragment_count} Fragments | #{dashboard_stats.unit_count} Units
+        
+    
     .row.mt-md-2
       each val in fragments 
         .col-sm

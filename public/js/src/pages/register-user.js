@@ -20,11 +20,18 @@ $('#user-registration-form').ajaxform({
   success: function(response, validation_handler, form){
 
     if(response.error.type){
-      if(response.error.type === 'FORM_VALIDATION_ERROR'){
-        return bootStrapErrorHandler('user-registration-errors', response.error.validationErrors);
-      }else{
-        return DOM_CACHE.bootStrapErrorModal.modal('show');
+
+      switch (response.error.type) {
+        case 'FORM_VALIDATION_ERROR':
+          return bootStrapErrorHandler('user-registration-errors', response.error.validationErrors);
+          break;
+        case 'UNREGISTERED_CONGREGATION':
+          return bootStrapErrorHandler('user-registration-errors', {'congregation.number': [response.error.message]});
+          break;
+        default:
+          return DOM_CACHE.bootStrapErrorModal.modal('show');
       }
+
     }
 
     redirect(response.data.redirect);

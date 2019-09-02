@@ -3,7 +3,7 @@ html {
 
 /**
  * Override grey background from modal
- */
+ * */
 .modal {
   background: none !important;
   box-shadow: none !important; }
@@ -15,3 +15,9 @@ ul.unit-tags {
   font-size: 0.8em; }
   ul.unit-tags li {
     padding: 10px !important; }
+
+/**
+ * Dashboard
+ * */
+.stat-card {
+  max-width: 500px; }

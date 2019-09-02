@@ -16,6 +16,8 @@ PBURLConstructor.setBase(constants.base_url);
  */
 PBURLConstructor.addRoute('dashboard', '/dashboard');
 PBURLConstructor.addRoute('logout', '/?logout=true');
+PBURLConstructor.addRoute('registration-congregation', '/register/congregation');
+PBURLConstructor.addRoute('registration-user', '/register/user');
 // aka fragment overview
 PBURLConstructor.addRoute('fragment-overview', '/fragment/:fragment_number');
 PBURLConstructor.addRoute('block-overview', '/fragment/:fragment_number/:hundred/:street_name/:side');

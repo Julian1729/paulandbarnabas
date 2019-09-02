@@ -6,6 +6,14 @@ block GLOBAL_PUG
 append scripts
   script(src=constants.base_url + "/js/dist/landing.bundle.js")
   
+append modals
+  +modal('create-account-modal')
+    p Who are you creating an account for?
+    p
+      a(href=urls.congregation_registration) my congregation
+    p
+      a(href=urls.user_registration) myself
+
 block content
   .content
     .inner
@@ -24,4 +32,4 @@ block content
           button Forgot Password 
           button.cyan.prominent Login
         .button-row.stretch
-          button.purple.prominent(type=button) Create an Account
+          button.purple.prominent#create-account-button(type=button) Create an Account
