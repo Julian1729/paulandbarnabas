@@ -18,7 +18,8 @@ const CONFIG = {
   js: {
     files: [
       'landing',
-      'register',
+      'register-user',
+      'register-congregation',
       'ap-createterritory',
       'ap-createfragment',
       'ap-managepublishers',

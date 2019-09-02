@@ -10,4 +10,7 @@ router.all('/', authenticationMiddleware.loggedInRedirect);
 // Register User
 router.get('/user', registrationController.user);
 
+// Register Congregation
+router.get('/congregation', registrationController.congregation);
+
 module.exports = router;

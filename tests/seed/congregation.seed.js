@@ -4,6 +4,8 @@ exports.validCongregation = {
   name: 'Roosevelt',
   circuit: 'PA-16',
   number: 99499,
+  country: 'USA',
+  city: 'Philadelphia',
   language: 'en',
   territory: new ObjectId(),
   admin: new ObjectId()

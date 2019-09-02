@@ -8,6 +8,7 @@ var CongregationSchema = new Schema({
   },
   circuit: {
     type: String,
+    uppercase: true,
   },
   language: {
     type: String,

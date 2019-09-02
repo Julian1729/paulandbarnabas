@@ -76,6 +76,17 @@ class CongregationNotFound extends Error {
 
 }
 
+class CongregationNumberAlreadyExists extends Error {
+
+  constructor(number){
+    super();
+    this.name = 'CongregationNumberAlreadyExists';
+    this.message = `Congregation number #${number} has already been registered`;
+    this.number = number;
+  }
+
+}
+
 class NonExistentController extends Error {
 
   constructor(message){
@@ -219,6 +230,7 @@ class SubunitNotFound extends Error {
    InvalidCredentials,
    EmailAlreadyExists,
    CongregationNotFound,
+   CongregationNumberAlreadyExists,
    NonExistentController,
    NonExistentAction,
    StreetNotFound,

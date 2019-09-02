@@ -1,0 +1,93 @@
+extends ProtoBase.pug
+
+append scripts
+  script(src=constants.base_url + "/js/dist/register-congregation.bundle.js" type="application/javascript")
+
+block content
+  include ./inc/BootstrapModals.pug
+  
+  nav.navbar.navbar-expand-lg.d-block.py-3
+    p Paul and Barnabas - Congregation Registration
+  .container.py-3
+    
+    #congregation-registration-errors
+      
+    form(method="POST")#congregation-registration-form
+    
+      h3 congregation details
+      .form-group
+        label congregation name
+        input.form-control(type="text" name="congregation.name" placeholder="North English")
+        small.form-text.text-muted please do not include "Congregation" in name
+      .form-row
+        .col-sm
+          label circuit
+          input.form-control(type="text" name="congregation.circuit" placeholder="PA-16")
+        .col-sm
+          label city
+          input.form-control(type="text" name="congregation.city" placeholder="Philadelphia")
+        .col-sm
+          label country
+          input.form-control(type="text" name="congregation.country" placeholder="USA")
+      .form-group.my-2
+        label congregation number
+        input.form-control(type="text" name="congregation.number" placeholder="e.g. 88944")
+        small.form-text.text-muted please provide the official congregation number provided by your branch office
+      .form-group
+        label language
+        select.form-control(name="congregation.language")
+          each language in languages
+            if language === 'English'
+              
+              option(value=language selected)= language
+            
+            else
+              
+              option(value=language)= language
+            
+      h3 admin user details
+      small.form-text.text-muted this user will be authorized as admin to manage this congregation's territory
+      .form-row
+        .col-sm
+          label first name
+          input.form-control(type="text" name="user.first_name")
+        .col-sm
+          label last name
+          input.form-control(type="text" name="user.last_name")
+      .form-group.my-2
+        label what is your position in relation to the Service Overseer in the congregation?
+        select.form-control(type="select" name="user.position")
+          option(value="himself") I am the Service Overseer
+          option(value="assistant") I am his assistant
+          option(value="elder") I am a fellow elder
+      .form-group
+        label email
+        input.form-control(type="text" name="user.email")
+      .form-group
+        label confirm email
+        input.form-control(type="text" name="user.email_confirm")
+      .form-group
+        label phone number
+        input.form-control(type="text" name="user.phone_number")
+      .form-group
+        label password
+        input.form-control(type="password" name="user.password")
+      .form-group
+        label confirm password
+        input.form-control(type="password" name="user.password_confirm")
+          
+      h3 just a little more info
+      .form-group 
+        label how did you find out about Paul and Barnabas?
+        textarea.form-control(name="congregation.referall")
+      .form-group
+        label describe your congregation's territory
+        textarea.form-control(name="territory.description" placeholder="rural, metropolitan, inner-city, heavily populated etc")
+      .form-group.form-check
+        input.form-check-input#authorizedCheckbox(type="checkbox") 
+        label(for="authorizedCheckbox") I have been authorized by my body of elders to use this application and to manage my congregation’s territory.
+      
+      input.form-control(type="submit" name="submit")
+      
+    
+    

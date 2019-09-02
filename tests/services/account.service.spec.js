@@ -1,4 +1,5 @@
 const {expect} = require('chai');
+const {ObjectId} = require('mongodb');
 const appRoot = require('app-root-path');
 
 const errors = require(`${appRoot}/errors`);
@@ -6,7 +7,7 @@ const {helpers} = require(`${appRoot}/utils`);
 const userSeed = require('../seed/user.seed');
 const {accountServices} = require(`${appRoot}/services`);
 const congregationSeed = require('../seed/congregation.seed');
-const {UserModel, CongregationModel} = require(`${appRoot}/models`);
+const {UserModel, CongregationModel, TerritoryModel} = require(`${appRoot}/models`);
 
 describe('Account Services', () => {
 
@@ -118,6 +119,97 @@ describe('Account Services', () => {
       }catch(e){
         expect(e instanceof errors.CongregationNotFound).to.be.true;
       }
+
+    });
+
+  });
+
+  describe('registerNewCongregationAccount', () => {
+
+    it('should complete full register', async () => {
+
+      await helpers.clearCollection(CongregationModel);
+      await helpers.clearCollection(TerritoryModel);
+      await helpers.clearCollection(UserModel);
+
+      let adminUserData = {
+        first_name: 'Julian',
+        last_name: 'Hernandez',
+        email: 'hernandez.julian17@gmail.com',
+        email_confirm: 'hernandez.julian17@gmail.com',
+        phone_number: '2154000468',
+        password: 'julianspassword',
+        password_confirm: 'julianspassword',
+        position: 'I am the service overseer',
+      };
+      let congregationData = {
+        name: 'Roosevelt',
+        circuit: 'PA-16',
+        city: 'Philadelphia',
+        country: 'USA',
+        number: 99499,
+        language: 'English',
+        referall: 'Another congregation',
+      };
+      let territoryDescription = 'rural type, lots of farms';
+
+      await accountServices.registerNewCongregationAccount(adminUserData, congregationData, territoryDescription);
+
+      expect( await CongregationModel.find({})).to.have.lengthOf(1);
+      expect( await TerritoryModel.find({})).to.have.lengthOf(1);
+      expect( await UserModel.find({})).to.have.lengthOf(1);
+
+    });
+
+    it('should remove created admin user if congregation could not be created', async () => {
+
+      await helpers.clearCollection(CongregationModel);
+      await helpers.clearCollection(TerritoryModel);
+      await helpers.clearCollection(UserModel);
+      // enter user to be duplicated
+      await CongregationModel.create({
+        name: 'Roosevelt',
+        circuit: 'PA-16',
+        city: 'Philadelphia',
+        country: 'USA',
+        number: 99499,
+        language: 'English',
+        referall: 'Another congregation',
+        admin: new ObjectId(),
+        territory: new ObjectId(),
+      });
+
+      let adminUserData = {
+        first_name: 'Julian',
+        last_name: 'Hernandez',
+        email: 'hernandez.julian17@gmail.com',
+        email_confirm: 'hernandez.julian17@gmail.com',
+        phone_number: '2154000468',
+        password: 'julianspassword',
+        password_confirm: 'julianspassword',
+        position: 'I am the service overseer',
+      };
+      let congregationData = {
+        name: 'Roosevelt',
+        circuit: 'PA-16',
+        city: 'Philadelphia',
+        country: 'USA',
+        number: 99499,
+        language: 'English',
+        referall: 'Another congregation',
+      };
+      let territoryDescription = 'rural type, lots of farms';
+
+      try{
+        await accountServices.registerNewCongregationAccount(adminUserData, congregationData, territoryDescription);
+        throw 'this should not have passed';
+      }catch(e){
+        expect(e instanceof errors.CongregationNumberAlreadyExists).to.be.true;
+      }
+
+      expect( await CongregationModel.find({})).to.have.lengthOf(1);
+      expect( await TerritoryModel.find({})).to.have.lengthOf(0);
+      expect( await UserModel.find({})).to.have.lengthOf(0);
 
     });
 

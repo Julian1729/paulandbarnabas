@@ -1,6 +1,6 @@
 var validate = require('./base');
 
-const SignUpConstraints = {
+const UserRegistrationConstraints = {
   'first_name': {
     presence: {
       message: 'Please provide a first name',
@@ -78,6 +78,4 @@ const SignUpConstraints = {
   }
 };
 
-module.exports = (user) => {
-  return validate(user, SignUpConstraints, {fullMessages: false});
-};
+module.exports = user => validate(user, UserRegistrationConstraints, {fullMessages: false});

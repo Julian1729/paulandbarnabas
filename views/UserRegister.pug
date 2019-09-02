@@ -5,7 +5,7 @@ block GLOBAL_PUG
 
 
 append scripts
-  script(src=constants.base_url + "/js/dist/register.bundle.js" type="application/javascript")
+  script(src=constants.base_url + "/js/dist/register-user.bundle.js" type="application/javascript")
 
 block content
   include ./inc/BootstrapModals.pug
@@ -41,7 +41,7 @@ block content
           .form-group
             label confirm password
             input.form-control(type="password", name="password_confirm")
-          input(type="submit", name="submit")
+          input.form-control(type="submit", name="submit")
     
     
     
