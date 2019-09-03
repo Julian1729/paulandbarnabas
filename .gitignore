@@ -3,3 +3,4 @@ public/assets/js/node_modules
 todo.txt
 routes.txt
 *.rdb
+logs/
