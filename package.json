@@ -30,6 +30,7 @@
     "mongoose-unique-validator": "^2.0.3",
     "morgan": "^1.9.1",
     "mustache": "^3.0.3",
+    "process": "^0.11.10",
     "pug": "^2.0.4",
     "rsvp": "^4.8.5",
     "timepicker": "^1.11.15",
