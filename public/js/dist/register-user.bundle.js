@@ -28728,7 +28728,6 @@ $('#user-registration-form').ajaxform({
 
       switch (response.error.type) {
         case 'FORM_VALIDATION_ERROR':
-          console.log(response.error.validationErrors);
           return bootStrapErrorHandler('user-registration-errors', response.error.validationErrors);
           break;
         case 'UNREGISTERED_CONGREGATION':
