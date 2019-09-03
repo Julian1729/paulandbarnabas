@@ -22,7 +22,10 @@ const local = {
 };
 
 const production = {
-
+  base_url: " https://paul-and-barnabas.herokuapp.com",
+  bcrypt: {
+    salt_rounds: 10
+  }
 };
 
 const loadConstants = () => {
