@@ -4,3 +4,4 @@ todo.txt
 routes.txt
 *.rdb
 logs/
+package-lock.json
