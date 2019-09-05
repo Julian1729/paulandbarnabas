@@ -2,8 +2,10 @@ extends ../ProtoBase
 
 append content
   .container
+    h3 Fragment ##{fragment_number}
     .row.text-center
-      //- send to fragment overview page
+      include ../inc/TerritoryBreadcrumb
+      
     .row.my-2
       each props, street in streets
         .col-sm

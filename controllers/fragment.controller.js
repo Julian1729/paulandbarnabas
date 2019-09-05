@@ -19,8 +19,9 @@ exports.fragmentOverview = (req, res) => {
   let blockReferences = res.locals.collected.fragmentBlockReferences;
 
   let renderVars = {
+    fragment_number: fragment.number,
     // Oakland: {id: 'asdfasdf', blocks: {hundred: 4700, odd_even: 'even'}}
-    streets: {}
+    streets: {},
   };
 
   let blockOverViewRoute = PBURLConstructor.getRoute('block-overview');
@@ -45,6 +46,14 @@ exports.fragmentOverview = (req, res) => {
       }),
     });
   });
+
+  // set breadcrumb vars
+  renderVars.breadcrumbs = {
+    fragment: {
+      overview_url: PBURLConstructor.getRoute('fragment-overview').url({fragment_number: fragment.number}),
+      number: fragment.number,
+    },
+  };
 
   return res.render('Territory/FragmentOverview', renderVars);
 
@@ -127,6 +136,22 @@ exports.blockOverview = (req, res) => {
       lastWorked: _.last(block.block.worked),
     },
     units: formattedUnits,
+  };
+
+  let fragment = res.locals.collected.fragment;
+
+  // set breadcrumb vars
+  renderVars.breadcrumbs = {
+    fragment: {
+      overview_url: PBURLConstructor.getRoute('fragment-overview').url({fragment_number: fragment.number}),
+      number: fragment.number,
+    },
+    block: {
+      overview_url: PBURLConstructor.getRoute('block-overview').url({fragment_number: fragment.number, hundred: block.hundred, street_name: block.street, side: block.odd_even}),
+      hundred: block.hundred,
+      street: block.street,
+      side: block.odd_even,
+    },
   };
 
   return res.render('Territory/BlockOverview', renderVars);
@@ -273,6 +298,31 @@ exports.unitOverview = (req, res) => {
     language: subunit.language || unit.language,
     householder_contacted_url: householderContactedRoute.url(null, subunitQueryParam)
   };
+
+  // set breadcrumb vars
+  renderVars.breadcrumbs = {
+    fragment: {
+      overview_url: PBURLConstructor.getRoute('fragment-overview').url({fragment_number: fragmentNumber}),
+      number: fragmentNumber,
+    },
+    block: {
+      overview_url: PBURLConstructor.getRoute('block-overview').url({fragment_number: fragmentNumber, hundred: block.hundred, street_name: block.street, side: block.odd_even}),
+      hundred: block.hundred,
+      street: block.street,
+      side: block.odd_even,
+    },
+    unit: {
+      overview_url: PBURLConstructor.getRoute('unit-overview').url({fragment_number: fragmentNumber, street_name: block.street, unit_number: unit.number}),
+      number: unit.number,
+    }
+  };
+
+  if(!_.isEmpty(subunit)){
+    renderVars.breadcrumbs.unit.subunit = {
+      overview_url: PBURLConstructor.getRoute('unit-overview').url({fragment_number: fragmentNumber, street_name: block.street, unit_number: unit.number}, {subunit: subunit.name}),
+      name: subunit.name,
+    };
+  }
 
   res.render('Territory/UnitOverview', renderVars);
 

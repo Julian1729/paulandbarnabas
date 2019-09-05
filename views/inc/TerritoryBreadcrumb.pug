@@ -1,20 +1,15 @@
 .container.my-2
   nav(aria-label='breadcrumb')
     ol.breadcrumb
-      li.breadcrumb-item.active(aria-current="page")
-        
-        if render_vars.fragment
+      
+      li.breadcrumb-item
                     
-            a(href=render_vars.fragment.overview_url) Fragment #{render_vars.fragment.number}
+        a(href=breadcrumbs.fragment.overview_url) Fragment ##{breadcrumbs.fragment.number}
           
-        else 
-          
-          a Fragment #{render_vars.fragment.number}
-        
       li.breadcrumb-item  
-        if render_vars.block
+        if breadcrumbs.block
           
-          a(href=render_vars.block.overview_url) #{render_vars.block.hundred} #{render_vars.block.street}
+          a(href=breadcrumbs.block.overview_url) #{breadcrumbs.block.hundred} #{breadcrumbs.block.street} #{breadcrumbs.block.side}
           
         else 
           
@@ -22,15 +17,16 @@
           
       li.breadcrumb-item 
         
-        if render_vars.unit 
+        if breadcrumbs.unit 
+        
           
-          if subunit
+          if breadcrumbs.unit.subunit
           
-            a(href=render_vars.subunit.overview_url) #{render_vars.unit.number} &#62; #{render_vars.subunit.name}
+            a(href=breadcrumbs.unit.subunit.overview_url) #{breadcrumbs.unit.number} &#62; #{breadcrumbs.unit.subunit.name}
           
           else
             
-            a(href=render_vars.unit.overview_url)= render_vars.unit.number
+            a(href=breadcrumbs.unit.overview_url)= breadcrumbs.unit.number
   
         else 
           

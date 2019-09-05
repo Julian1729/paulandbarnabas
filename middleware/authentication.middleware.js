@@ -79,7 +79,7 @@ exports.devSessionAdmin = async (req, res, next) => {
 exports.loggedInRedirect = (req, res, next) => {
 
   if(req.session.authenticated === true && req.query.logout !== 'true') {
-    return res.redirect(PBURLConstructor.getRoute('dashboard').url());
+    return res.redirect(301, PBURLConstructor.getRoute('dashboard').url());
   }
 
   return next();
