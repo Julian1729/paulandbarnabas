@@ -5,9 +5,8 @@ append stylesheets
   link(rel="stylesheet" href=constants.base_url + '/css/src/vendor/jquery.timepicker.css')
 
 append content
-  - var breadcrumbActive = 'block_overview'
-  include ../inc/TerritoryBreadcrumb
   
+  //- Modals
   .bootstrap-modals
     include ../inc/BootstrapModals.pug
     
@@ -30,7 +29,8 @@ append content
             button.btn.btn-secondary(data-dismiss="modal") close
             button.btn.btn-primary#mark-block-worked-submit(role="button") mark worked
         
-  .container.text-center
+  .container.text-center.mw720
+    include ../inc/TerritoryBreadcrumb
     h2 #{block.hundred} #{block.street}
     h5= block.side
     button.nav-item.dropdown.btn.btn-secondary.btn-sm(data-toggle='modal' data-target="#mark-worked-modal") mark worked
@@ -52,7 +52,7 @@ append content
         
       small.d-block.my-2.text-center No tags
         
-  .container.pb-5 
+  
     ul.list-group
       //- Not DRY, needs to be optimized...classes are repeated twice
       each unit in units

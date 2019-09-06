@@ -1,7 +1,7 @@
 extends ../ProtoBase
 
 append content
-  .container
+  .container.mw720
     h3 Fragment ##{fragment_number}
     .row.text-center
       include ../inc/TerritoryBreadcrumb
@@ -9,7 +9,7 @@ append content
     .row.my-2
       each props, street in streets
         .col-sm
-          .card
+          .card.fragment
             .card-header= street
             ul.list-group.list-group-flush
               each v, i in props.blocks

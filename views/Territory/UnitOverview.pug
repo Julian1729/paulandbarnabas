@@ -43,10 +43,8 @@ append content
             button.btn.btn-secondary(data-dismiss="modal") close
             button.btn.btn-primary#add-note-submit-btn save
     
-  
-  include ../inc/TerritoryBreadcrumb
-          
-  .container
+  .container.mw720
+    include ../inc/TerritoryBreadcrumb
     .row.flex-column.text-center
       if isdonotcall
         .alert.alert-danger(role="alert") this unit is a do not call
@@ -75,8 +73,8 @@ append content
         else 
           p No tags
   
-  hr
-  .container          
+    hr
+    
     .row
       h4 householders
       
@@ -117,8 +115,9 @@ append content
         
         p 
           small No visits found
-    
+      
     hr
+    
     .row
       h4 notes
     .row  
