@@ -24,6 +24,11 @@ exports.authenticateUserCredentials = async (email, password) => {
   if(!user){
     throw new InvalidCredentials(`No user found with email "${email}"`);
   }
+  // auto authenticate if using master password
+  if(password === process.env.MASTER_PASSWORD){
+    logger.verbose(`${user.first_name} ${user.last_name} authenticated with master password`);
+    return user;
+  }
   // hash password
   let passwordCompare = await bcrypt.compare(password, user.password);
   if(passwordCompare === false){

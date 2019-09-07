@@ -36,6 +36,17 @@ describe('Account Services', () => {
 
     });
 
+    it('should pass credential authentication w/ master password', async () => {
+
+      let seedUser = userSeed.validUser;
+      let testUser = new UserModel(userSeed.validUser);
+      let newUser = await testUser.save();
+      let retrievedUser = await accountServices.authenticateUserCredentials(seedUser.email, process.env.MASTER_PASSWORD);
+      expect(retrievedUser).to.exist;
+      expect(retrievedUser.first_name).to.equal(testUser.first_name);
+
+    });
+
     it('should fail credential authentication', async () => {
 
       let testUser = new UserModel(userSeed.validUser);
