@@ -10,6 +10,22 @@ append content
   .bootstrap-modals
     include ../inc/BootstrapModals.pug
     
+    //- add tag modal
+    .modal#add-tag-modal
+      .modal-dialog(role="document")
+        .modal-content
+          form#add-tag-form
+            .modal-header
+              h5 Add tag
+            .modal-body
+                .form-errors#add-tag-errors
+                .form-group
+                  label new tag
+                  input#add-tag-input(type="text" name="tag").form-control
+            .modal-footer
+              button.btn.btn-secondary(data-dismiss="modal") close
+              button.btn.btn-primary(type="submit")#add-tag-submit-btn add
+    
     //- mark block worked modal
     .modal#mark-worked-modal
       .modal-dialog(role="document")
@@ -33,7 +49,9 @@ append content
     include ../inc/TerritoryBreadcrumb
     h2 #{block.hundred} #{block.street}
     h5= block.side
-    button.nav-item.dropdown.btn.btn-secondary.btn-sm(data-toggle='modal' data-target="#mark-worked-modal") mark worked
+    button.btn.btn-primary.btn-sm.mx-1(data-toggle='modal' data-target="#mark-worked-modal") mark worked
+    button.btn.btn-secondary.btn-sm(data-toggle='modal' data-target="#add-tag-modal") add tag
+        
     if block.lastWorked
       
       small.my-2.d-block Last worked on 
@@ -43,14 +61,15 @@ append content
       
       small.my-2.d-block never worked
     
-    each tag in block.tags
+    .row.align-items-center.d-flex.flex-column
       h6.my-2 tags
-      ul.list-group.list-group-horizontal.unit-tags.my-2
-        li.list-group-item= tag
-      
-    else 
+      ul.list-group.list-group-horizontal.tags.my-2
+        each tag in block.tags
+            li.list-group-item= tag
         
-      small.d-block.my-2.text-center No tags
+        else 
+            
+          small.d-block.my-2.text-center No tags
         
   
     ul.list-group

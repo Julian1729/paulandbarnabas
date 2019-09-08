@@ -31,9 +31,13 @@ PBURLConstructor.addRoute('create-fragment', '/admin-panel/create-fragment');
 PBURLConstructor.addRoute('manage-publishers', '/admin-panel/manage-publishers');
 
 /**
- * Ajax Unit endpoints
+ * Ajax Territory
  */
 let ajaxTerritoryBase = `/ajax/territory`
+
+/**
+ * Ajax Unit endpoints
+ */
 let ajaxUnitBase = `${ajaxTerritoryBase}/street/:street_name/hundred/:hundred/unit/:unit_number`;
 // Tags
 PBURLConstructor.addRoute('add-tag', `${ajaxUnitBase}/tag/add`);
@@ -66,6 +70,8 @@ PBURLConstructor.addRoute('congregation-registration', '/ajax/account/register/c
 /**
  * Ajax Territory Enpoints
  */
+let ajaxBlockBase = `${ajaxTerritoryBase}/street/:street_name/hundred/:hundred/:side`;
+PBURLConstructor.addRoute('block:add-tag', `${ajaxBlockBase}/tag/add`);
 PBURLConstructor.addRoute('save-territory', `${ajaxTerritoryBase}/save-territory`);
 PBURLConstructor.addRoute('save-fragment', `${ajaxTerritoryBase}/save-fragment`);
 PBURLConstructor.addRoute('list-streets', `${ajaxTerritoryBase}/list/streets`);

@@ -125,7 +125,9 @@ exports.blockOverview = (req, res) => {
   let renderVars = {
     localize: {
       endpoints: {
-        mark_block_worked: PBURLConstructor.getRoute('mark-block-worked').url({street_name: block.street, hundred: block.hundred, side: block.odd_even})
+        mark_block_worked: PBURLConstructor.getRoute('mark-block-worked').url({street_name: block.street, hundred: block.hundred, side: block.odd_even}),
+        // OPTIMIZE: including 'TAGHERE' and replacing on front end is hacky
+        add_tag: PBURLConstructor.getRoute('block:add-tag').url({street_name: block.street, hundred: block.hundred, side: block.odd_even}, {tag: 'TAGHERE'}),
       }
     },
     block: {

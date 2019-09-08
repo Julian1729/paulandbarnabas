@@ -1,24 +1,35 @@
 /**
  * Block Overview Page
  */
-var moment = require('moment');
-var timepicker = require('timepicker');
-var form2js = require('../../vendor/form2js');
+const _ = require('lodash');
+const moment = require('moment');
+const timepicker = require('timepicker');
+const form2js = require('../../vendor/form2js');
 
-var $ = require('../../jquery/jquery');
-var reloadPage = require('../../utils').reloadPage;
-var error_modals = require('../modules/generic_modals');
+const $ = require('../../jquery/jquery');
+const reloadPage = require('../../utils').reloadPage;
+const error_modals = require('../modules/generic_modals');
 
-var w$ = window.jQuery;
+const w$ = window.jQuery;
+
+const DOM_CACHE = {
+  modals: {
+    error: w$('#bootstrap-error-modal'),
+  },
+};
 
 /**
 * Activate "mark block as worked"
 * time and date picker in modal
 */
-(function(){
+(() => {
 
-  var $timepickerInput = $('#block-worked-time-picker');
-  var $datePickerInput = $('#block-worked-date-picker');
+  let dateFormatter = (date) => {
+    return moment(date.getTime()).format('MMMM Do, YYYY');
+  };
+
+  let $timepickerInput = $('#block-worked-time-picker');
+  let $datePickerInput = $('#block-worked-date-picker');
 
   $timepickerInput.timepicker({ scrollDefault: 'now' , timeFormat: 'h:i A'});
 
@@ -26,7 +37,7 @@ var w$ = window.jQuery;
     startDate: new Date(),
     formatter: function(el, date, instance){
       // format date Saturday March 26, 2019
-      var formattedDate = dateFormatter(date);
+      let formattedDate = dateFormatter(date);
       el.value = formattedDate;
     }
   });
@@ -34,31 +45,74 @@ var w$ = window.jQuery;
   // set default date value on datepicker
   $datePickerInput.val(dateFormatter(new Date()));
 
-  function dateFormatter(date){
-    return moment(date.getTime()).format('MMMM Do, YYYY');
-  }
-
-}());
+})();
 
 /**
  * Mark block as worked form submission
  */
-(function(){
+(() => {
 
-  var $submitBtn = $('#mark-block-worked-submit');
+  let $submitBtn = $('#mark-block-worked-submit');
 
-  $submitBtn.on('click', submit);
-
-  function submit(e){
+  let submit = (e) => {
     e.preventDefault();
-    var formData = form2js('mark-block-worked-form');
-    var timestamp = moment(formData.date + (formData.time ? ' ' + formData.time : ''), 'MMMM Do, YYYY h:mm A' ).valueOf();
+    let formData = form2js('mark-block-worked-form');
+    let timestamp = moment(formData.date + (formData.time ? ' ' + formData.time : ''), 'MMMM Do, YYYY h:mm A' ).valueOf();
     $.ajax({
       url: localized.endpoints.mark_block_worked,
       method: 'post',
       success: reloadPage,
       error: error_modals.request_error_modal.show,
     });
-  }
+  };
 
-}());
+  $submitBtn.on('click', submit);
+
+})();
+
+/**
+ * Add tag submission
+ */
+(() => {
+
+  let form = $('#add-tag-form');
+
+  let submit = (e) => {
+
+    e.preventDefault();
+
+    let $input = $('#add-tag-input')
+    let newTag = $input.val();
+    let $errorContainer = $('#add-tag-errors');
+
+    // clear out errors
+    $errorContainer.html('');
+
+    if(_.isEmpty(newTag)){
+      return $errorContainer.append('<div class="alert alert-danger" role="alert">Please enter a valid tag</div>');
+    }
+
+    // WARNING: this is very hacky. the url passed in from the
+    // backend has "TAGHERE" hardcoded in as a query param, the now
+    // known tag can then replace that string, while having the url
+    // accurately constructed in the backend.
+    let endpoint = localized.endpoints.add_tag.replace(/TAGHERE/, newTag);
+    // send ajax request
+    $.ajax({
+      url: endpoint,
+      type: 'POST',
+    })
+    .done(function(r){
+      $input.val('');
+      // FIXME: bad UX, should close modal and add to to list w js
+      reloadPage();
+    })
+    .fail(function(){
+      DOM_CACHE.modals.error.modal('show');
+    });
+
+  };
+
+  form.on('submit', submit);
+
+})();

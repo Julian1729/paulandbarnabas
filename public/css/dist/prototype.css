@@ -11,9 +11,9 @@ html {
 /**
  * Unit Overview page
  * */
-ul.unit-tags {
+ul.tags {
   font-size: 0.8em; }
-  ul.unit-tags li {
+  ul.tags li {
     padding: 10px !important; }
 
 /**
