@@ -28003,19 +28003,20 @@ return jQuery;
 },{}],4:[function(require,module,exports){
 /**
  * Territory - Unit Overview Page
+ * es6
  */
 
-var $ = require('jquery');
-var _ = require('lodash');
-var utils = require('../../utils');
-var EventEmitter = require('events').EventEmitter;
+const $ = require('jquery');
+const _ = require('lodash');
+const {reloadPage} = require('../../utils');
+const {EventEmitter} = require('events');
 
-var w$ = window.jQuery; // front end jquery
+const w$ = window.jQuery; // front end jquery
 
 /**
  * Cached DOM Elements
  */
-var DOM_CACHE = {
+const DOM_CACHE = {
   options: {
     add_tag: $('#option-tag-add'),
     add_note: $('#option-note-add'),
@@ -28046,10 +28047,10 @@ function showErrorModal(){
 
 
 // unit options event emitter
-var UnitOptionEvents = new EventEmitter();
+let UnitOptionEvents = new EventEmitter();
 
 // Bind events to unit buttons
-for (var option in DOM_CACHE.options) {
+for (let option in DOM_CACHE.options) {
   if (DOM_CACHE.options.hasOwnProperty(option)) {
     DOM_CACHE.options[option].on('click', function(){
       // emit select
@@ -28066,17 +28067,22 @@ for (var option in DOM_CACHE.options) {
 // });
 
 // Bind tag:add on form submit
-DOM_CACHE.forms.add_tag.on('submit', function(e){
+DOM_CACHE.modals.buttons.submit_tag.on('click', function(){
 
-  e.preventDefault();
+  let $btn = $(this);
+  $btn.attr('disabled', true);
   UnitOptionEvents.emit('tag:add');
+  $btn.removeAtr('disabled');
 
 });
 
 // Bind tag:add event to add tag button on modal
 DOM_CACHE.modals.buttons.submit_note.on('click', function(){
 
+  let $btn = $(this);
+  $btn.attr('disabled', true);
   UnitOptionEvents.emit('note:add');
+  $btn.removeAtr('disabled');
 
 });
 
@@ -28130,9 +28136,10 @@ UnitOptionEvents.on('tag:modal:hide', function(){
 // Add tag event
 UnitOptionEvents.on('tag:add', function(tag){
 
-  var $input = $('#add-tag-input')
-  var newTag = $input.val();
-  var $errorContainer = $('#add-tag-errors');
+  // disable button
+  let $input = $('#add-tag-input')
+  let newTag = $input.val();
+  let $errorContainer = $('#add-tag-errors');
 
   // clear out errors
   $errorContainer.html('');
@@ -28145,7 +28152,7 @@ UnitOptionEvents.on('tag:add', function(tag){
   // backend has "TAGHERE" hardcoded in as a query param, the now
   // known tag can then replace that string, while having the url
   // accurately constructed in the backend.
-  var endpoint = unitOptions.tags.add.endpoint.replace(/TAGHERE/, newTag);
+  let endpoint = unitOptions.tags.add.endpoint.replace(/TAGHERE/, newTag);
   // send ajax request
   $.ajax({
     url: endpoint,
@@ -28154,7 +28161,7 @@ UnitOptionEvents.on('tag:add', function(tag){
   .done(function(r){
     $input.val('');
     // FIXME: bad UX, should close modal and add to to list w js
-    utils.reloadPage();
+    reloadPage();
   })
   .fail(function(){
     UnitOptionEvents.emit('tag:modal:hide');
@@ -28177,11 +28184,11 @@ UnitOptionEvents.on('note:modal:hide', function(){
 
 UnitOptionEvents.on('note:add', function(){
 
-  var $noteInput = $('#add-note-input');
-  var $byInput = $('#add-note-by');
-  var $errorContainer = $('#add-note-errors');
-  var note = $noteInput.val();
-  var by = $byInput.val();
+  let $noteInput = $('#add-note-input');
+  let $byInput = $('#add-note-by');
+  let $errorContainer = $('#add-note-errors');
+  let note = $noteInput.val();
+  let by = $byInput.val();
 
   if(_.isEmpty(note)){
     $errorContainer.append('<div class="alert alert-danger" role="alert">Please enter a valid note</div>');
@@ -28192,7 +28199,7 @@ UnitOptionEvents.on('note:add', function(){
   if(_.isEmpty(note) || _.isEmpty(by) ) return;
 
   // construct request body to convert to JSON
-  var body = {
+  let body = {
     note: {
       note: note,
       by: by,
@@ -28209,7 +28216,7 @@ UnitOptionEvents.on('note:add', function(){
   .done(function(){
     $noteInput.val('');
     $byInput.val('');
-    utils.reloadPage();
+    reloadPage();
   })
   .fail(function(){
     UnitOptionEvents.emit('note:modal:hide');
@@ -28224,7 +28231,7 @@ UnitOptionEvents.on('dnc:mark', function(){
     url: unitOptions.dnc.mark.endpoint,
     type: 'POST',
   })
-  .done(utils.reloadPage)
+  .done(reloadPage)
   .fail(showErrorModal);
 
 });
@@ -28235,7 +28242,7 @@ UnitOptionEvents.on('dnc:unmark', function(){
     url: unitOptions.dnc.unmark.endpoint,
     type: 'POST',
   })
-  .done(utils.reloadPage)
+  .done(reloadPage)
   .fail(showErrorModal);
 
 });
@@ -28246,7 +28253,7 @@ UnitOptionEvents.on('calledon:mark', function(){
     url: unitOptions.calledon.mark.endpoint,
     type: 'POST',
   })
-  .done(utils.reloadPage)
+  .done(reloadPage)
   .fail(showErrorModal);
 
 });
@@ -28257,7 +28264,7 @@ UnitOptionEvents.on('calledon:unmark', function(){
     url: unitOptions.calledon.unmark.endpoint,
     type: 'POST',
   })
-  .done(utils.reloadPage)
+  .done(reloadPage)
   .fail(showErrorModal);
 
 });
@@ -28265,9 +28272,9 @@ UnitOptionEvents.on('calledon:unmark', function(){
 // set note input to predefined text and open modal
 UnitOptionEvents.on('quicknote', function(type){
 
-  var $noteInput = $('#add-note-input');
+  let $noteInput = $('#add-note-input');
 
-  var quicknotes = {
+  let quicknotes = {
     ni: 'Householder stated that they were not interested.',
     busy: 'Householder was busy, but was not opposed to a visit at another time.',
   };

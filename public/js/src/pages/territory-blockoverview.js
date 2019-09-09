@@ -56,6 +56,7 @@ const DOM_CACHE = {
 
   let submit = (e) => {
     e.preventDefault();
+    $submitBtn.attr('disabled', true);
     let formData = form2js('mark-block-worked-form');
     let timestamp = moment(formData.date + (formData.time ? ' ' + formData.time : ''), 'MMMM Do, YYYY h:mm A' ).valueOf();
     $.ajax({
@@ -75,11 +76,12 @@ const DOM_CACHE = {
  */
 (() => {
 
-  let form = $('#add-tag-form');
+  let $submitBtn = $('#add-tag-submit-btn');
 
   let submit = (e) => {
 
     e.preventDefault();
+    $submitBtn.attr('disabled', true);
 
     let $input = $('#add-tag-input')
     let newTag = $input.val();
@@ -113,6 +115,6 @@ const DOM_CACHE = {
 
   };
 
-  form.on('submit', submit);
+  $submitBtn.on('click', submit);
 
 })();

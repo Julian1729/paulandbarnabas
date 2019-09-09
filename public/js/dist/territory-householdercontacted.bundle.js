@@ -33882,6 +33882,8 @@ HouseholderEvents.on('add', function(){
     contentType: "application/json"
   })
   .done(function(res){
+    //re enable save button
+    DOM_CACHE.new_householder.save_button.removeAttr('disabled');
     if(res.error.type && !res.data.householder){
       if(res.error.type === 'VALIDATION_ERROR'){
         return bootstrapValidationHandler('new-householder-form-errors', res.error.validationErrors);
@@ -33894,6 +33896,8 @@ HouseholderEvents.on('add', function(){
     HouseholderEvents.emit('modal:hide');
   })
   .fail(function(){
+    //re enable save button
+    DOM_CACHE.new_householder.save_button.removeAttr('disabled');
     HouseholderEvent.emit('modal:hide');
     DOM_CACHE.$errorModal.modal('show');
   });
@@ -33910,6 +33914,7 @@ DOM_CACHE.new_householder.button.on('click', function(){
 // bind save even to save button
 DOM_CACHE.new_householder.save_button.on('click', function() {
 
+  $(this).attr('disabled', true);
   HouseholderEvents.emit('add');
 
 });
@@ -33932,6 +33937,7 @@ VisitEvents.on('add', function(){
     contentType: 'application/json',
   })
   .done(function(res){
+    DOM_CACHE.$visit_form_submit_button.removeAttr('disabled');
     // init and show success modal and send to unit overview page
     if(res.error.type){
       if(res.error.type === 'VALIDATION_ERROR'){
@@ -33955,7 +33961,7 @@ VisitEvents.on('add', function(){
 
 // bind add event to submit button
 DOM_CACHE.$visit_form_submit_button.on('click', function(){
-  // console.log( form2js(DOM_CACHE.$visit_form[0]) );
+  $(this).attr('disabled', true);
   VisitEvents.emit('add');
 })
 
