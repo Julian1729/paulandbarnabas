@@ -48,31 +48,27 @@ exports.addVisit = async (req, res) => {
 /**
  * Delete a visit record from a unit
  * Expecting in query: visit id
- * // FIXME: refactor
  */
-// exports.removeVisit = (req, res) => {
-//
-//   let visitId = req.query.id || null;
-//
-//   if(!visitId){
-//     return res.status(HttpStatus.NOT_ACCEPTABLE).send();
-//   }
-//
-//   let territory = req.app.locals.territory;
-//   let unit = territory.current.subunit || territory.current.unit;
-//
-//   unit.removeVisit(visitId)
-//
-//   territory.territory.save()
-//     .then(t => {
-//       return res.send();
-//     })
-//     .catch(e => {
-//       console.log(e.stack);
-//       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-//     })
-//
-// };
+exports.removeVisit = async (req, res) => {
+
+  let ajaxRes = new AjaxResponse(res);
+
+  let visitId = req.query.id || null;
+
+  if(!visitId){
+    return res.status(HttpStatus.NOT_ACCEPTABLE).send();
+  }
+
+  let territory = res.locals.territory;
+  let unit = res.locals.collected.subunit || res.locals.collected.unit;
+
+  let removedVisit = await territoryServices.removeVisit(territory, unit, visitId);
+
+  ajaxRes.data('visit', removedVisit);
+
+  return ajaxRes.send();
+
+};
 
 /**
  * Add subunits to unit

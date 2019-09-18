@@ -215,7 +215,7 @@ exports.markBlockWorked = async (territoryDoc, block, time) => {
 
 exports.visitUnit = async (territoryDoc, visitable, visitInfo) => {
 
-  if(typeof visitable.addTag !== 'function'){
+  if(typeof visitable.addVisit !== 'function'){
     throw new TypeError('territoryServices.visitUnit expects second parameter to be a unit or subunit mongoose document');
   }
 
@@ -224,6 +224,20 @@ exports.visitUnit = async (territoryDoc, visitable, visitInfo) => {
   await territoryDoc.save();
 
   return visit;
+
+};
+
+exports.removeVisit = async (territoryDoc, visitable, visitId) => {
+
+  if(typeof visitable.removeVisit !== 'function'){
+    throw new TypeError('territoryServices.visitUnit expects second parameter to be a unit or subunit mongoose document');
+  }
+
+  let removedVisit = visitable.removeVisit(visitId);
+
+  await territoryDoc.save();
+
+  return removedVisit;
 
 };
 

@@ -28008,8 +28008,8 @@ return jQuery;
 
 const $ = require('jquery');
 const _ = require('lodash');
-const {reloadPage} = require('../../utils');
 const {EventEmitter} = require('events');
+const {reloadPage} = require('../../utils');
 
 const w$ = window.jQuery; // front end jquery
 

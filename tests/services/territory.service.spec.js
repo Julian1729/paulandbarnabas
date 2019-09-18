@@ -365,6 +365,51 @@ describe('Territory Service', () => {
 
   });
 
+  describe('removeVisit', () => {
+
+    let seedUnit = null;
+    let seedVisit = null;
+    beforeEach(() => {
+
+      let seedStreet = seedTerritory.addStreet('Oakland');
+      let seedHundred = seedStreet.addHundred(4500);
+      seedHundred.addUnits([{number: 4504}, {number: 4502}]);
+      seedUnit = seedHundred.findUnit(4502);
+
+      // seed visit
+      seedVisit = seedUnit.addVisit({
+          householders_contacted: ['Michael', 'Dwight'],
+          contacted_by: 'Jan Levenson Gould',
+          details: 'Dwight is preparing Michael for Jans baby',
+          publisher: 'Julian',
+          timestamp: new Date().getTime(),
+      });
+
+    });
+
+    it('should remove visit', async () => {
+
+      expect(seedUnit.visits).to.have.lengthOf(1);
+
+      let removedVisit = await territoryServices.removeVisit(seedTerritory, seedUnit, seedVisit.id);
+      expect(removedVisit).to.exist;
+
+      let s = seedTerritory.findStreet('Oakland');
+      let h = s.findHundred(4500);
+      let u = h.findUnit(4502);
+      expect(u.visits).to.have.lengthOf(0);
+
+      // assure updates are persisting by reloading territory
+      let updatedTerritory = await TerritoryModel.findById(seedTerritory.id);
+      let newStreet = seedTerritory.findStreet('Oakland');
+      let newHundred = s.findHundred(4500);
+      let newUnit = h.findUnit(4502);
+      expect(u.visits).to.have.lengthOf(0);
+
+    });
+
+  });
+
   describe('addUnitHouseholder', () => {
 
     it('should add householder to unit', async () => {

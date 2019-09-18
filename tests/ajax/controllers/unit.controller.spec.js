@@ -51,7 +51,6 @@ describe('AJAX Territory > Unit Controllers', () => {
       let req = mockRequest({body: {
         visit: {
           householders_contacted: ['Michael', 'Dwight'],
-          contacted_by: 'Jan Levenson Gould',
           details: 'Dwight is preparing Michael for Jans baby',
           publisher: 'Julian',
           date: 'August 21st, 2019',
@@ -73,7 +72,7 @@ describe('AJAX Territory > Unit Controllers', () => {
       expect(territoryServices.visitUnit.getCall(0).args[2]).to.not.have.property('date');
       expect(territoryServices.visitUnit.getCall(0).args[2]).to.not.have.property('time');
       expect(seedUnit.visits).to.have.lengthOf(1);
-      expect(seedUnit.visits[0].contacted_by).to.eql('Jan Levenson Gould');
+      expect(seedUnit.visits[0].contacted_by).to.eql('Julian');
 
       AjaxResponse.prototype.error.restore();
 
@@ -130,6 +129,45 @@ describe('AJAX Territory > Unit Controllers', () => {
 
       AjaxResponse.prototype.error.restore();
       AjaxResponse.prototype.send.restore();
+    });
+
+  });
+
+  describe('removeVisit', () => {
+
+    let seedVisit = null;
+    beforeEach(() => {
+
+      // add seed visit to seed unit
+      seedVisit = seedUnit.addVisit({
+        householders_contacted: ['Michael', 'Dwight'],
+        contacted_by: 'Jan Levenson Gould',
+        details: 'Dwight is preparing Michael for Jans baby',
+        publisher: 'Julian',
+        timestamp: new Date().getTime(),
+      });
+
+    });
+
+    it('should remove visit on unit', async () => {
+
+      let res = mockResponse({locals: {territory: seedTerritory, collected: {street: seedStreet, hundred: seedHundred, unit: seedUnit}}});
+      let req = mockRequest({query: {
+        id: seedVisit.id.toString(),
+      }});
+
+      sinon.spy(AjaxResponse.prototype, 'data');
+      sinon.spy(AjaxResponse.prototype, 'send');
+
+      await unitController.removeVisit(req, res);
+
+      expect(res.status).to.not.have.been.calledWith(HttpStatus.NOT_ACCEPTABLE);
+      expect(AjaxResponse.prototype.send).to.have.been.calledOnce;
+      expect(AjaxResponse.prototype.data).to.have.been.calledOnceWith('visit');
+
+      AjaxResponse.prototype.data.restore();
+      AjaxResponse.prototype.send.restore();
+
     });
 
   });

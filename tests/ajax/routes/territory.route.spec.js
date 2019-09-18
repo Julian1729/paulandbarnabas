@@ -469,58 +469,95 @@ let seedTerritory = null;
 
     describe('/visit', () => {
 
-      it('should add visit to unit', (done) => {
+      describe('/add', () => {
 
-        authenticatedSession
-          .post('/ajax/territory/street/Oakland/hundred/4400/unit/4402/visit/add')
-          .send({
-            visit: {
-              contacted_by: 'Julian Hernandez',
-              householders_contacted: ['Cosmo Kramer', 'Jerry Seinfeld'],
-              details: 'Kramer convinced Jerry to get illegal cable service',
-            }
-          })
-          .expect(200)
-          .end((err, res) => {
-            if(err) throw err;
-            expect(res.body.data).to.have.property('visit');
-            expect(res.body.data.visit.contacted_by).to.eql('Julian Hernandez');
-            // find unit again
-            refreshSeedTerritory()
-              .then(() => {
-                expect(seedTerritory.findStreet('Oakland').findHundred(4400).findUnit(4402).visits).to.have.lengthOf(1);
-                return done();
-              })
-              .catch(e => {throw e});
-          });
+        it('should add visit to unit', (done) => {
+
+          authenticatedSession
+            .post('/ajax/territory/street/Oakland/hundred/4400/unit/4402/visit/add')
+            .send({
+              visit: {
+                contacted_by: 'Julian Hernandez',
+                householders_contacted: ['Cosmo Kramer', 'Jerry Seinfeld'],
+                details: 'Kramer convinced Jerry to get illegal cable service',
+              }
+            })
+            .expect(200)
+            .end((err, res) => {
+              if(err) throw err;
+              expect(res.body.data).to.have.property('visit');
+              expect(res.body.data.visit.contacted_by).to.eql('Julian Hernandez');
+              // find unit again
+              refreshSeedTerritory()
+                .then(() => {
+                  expect(seedTerritory.findStreet('Oakland').findHundred(4400).findUnit(4402).visits).to.have.lengthOf(1);
+                  return done();
+                })
+                .catch(e => {throw e});
+            });
+
+        });
+
+        it('should add visit to subunit', (done) => {
+
+          authenticatedSession
+            .post('/ajax/territory/street/Oakland/hundred/4400/unit/4402/visit/add?subunit=Apt+1')
+            .send({
+              visit: {
+                contacted_by: 'Julian Hernandez',
+                householders_contacted: ['Cosmo Kramer', 'Jerry Seinfeld'],
+                details: 'Kramer convinced Jerry to get illegal cable service',
+              }
+            })
+            .expect(200)
+            .end((err, res) => {
+              if(err) throw err;
+              expect(res.body.data).to.have.property('visit');
+              expect(res.body.data.visit.contacted_by).to.eql('Julian Hernandez');
+              // find unit again
+              refreshSeedTerritory()
+                .then(() => {
+                  expect(seedTerritory.findStreet('Oakland').findHundred(4400).findUnit(4402).visits).to.have.lengthOf(0);
+                  expect(seedTerritory.findStreet('Oakland').findHundred(4400).findUnit(4402).findSubunit('Apt 1').visits).to.have.lengthOf(1);
+                  return done();
+                })
+                .catch(e => {throw e});
+            });
+
+        });
 
       });
 
-      it('should add visit to subunit', (done) => {
+      describe('/remove', () => {
 
-        authenticatedSession
-          .post('/ajax/territory/street/Oakland/hundred/4400/unit/4402/visit/add?subunit=Apt+1')
-          .send({
-            visit: {
-              contacted_by: 'Julian Hernandez',
-              householders_contacted: ['Cosmo Kramer', 'Jerry Seinfeld'],
-              details: 'Kramer convinced Jerry to get illegal cable service',
-            }
-          })
-          .expect(200)
-          .end((err, res) => {
-            if(err) throw err;
-            expect(res.body.data).to.have.property('visit');
-            expect(res.body.data.visit.contacted_by).to.eql('Julian Hernandez');
-            // find unit again
-            refreshSeedTerritory()
-              .then(() => {
-                expect(seedTerritory.findStreet('Oakland').findHundred(4400).findUnit(4402).visits).to.have.lengthOf(0);
-                expect(seedTerritory.findStreet('Oakland').findHundred(4400).findUnit(4402).findSubunit('Apt 1').visits).to.have.lengthOf(1);
-                return done();
-              })
-              .catch(e => {throw e});
+        it('should remove visit from unit', async () => {
+
+          let seedVisit = seedUnit.addVisit({
+            householders_contacted: ['Michael', 'Dwight'],
+            contacted_by: 'Jan Levenson Gould',
+            details: 'Dwight is preparing Michael for Jans baby',
+            timestamp: new Date().getTime(),
           });
+
+          await seedTerritory.save();
+
+          await authenticatedSession
+            .post(`/ajax/territory/street/Oakland/hundred/4400/unit/4402/visit/remove?id=${seedVisit.id.toString()}`)
+            .expect(200)
+            .expect(res => {
+              expect(res.body.data).to.have.property('visit');
+              expect(res.body.data.visit.contacted_by).to.eql('Jan Levenson Gould');
+              // find unit again
+              refreshSeedTerritory()
+                .then(() => {
+                  expect(seedTerritory.findStreet('Oakland').findHundred(4400).findUnit(4402).visits).to.have.lengthOf(0);
+                })
+                .catch(e => {
+                  throw e;
+                });
+            });
+
+        });
 
       });
 

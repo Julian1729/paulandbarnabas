@@ -11,9 +11,7 @@ const {unitController} = require(`${appRoot}/ajax/controllers/territory`);
 
 // Visits
 router.post('/visit/add', unitController.addVisit);
-router.post('/visit/remove', () => {
-  res.send('/visit/remove NOT YET IMPLEMENTED');
-});
+router.post('/visit/remove', unitController.removeVisit);
 
 // Subunits
 // FIXME: implement controller when refactored
