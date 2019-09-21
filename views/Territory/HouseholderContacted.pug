@@ -38,13 +38,9 @@ append content
             button.btn.btn-primary#save-new-householder save
           
   .container.mw720
-    if visit
     
-      form#add-visit-form(data-visit-id=visit._id)
+      form#add-visit-form(data-visit-id=visit ? visit._id : '')
     
-    else
-      
-      form#add-visit-form
       //- store visit id here in hidden input
       
       #visit-form-errors
