@@ -21,10 +21,10 @@ append content
           small #{dashboard_stats.fragment_count} Fragments | #{dashboard_stats.unit_count} Units
         
     
-    .row.mt-md-2
+    .row.mt-md-2.pb-3
       each val in fragments 
         .col-sm
-          .card
+          .card.my-2
             .card-header 
               h5 Fragment ##{val.number}
               p.card-text.text-muted 
@@ -38,7 +38,7 @@ append content
         
         .container
           .row.text-center
-            small No assigned fragments
+            small Your admin has not yet assigned you any fragments 
 
 
   
