@@ -1,21 +1,22 @@
 /**
  * Territory - Householder Contacted
+ * es6
  */
-var moment = require('moment');
-var EventEmitter = require('events').EventEmitter;
-var form2js = require('../../vendor/form2js');
-var timepicker = require('timepicker');
+const moment = require('moment');
+const EventEmitter = require('events').EventEmitter;
+const {form2js, js2form} = require('form2js');
+const timepicker = require('timepicker');
 
 // global version of jquery with bootstrap plugin enabled
-var w$ = window.jQuery;
+const w$ = window.jQuery;
 
-var $ = require('../../jquery/jquery');
-var bootstrapValidationHandler = require('../modules/bootstrap-form-error-handler');
+const $ = require('../../jquery/jquery');
+const bootstrapValidationHandler = require('../modules/bootstrap-form-error-handler');
 
 /**
  * Cached DOM elements
  */
-var DOM_CACHE = {
+const DOM_CACHE = {
   $errorModal: w$('#bootstrap-error-modal'),
   $visit_form: $('#add-visit-form'),
   $visit_form_submit_button: $('#visit-form-submit'),
@@ -33,15 +34,30 @@ var DOM_CACHE = {
 };
 
 /**
+ * Populate form if editing visit
+ */
+if(localized.visit){
+  js2form(DOM_CACHE.$visit_form[0], {visit: localized.visit});
+  // add active class to labels that are checked
+  $('input[type=checkbox]').each(function() {
+    $this = $(this);
+    if( $this.prop('checked') === true ){
+      // find closest label
+      $this.closest('label.btn').addClass('active');
+    }
+  });
+}
+
+/**
  * Activate time and date picker
  */
 DOM_CACHE.$timepicker.timepicker({ 'scrollDefault': 'now' , 'timeFormat': 'h:i A'});
 
 datepicker('#visit-date-picker', {
   startDate: new Date(),
-  formatter: function(el, date, instance){
+  formatter: (el, date, instance) => {
     // format date Saturday March 26, 2019
-    var formattedDate = moment(date.getTime()).format('MMMM Do, YYYY');
+    let formattedDate = moment(date.getTime()).format('MMMM Do, YYYY');
     el.value = formattedDate;
   }
 });
@@ -49,33 +65,33 @@ datepicker('#visit-date-picker', {
 /**
  * Define Householder events
  */
-var HouseholderEvents = new EventEmitter();
+let HouseholderEvents = new EventEmitter();
 
 // show "new householder" modal event
-HouseholderEvents.on('modal:show', function(){
+HouseholderEvents.on('modal:show', () => {
 
   DOM_CACHE.new_householder.modal.modal('show');
 
 });
 
 // hide "new householder" modal event
-HouseholderEvents.on('modal:hide', function(){
+HouseholderEvents.on('modal:hide', () => {
 
   DOM_CACHE.new_householder.modal.modal('hide');
 
 });
 
-HouseholderEvents.on('updateList', function(householder){
+HouseholderEvents.on('updateList', householder => {
 
-  var html = '<label class="btn btn-secondary m-1 active" for="' + householder._id.toString() + '">' + householder.name + '<input type="checkbox" checked="checked" value="' + householder.name + '" name="visit.householders_contacted[]"/></label>';
+  let html = '<label class="btn btn-secondary m-1 active" for="' + householder._id.toString() + '">' + householder.name + '<input type="checkbox" checked="checked" value="' + householder.name + '" name="visit.householders_contacted[]"/></label>';
   DOM_CACHE.$householder_options.append(html);
 
 });
 
-HouseholderEvents.on('add', function(){
+HouseholderEvents.on('add', () => {
 
   // get form data
-  var formData = form2js(DOM_CACHE.new_householder.form[0]);
+  let formData = form2js(DOM_CACHE.new_householder.form[0]);
   // send data
   $.ajax({
     url: window.ajax_add_householder_url,
@@ -83,7 +99,7 @@ HouseholderEvents.on('add', function(){
     data: JSON.stringify( formData ),
     contentType: "application/json"
   })
-  .done(function(res){
+  .done(res => {
     //re enable save button
     DOM_CACHE.new_householder.save_button.removeAttr('disabled');
     if(res.error.type && !res.data.householder){
@@ -97,7 +113,7 @@ HouseholderEvents.on('add', function(){
     HouseholderEvents.emit('updateList', res.data.householder);
     HouseholderEvents.emit('modal:hide');
   })
-  .fail(function(){
+  .fail(() => {
     //re enable save button
     DOM_CACHE.new_householder.save_button.removeAttr('disabled');
     HouseholderEvent.emit('modal:hide');
@@ -107,14 +123,14 @@ HouseholderEvents.on('add', function(){
 });
 
 // bind show modal event to "new householder" button
-DOM_CACHE.new_householder.button.on('click', function(){
+DOM_CACHE.new_householder.button.on('click', () => {
 
   HouseholderEvents.emit('modal:show');
 
 });
 
 // bind save even to save button
-DOM_CACHE.new_householder.save_button.on('click', function() {
+DOM_CACHE.new_householder.save_button.on('click', () => {
 
   $(this).attr('disabled', true);
   HouseholderEvents.emit('add');
@@ -125,20 +141,26 @@ DOM_CACHE.new_householder.save_button.on('click', function() {
  * Define Visit events
  */
 
-var VisitEvents = new EventEmitter();
+let VisitEvents = new EventEmitter();
 
-VisitEvents.on('add', function(){
+VisitEvents.on('add', () => {
 
-  var formData = form2js(DOM_CACHE.$visit_form[0]);
+  let formData = form2js(DOM_CACHE.$visit_form[0]);
+  // check for visit id in hidden input
+  let visitId = DOM_CACHE.$visit_form.attr('data-visit-id');
+  if(visitId !== ''){
+    // addVisitEndpoint += `?id=${visitId}`;
+    formData.visit.id = visitId;
+  }
   // stringify data
-  var jsonData = JSON.stringify(formData);
+  let jsonData = JSON.stringify(formData);
   return $.ajax({
     url: window.ajax_add_visit_url,
     method: 'post',
     data: jsonData,
     contentType: 'application/json',
   })
-  .done(function(res){
+  .done(res => {
     DOM_CACHE.$visit_form_submit_button.removeAttr('disabled');
     // init and show success modal and send to unit overview page
     if(res.error.type){
@@ -154,7 +176,7 @@ VisitEvents.on('add', function(){
     // on success redirect to unit overview page
     window.location.replace(window.unit_overview_url);
   })
-  .fail(function(jqXHR, textStatus, errorThrown){
+  .fail((jqXHR, textStatus, errorThrown) => {
     // show error modal
     DOM_CACHE.$errorModal.modal('show');
   });
@@ -162,7 +184,7 @@ VisitEvents.on('add', function(){
 });
 
 // bind add event to submit button
-DOM_CACHE.$visit_form_submit_button.on('click', function(){
+DOM_CACHE.$visit_form_submit_button.on('click', () => {
   $(this).attr('disabled', true);
   VisitEvents.emit('add');
 })

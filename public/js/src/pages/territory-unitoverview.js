@@ -5,8 +5,9 @@
 
 const $ = require('jquery');
 const _ = require('lodash');
+const {js2form} = require('form2js');
 const {EventEmitter} = require('events');
-const {reloadPage} = require('../../utils');
+const {reloadPage, redirect} = require('../../utils');
 
 const w$ = window.jQuery; // front end jquery
 
@@ -35,6 +36,7 @@ const DOM_CACHE = {
   },
   forms: {
     add_tag: w$('#add-tag-form'),
+    add_note: $('#add-note-form'),
   }
 };
 
@@ -183,9 +185,11 @@ UnitOptionEvents.on('note:add', function(){
 
   let $noteInput = $('#add-note-input');
   let $byInput = $('#add-note-by');
+  let $idInput = $('#add-note-id');
   let $errorContainer = $('#add-note-errors');
   let note = $noteInput.val();
   let by = $byInput.val();
+  let id = $idInput.val() || null;
 
   if(_.isEmpty(note)){
     $errorContainer.append('<div class="alert alert-danger" role="alert">Please enter a valid note</div>');
@@ -198,8 +202,9 @@ UnitOptionEvents.on('note:add', function(){
   // construct request body to convert to JSON
   let body = {
     note: {
-      note: note,
-      by: by,
+      note,
+      by,
+      id,
     }
   };
 
@@ -213,6 +218,7 @@ UnitOptionEvents.on('note:add', function(){
   .done(function(){
     $noteInput.val('');
     $byInput.val('');
+    $idInput.val('');
     reloadPage();
   })
   .fail(function(){
@@ -279,5 +285,137 @@ UnitOptionEvents.on('quicknote', function(type){
   this.emit('note:modal:show');
 
   $noteInput.val(quicknotes[type]);
+
+});
+
+/**
+ * Visit Options
+ */
+let VisitEvents = new EventEmitter();
+
+VisitEvents.on('delete', visitId => {
+
+  // construct remove visit id by replacing IDHERE w/ visit id
+  // FIXME: this is sloppy
+  let removeVisitEndpoint = localized.endpoints.remove_visit.replace('IDHERE', encodeURIComponent(visitId));
+
+  $.ajax({
+    url: removeVisitEndpoint,
+    type: 'POST',
+    contentType: "application/json"
+    })
+  .done(function(){
+    reloadPage();
+  })
+  .fail(function(){
+    showErrorModal();
+  });
+
+});
+
+// send to unit contacted page with id query param
+VisitEvents.on('edit', visitId => {
+
+  let editVisitUrl = localized.urls.edit_visit.replace('IDHERE', visitId);
+  redirect(editVisitUrl);
+
+});
+
+// bind event to delete button
+$('.visit-card').on('click', '.delete-option', (e) => {
+  // find parent for visit id
+  let visitId = $(e.target).closest('.visit-card').attr('data-visit-id');
+  VisitEvents.emit('delete', visitId);
+});
+
+// bind event to edit button
+$('.visit-card').on('click', '.edit-option', (e) => {
+  // find parent for visit id
+  let visitId = $(e.target).closest('.visit-card').attr('data-visit-id');
+  VisitEvents.emit('edit', visitId);
+});
+
+/**
+ * Note Options
+ */
+let NoteEvents = new EventEmitter();
+
+NoteEvents.on('delete', noteId => {
+
+  let deleteNoteEndpoint = localized.endpoints.remove_note.replace('IDHERE', noteId);
+
+  $.ajax({
+    url: deleteNoteEndpoint,
+    type: 'POST',
+    contentType: "application/json"
+    })
+  .done(function(){
+    reloadPage();
+  })
+  .fail(function(){
+    showErrorModal();
+  });
+
+});
+
+NoteEvents.on('edit', (note, by, noteId) => {
+
+  // populate form with note details
+  let formData = {
+    note,
+    by,
+    id: noteId,
+  };
+  js2form(DOM_CACHE.forms.add_note[0], formData, false);
+  UnitOptionEvents.emit('note:modal:show');
+
+});
+
+// bind delete to note delete button
+$('.note-card').on('click', '.delete-option', (e) => {
+
+  // find note id
+  let noteId = $(e.target).closest('.note-card').attr('data-note-id');
+  NoteEvents.emit('delete', noteId);
+
+});
+
+// bind modal open to note edit button
+$('.note-card').on('click', '.edit-option', (e) => {
+
+  let $noteCard = $(e.target).closest('.note-card');
+  let noteId = $noteCard.attr('data-note-id');
+  let noteText = $noteCard.find('.card-text p').text();
+  let noteBy = $noteCard.find('.card-header .note-by').text();
+
+  NoteEvents.emit('edit', noteText, noteBy, noteId);
+
+});
+
+let HouseholderEvents = new EventEmitter();
+
+HouseholderEvents.on('delete', householderId => {
+
+  let removeHouseholderEndpoint = localized.endpoints.remove_householder.replace('IDHERE', encodeURIComponent(householderId));
+
+  $.ajax({
+    url: removeHouseholderEndpoint,
+    type: 'POST',
+    contentType: "application/json"
+    })
+  .done(function(){
+    reloadPage();
+  })
+  .fail(function(){
+    showErrorModal();
+  });
+
+});
+
+// bind delete event to householder card
+$('.householder-card').on('click', '.delete-option', (e) => {
+
+  let householderId = $(e.target).closest('.householder-card').attr('data-householder-id');
+  HouseholderEvents.emit('delete', householderId);
 
 });

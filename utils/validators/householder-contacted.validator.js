@@ -14,7 +14,7 @@ const HouseholderContactedContraints = {
     }
   },
 
-  'publisher': {
+  'contacted_by': {
     presence: {
       allowEmpty: false,
       message: 'Please provide the name of the publisher who spoke to the householder'

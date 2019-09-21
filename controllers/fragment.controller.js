@@ -2,6 +2,7 @@
  * Fragment Controllers and Middleware;
  */
 const _ = require('lodash');
+const moment = require('moment');
 const appRoot = require('app-root-path');
 const HttpStatus = require('http-status-codes');
 
@@ -280,6 +281,17 @@ exports.unitOverview = (req, res) => {
   let renderVars = {
     // OPTIMIZE: this should be shortened
     // when session api is refactored
+    localize: {
+      endpoints: {
+        remove_visit: PBURLConstructor.getRoute('remove-visit').url({visitId: 'IDHERE'}),
+        remove_note: PBURLConstructor.getRoute('remove-note').url({noteId: 'IDHERE'}),
+        remove_householder: PBURLConstructor.getRoute('remove-householder').url({householderId: 'IDHERE'}),
+        edit_note: PBURLConstructor.getRoute('add-note').url(),
+      },
+      urls: {
+        edit_visit: PBURLConstructor.getRoute('unit-add-visit').url(null, {id: 'IDHERE'}),
+      }
+    },
     user: {
       first_name: req.session.first_name,
       last_name: req.session.last_name,
@@ -342,6 +354,21 @@ exports.householderContacted = (req, res) => {
   let block = res.locals.collected.blockRef;
   let fragment = res.locals.collected.fragment;
 
+  let visitId = req.query.id;
+  let visit = null;
+  if(visitId){
+    // discern whether using unit or subunit
+    let visitable = _.isEmpty(subunit) ? unit : subunit;
+    // find visit
+    visit = _.find(visitable.visits, ['id', visitId]);
+    if(!visit) return res.status(404).send();
+    visit = visit.toObject();
+
+    // split time into date into human readable formats
+    visit.date = moment(visit.timestamp).format('MMMM Do, YYYY');
+    visit.time = moment(visit.timestamp).format('h:mm A');
+  }
+
   let subunitQueryParam = _.isEmpty(subunit) ? null : {'subunit': subunit.name};
 
   PBURLConstructor.setGlobal('street_name', block.street);
@@ -360,14 +387,18 @@ exports.householderContacted = (req, res) => {
   };
 
   let renderVars = {
-   ajax_add_visit_url: PBURLConstructor.getRoute('add-visit').url(urlParams, subunitQueryParam),
-   ajax_add_householder_url: PBURLConstructor.getRoute('add-householder').url(urlParams, subunitQueryParam),
-   subunit: _.isEmpty(subunit) ? false : true,
-   // only padding in name and gender for householders
-   householders: unit.householders.map(h => _.pick(h, 'name', 'gender')),
-   number: unit.number,
-   unit_overview_url: PBURLConstructor.getRoute('unit-overview').url(urlParams, subunitQueryParam),
-   street: block.street,
+    localize: {
+      visit,
+    },
+    ajax_add_visit_url: PBURLConstructor.getRoute('add-visit').url(urlParams, subunitQueryParam),
+    ajax_add_householder_url: PBURLConstructor.getRoute('add-householder').url(urlParams, subunitQueryParam),
+    subunit: _.isEmpty(subunit) ? false : true,
+    // only padding in name and gender for householders
+    householders: unit.householders.map(h => _.pick(h, 'name', 'gender')),
+    number: unit.number,
+    unit_overview_url: PBURLConstructor.getRoute('unit-overview').url(urlParams, subunitQueryParam),
+    street: block.street,
+    visit,
   };
 
   res.render('Territory/HouseholderContacted', renderVars);

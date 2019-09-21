@@ -52,7 +52,7 @@ describe('AJAX Territory > Unit Controllers', () => {
         visit: {
           householders_contacted: ['Michael', 'Dwight'],
           details: 'Dwight is preparing Michael for Jans baby',
-          publisher: 'Julian',
+          contacted_by: 'Julian',
           date: 'August 21st, 2019',
           time: '8:30 AM',
         }
@@ -86,7 +86,7 @@ describe('AJAX Territory > Unit Controllers', () => {
           householders_contacted: ['Michael', 'Dwight'],
           contacted_by: 'Jan Levenson Gould',
           details: 'Dwight is preparing Michael for Jans baby',
-          publisher: 'Julian',
+          contacted_by: 'Julian',
           date: 'August 21st, 2019',
           time: '8:30 AM',
         }
@@ -279,6 +279,33 @@ describe('AJAX Territory > Unit Controllers', () => {
 
   });
 
+  describe('removeHouseholder', () => {
+
+    it('should remove householder from unit', async () => {
+
+      let seedHouseholder = seedUnit.addHouseholder('John', 'male', 'hernandez.julian17@gmail.com', '2154000468');
+      expect(seedUnit.householders).to.have.lengthOf(1);
+
+      let res = mockResponse({locals: {territory: seedTerritory, collected: {street: seedStreet, hundred: seedHundred, unit: seedUnit}}});
+      let req = mockRequest({query: {id: seedHouseholder.id.toString()}});
+
+      sinon.spy(AjaxResponse.prototype, 'data');
+      sinon.spy(AjaxResponse.prototype, 'error');
+
+      await unitController.removeHouseholder(req, res);
+
+      expect(seedUnit.householders).to.have.lengthOf(0);
+
+      expect(AjaxResponse.prototype.error).to.not.have.been.called;
+      expect(AjaxResponse.prototype.data).to.have.been.calledWith('householder');
+
+      AjaxResponse.prototype.data.restore();
+      AjaxResponse.prototype.error.restore();
+
+    });
+
+  });
+
   describe('addNote', () => {
 
     it('should add note to unit', async () => {
@@ -300,6 +327,35 @@ describe('AJAX Territory > Unit Controllers', () => {
       expect(AjaxResponse.prototype.data.getCall(0).args[1]).to.have.property('_id');
       expect(AjaxResponse.prototype.send).to.have.been.calledOnce;
       expect(seedUnit.notes).to.have.lengthOf(1);
+
+      AjaxResponse.prototype.data.restore();
+      AjaxResponse.prototype.send.restore();
+
+    });
+
+  });
+
+  describe('removeNote', () => {
+
+    it('should remove note on', async () => {
+
+      let seedNote = seedUnit.addNote({
+        by: 'Julian Hernandez',
+        note: 'This is a general note',
+      });
+
+      let res = mockResponse({locals: {territory: seedTerritory, collected: {street: seedStreet, hundred: seedHundred, unit: seedUnit}}});
+      let req = mockRequest({query: {id: seedNote.id.toString()}});
+
+      sinon.spy(AjaxResponse.prototype, 'data');
+      sinon.spy(AjaxResponse.prototype, 'send');
+
+      await unitController.removeNote(req, res);
+
+      expect(res.status).to.not.have.been.calledWith(HttpStatus.NOT_ACCEPTABLE);
+      expect(AjaxResponse.prototype.data).to.have.been.calledOnceWith('note');
+      expect(AjaxResponse.prototype.send).to.have.been.calledOnce;
+      expect(seedUnit.notes).to.have.lengthOf(0);
 
       AjaxResponse.prototype.data.restore();
       AjaxResponse.prototype.send.restore();

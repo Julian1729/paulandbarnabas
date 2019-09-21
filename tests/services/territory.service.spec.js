@@ -434,6 +434,28 @@ describe('Territory Service', () => {
 
   });
 
+  describe('removeUnitHouseholder', () => {
+
+    it('should remove householder from unit', async () => {
+
+      // add street
+      let seedStreet = seedTerritory.addStreet('Overington', {skipExistenceCheck: true});
+      let seedHundred = seedStreet.addHundred(1200);
+      seedHundred.addUnits([{number: 1202}, {number: 1204}, {number: 1205}, {number: 1206, subunits: ['Apt 1', 'Apt 2']}]);
+      let seedUnit = seedHundred.findUnit(1202);
+
+      let seedHouseholder = seedUnit.addHouseholder('John', 'male', 'hernandez.julian17@gmail.com', '2154000468');
+      expect(seedUnit.householders).to.have.lengthOf(1);
+
+      let householder = await territoryServices.removeUnitHouseholder(seedTerritory, seedUnit, seedHouseholder.id);
+
+      expect(householder).to.have.property('_id');
+      expect(seedUnit.householders).to.have.lengthOf(0);
+
+    });
+
+  });
+
   describe('addUnitNote', () => {
 
     it('should add note to unit', async () => {
@@ -450,6 +472,29 @@ describe('Territory Service', () => {
 
       expect(note).to.have.property('_id');
       expect(seedUnit.notes).to.have.lengthOf(1);
+
+    });
+
+  });
+
+  describe('removeUnitNote', () => {
+
+    it('should add note to unit', async () => {
+
+      let seedStreet = seedTerritory.addStreet('Oakland');
+      let seedHundred = seedStreet.addHundred(4500);
+      seedHundred.addUnits([{number: 4504}, {number: 4502}]);
+      let seedUnit = seedHundred.findUnit(4502);
+      let seedNote = seedUnit.addNote({
+        by: 'Julian',
+        note: 'This is a new note',
+      });
+      expect(seedUnit.notes).to.have.lengthOf(1);
+
+      let note = await territoryServices.removeNote(seedTerritory, seedUnit, seedNote.id);
+
+      expect(note).to.have.property('_id');
+      expect(seedUnit.notes).to.have.lengthOf(0);
 
     });
 

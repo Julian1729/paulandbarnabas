@@ -255,9 +255,23 @@ exports.addUnitHouseholder = async (territoryDoc, unit, householderInfo) => {
 
 };
 
+exports.removeUnitHouseholder = async (territoryDoc, unit, householderId) => {
+
+  if(typeof unit.removeHouseholder !== 'function'){
+    throw new TypeError('territoryServices.addUnitHouseholder expects second parameter to be a unit or subunit mongoose document');
+  }
+
+  let householder = unit.removeHouseholder(householderId);
+
+  await territoryDoc.save();
+
+  return householder;
+
+};
+
 exports.addNote = async (territoryDoc, notable, noteObj) => {
 
-  if(typeof notable.addTag !== 'function'){
+  if(typeof notable.addNote !== 'function'){
     throw new TypeError('territoryServices.addNote expects second parameter to be a unit or subunit mongoose document');
   }
 
@@ -266,6 +280,20 @@ exports.addNote = async (territoryDoc, notable, noteObj) => {
   await territoryDoc.save();
 
   return newNote;
+
+};
+
+exports.removeNote = async (territoryDoc, notable, noteId) => {
+
+  if(typeof notable.removeNote !== 'function'){
+    throw new TypeError('territoryServices.removeNote expects second parameter to be a unit or subunit mongoose document');
+  }
+
+  let removedNote = notable.removeNote(noteId);
+
+  await territoryDoc.save();
+
+  return removedNote;
 
 };
 

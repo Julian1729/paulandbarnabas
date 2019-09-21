@@ -32,15 +32,11 @@ router.post('/tag/remove', () => {
 
 // Householders
 router.post('/householder/add', unitController.addHouseholder);
-router.post('/householder/remove', () => {
-  res.send('/householder/remove NOT YET IMPLEMENTED');
-});
+router.post('/householder/remove', unitController.removeHouseholder);
 
 // Notes
 router.post('/note/add', unitController.addNote);
-router.post('/note/remove', () => {
-  res.send('/note/remove NOT YET IMPLEMENTED');
-});
+router.post('/note/remove', unitController.removeNote);
 
 // Metadata
 // router.get('/meta', unitController.meta);

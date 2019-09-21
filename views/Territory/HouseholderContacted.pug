@@ -38,7 +38,8 @@ append content
             button.btn.btn-primary#save-new-householder save
           
   .container.mw720
-    form#add-visit-form
+    form#add-visit-form(data-visit-id=visit._id)
+      //- store visit id here in hidden input
       
       #visit-form-errors
       
@@ -59,7 +60,7 @@ append content
         small.text-muted who spoke to them?
         
         .input-group
-          input(type="text" placeholder="Brother Zealous" name="visit.publisher").form-control
+          input(type="text" placeholder="Brother Zealous" name="visit.contacted_by").form-control
         //- hidden below not wired up in backend yet
         .input-group.d-none
           small.text-muted will this publisher now be consistently returning on this unit?
@@ -87,7 +88,6 @@ append content
             .col
               input(type="text", name="visit.time")#visit-time-picker
 
-      
       button.btn.btn-primary(type="button", id="visit-form-submit") save visit
   
   .row.my-3

@@ -34,3 +34,15 @@ ul.tags {
  * */
 .mw720 {
   max-width: 720px !important; }
+
+/**
+ * Miscellaneous
+ * */
+.card-options-button {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  padding: 10px; }
+
+.dropdown-item {
+  font-size: 62.5%; }

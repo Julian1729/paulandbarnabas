@@ -177,7 +177,7 @@ const {helpers, logger} = require(`${appRoot}/utils`);
    function removeHouseholder(id){
     logger.debug(`Removing householder with id ${id}`);
     // cast to object id
-    this.householders.id(id).remove();
+    return this.householders.id(id).remove();
   };
 
   function addVisit(visitObj){

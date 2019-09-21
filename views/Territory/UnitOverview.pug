@@ -20,6 +20,7 @@ append content
                 .form-group
                   label new tag
                   input#add-tag-input(type="text" name="tag").form-control
+                  input(type="hidden" value="")
             .modal-footer
               button.btn.btn-secondary(data-dismiss="modal") close
               button.btn.btn-primary#add-tag-submit-btn add
@@ -31,14 +32,15 @@ append content
           .modal-header
             h5 New note
           .modal-body
-            form
+            form#add-note-form
               .form-errors#add-note-errors
               .form-group
                 label note
                 textarea(type="text", name="note").form-control#add-note-input
               .form-group
                 label by
-                input(type="text", name="note", value=`${user.first_name} ${user.last_name}`).form-control#add-note-by
+                input(type="text", name="by", value=`${user.first_name} ${user.last_name}`).form-control#add-note-by
+              input(type="hidden" name="id")#add-note-id
           .modal-footer
             button.btn.btn-secondary(data-dismiss="modal") close
             button.btn.btn-primary#add-note-submit-btn save
@@ -62,7 +64,7 @@ append content
     .row.align-items-center.d-flex.flex-column
       a(href=householder_contacted_url).btn.btn-primary.btn-lg.mb-2 householder contacted
       button.nav-item.dropdown.btn.btn-secondary.btn-sm(data-toggle='dropdown') options
-        .dropdown-menu(aria-labelledby='navbarDropdown', style='font-size: 62.5%')
+        .dropdown-menu(aria-labelledby='navbarDropdown')
           each option in options 
             a.dropdown-item(id=option.id)= option.title
       h6.my-2 tags
@@ -80,8 +82,12 @@ append content
       
     .row
       each householder in householders
-        .card.mr-sm-2
-          .card-header= householder.name
+        .card.mr-sm-2.householder-card(data-householder-id=householder._id)
+          .card-header
+            span= householder.name
+            i.icon.ion-md-more.card-options-button(data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
+            .dropdown-menu
+              span.dropdown-item.delete-option delete
           .card-body 
             p 
               small= householder.gender
@@ -103,8 +109,14 @@ append content
     
     .row
       each visit in visits
-        .card.my-3
-          .card-header= visit.contacted_by
+        .card.my-3.visit-card(data-visit-id= visit.id)
+          .card-header
+            span= visit.contacted_by
+            i.icon.ion-md-more.card-options-button(data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
+            .dropdown-menu
+              span.dropdown-item.delete-option delete
+              span.dropdown-item.edit-option edit
+                
           .card-body
             .card-text
               p 
@@ -122,8 +134,13 @@ append content
       h4 notes
     .row  
       each note in notes
-        .card.my-3.mx-1
-          .card-header= note.by
+        .card.my-3.mx-1.note-card(data-note-id=note._id)
+          .card-header
+            span.note-by= note.by
+            i.icon.ion-md-more.card-options-button(data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
+            .dropdown-menu
+              span.dropdown-item.delete-option delete
+              span.dropdown-item.edit-option edit
           .card-body
             .card-text
               p= note.note

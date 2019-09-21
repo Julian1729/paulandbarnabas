@@ -33,11 +33,6 @@ exports.addVisit = async (req, res) => {
   delete visitData.date;
   delete visitData.time;
 
-  // rename publisher to contacted_by
-  // FIXME: this is sloppy
-  visitData.contacted_by = visitData.publisher;
-  delete visitData.publisher;
-
   let visit = await territoryServices.visitUnit(territoryDoc, unit, visitData);
 
   // add visit to response data object and send response
@@ -200,26 +195,21 @@ exports.addHouseholder = async (req, res) => {
 /**
  * Remove a housholder from unit
  */
-// exports.removeHouseholder = (req, res) => {
-//
-//   let reqHouseholder = req.query.id;
-//   if(!reqHouseholder) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
-//
-//   let territory = req.app.locals.territory;
-//   let unit = territory.current.subunit || territory.current.unit;
-//
-//   unit.removeHouseholder(reqHouseholder);
-//
-//   territory.territory.save()
-//     .then(t => {
-//       return res.send();
-//     })
-//     .catch(e => {
-//       console.log(e.stack);
-//       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-//     });
-//
-// };
+exports.removeHouseholder = async (req, res) => {
+
+  let ajaxRes = new AjaxResponse(res);
+
+  let householderId = req.query.id;
+  if(!householderId) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
+
+  let territory = res.locals.territory;
+  let unit = res.locals.collected.subunit || res.locals.collected.unit;
+
+  let removedHouseholder = await territoryServices.removeUnitHouseholder(territory, unit, householderId);
+
+  return ajaxRes.data('householder', removedHouseholder).send();
+
+};
 
 /**
  * Add a note to unit or subunit
@@ -236,33 +226,28 @@ exports.addNote = async (req, res) => {
 
   let note = await territoryServices.addNote(territoryDoc, unit, noteData);
 
-  ajaxRes.data('note', note).send();
+  return ajaxRes.data('note', note).send();
 
 };
 
 /**
  * Remove note from unit or subunit
  */
-// exports.removeNote = (req, res) => {
-//
-//   let noteId = req.query.id;
-//   if(!noteId) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
-//
-//   let territory = req.app.locals.territory;
-//   let unit = territory.current.subunit || territory.current.unit;
-//
-//   unit.removeNote(noteId);
-//
-//   territory.territory.save()
-//     .then(t => {
-//       return res.send();
-//     })
-//     .catch(e => {
-//       console.log(e.stack);
-//       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send();
-//     });
-//
-// };
+exports.removeNote = async (req, res) => {
+
+  let ajaxRes = new AjaxResponse(res);
+
+  let noteId = req.query.id;
+  if(!noteId) return res.status(HttpStatus.NOT_ACCEPTABLE).send();
+
+  let territory = res.locals.territory;
+  let unit = res.locals.collected.subunit || res.locals.collected.unit;
+
+  let removedNote = await territoryServices.removeNote(territory, unit, noteId);
+
+  return ajaxRes.data('note', removedNote).send();
+
+};
 
 /**
  * Set a meta property on unit

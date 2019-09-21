@@ -45,6 +45,7 @@ PBURLConstructor.addRoute('add-tag', `${ajaxUnitBase}/tag/add`);
 
 // Notes
 PBURLConstructor.addRoute('add-note', `${ajaxUnitBase}/note/add`);
+PBURLConstructor.addRoute('remove-note', `${ajaxUnitBase}/note/remove?id=:noteId`);
 // FIXME: add remove-note
 
 // Do Not Call
@@ -57,9 +58,11 @@ PBURLConstructor.addRoute('unmark-calledon', `${ajaxUnitBase}/meta/?calledon=0`)
 
 // Add Householder
 PBURLConstructor.addRoute('add-householder', `${ajaxUnitBase}/householder/add`);
+PBURLConstructor.addRoute('remove-householder', `${ajaxUnitBase}/householder/remove?id=:householderId`);
 
 // Add Visit
 PBURLConstructor.addRoute('add-visit', `${ajaxUnitBase}/visit/add`);
+PBURLConstructor.addRoute('remove-visit', `${ajaxUnitBase}/visit/remove?id=:visitId`);
 
 /**
  * Ajax Account Endpoints
