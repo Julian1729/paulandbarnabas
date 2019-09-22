@@ -39,6 +39,15 @@ append content
           
   .container.mw720
     
+    h1 #{number} #{street}
+    if subunit
+      h5= name
+    else
+      
+      h6
+        i= name
+    hr
+    
     form#add-visit-form(data-visit-id=visit ? visit._id : '')
           
       #visit-form-errors
@@ -49,7 +58,7 @@ append content
         .btn-group-toggle(data-toggle="buttons")#householder-options
           each householder, index in householders
             - var id = `hh-${index}`
-            label(for=id).btn.btn-secondary.m-1= householder.name
+            label(for=id).btn.btn-secondary.mr-1= householder.name
               input(type="checkbox" id=id value=householder.name name="visit.householders_contacted[]")
           button.btn.btn-info.m-1#new-householder-button new householder
       
@@ -60,7 +69,7 @@ append content
         small.text-muted who spoke to them?
         
         .input-group
-          input(type="text" placeholder="Brother Zealous" name="visit.contacted_by").form-control
+          input(type="text" placeholder="Simon Peter" name="visit.contacted_by").form-control
         //- hidden below not wired up in backend yet
         .input-group.d-none
           small.text-muted will this publisher now be consistently returning on this unit?
@@ -87,7 +96,7 @@ append content
               p.text-muted at
             .col
               input(type="text", name="visit.time")#visit-time-picker
-
+      a(href=unit_overview_url).mr-1.align-bottom back
       button.btn.btn-primary(type="button", id="visit-form-submit") save visit
   
   .row.my-3

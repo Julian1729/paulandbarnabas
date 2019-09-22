@@ -396,6 +396,7 @@ exports.householderContacted = (req, res) => {
     // only padding in name and gender for householders
     householders: unit.householders.map(h => _.pick(h, 'name', 'gender')),
     number: unit.number,
+    name: (subunit.name || null),
     unit_overview_url: PBURLConstructor.getRoute('unit-overview').url(urlParams, subunitQueryParam),
     street: block.street,
     visit,
