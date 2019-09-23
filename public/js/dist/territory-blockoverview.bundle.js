@@ -33603,9 +33603,11 @@ const DOM_CACHE = {
     e.preventDefault();
     $submitBtn.attr('disabled', true);
     let formData = form2js('mark-block-worked-form');
-    let timestamp = moment(formData.date + (formData.time ? ' ' + formData.time : ''), 'MMMM Do, YYYY h:mm A' ).valueOf();
+    // default time to
+    let timestamp = moment(`${formData.date} ${formData.time || moment().format('hh:mm A')}`, 'MMMM Do, YYYY hh:mm A' ).valueOf();
+    let markBlockWorkedEndpoint = localized.endpoints.mark_block_worked.replace('TIMEHERE', timestamp);
     $.ajax({
-      url: localized.endpoints.mark_block_worked,
+      url: markBlockWorkedEndpoint,
       method: 'post',
       success: reloadPage,
       error: error_modals.request_error_modal.show,

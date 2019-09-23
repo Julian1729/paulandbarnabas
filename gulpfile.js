@@ -122,6 +122,13 @@ gulp.task('set-development-env-var', function(){
   return process.env.NODE_ENV = 'development';
 });
 
+/**
+ * Set timezone env var
+ */
+gulp.task('set-timezone-env-var', function(){
+  return process.env.TZ = 'America/New_York';
+});
+
 gulp.task('watch-public', function(){
 
   gulp.watch(CONFIG.css.sass, ['build-css-development']);
@@ -132,7 +139,7 @@ gulp.task('watch-public', function(){
 /**
  * Run necessary build tasks, then watch for changes with nodemon
  */
-gulp.task('start', ['set-development-env-var', 'bundle-all', 'build-css-development', 'watch-public'], function(){
+gulp.task('start', ['set-development-env-var', 'set-timezone-env-var', 'bundle-all', 'build-css-development', 'watch-public'], function(){
   nodemon({
     script: 'app.js',
     ext: 'js',
