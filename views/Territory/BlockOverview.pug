@@ -85,15 +85,42 @@ append content
           - classes = classes + " list-group-item-success"
         
         li(class=classes, data-toggle=(unit.subunits.length ? 'collapse' : ''), data-target=(unit.subunits.length ? `.${subunitTargetClass}` : ''))
-          if unit.subunits.length
-            span= unit.number
           
-          else  
+          div 
+            if unit.subunits.length
+              span= unit.number
             
-            a(href=unit.overview_url)= unit.number
+            else  
+              
+              a(href=unit.overview_url)= unit.number
+          
+          div
             
-          each tag in unit.tags
-            span.badge.badge-primary.badge-pill= tag
+            if unit.tags.length <= 3
+              
+              each tag in unit.tags
+                span.badge.badge-primary.badge-pill= tag
+            
+            else 
+              
+              //- display visit count
+              span.badge.badge-dark.mx-1 tags 
+                span.badge.badge-light= unit.tags.length
+                
+            if unit.counts.visits
+              //- display visit count
+              span.badge.badge-dark.mx-1 visits 
+                span.badge.badge-light= unit.counts.visits
+            
+            if unit.counts.householders
+              //- display householder count
+              span.badge.badge-dark.mx-1 householders 
+                span.badge.badge-light= unit.counts.householders
+            
+            if unit.counts.notes
+              //- display note count
+              span.badge.badge-dark.mx-1 notes 
+                span.badge.badge-light= unit.counts.notes
         
         if unit.subunits.length
           each subunit in unit.subunits

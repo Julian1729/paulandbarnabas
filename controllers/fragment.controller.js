@@ -102,7 +102,12 @@ exports.blockOverview = (req, res) => {
       visits: (u.visits.length) ? true : false,
       iscalledon: u.iscalledon,
       isdonotcall: u.isdonotcall,
-      tags: u.tags
+      tags: u.tags,
+      counts: {
+        notes: u.notes.length,
+        visit: u.visits.length,
+        householders: u.householders.length,
+      },
     };
     // handle subunits
     if(u.subunits){
