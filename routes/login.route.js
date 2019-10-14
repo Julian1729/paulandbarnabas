@@ -10,4 +10,7 @@ router.all('/', authenticationMiddleware.loggedInRedirect);
 // Landing Page
 router.get('/', loginController.land);
 
+// Tempororay Roosevelt general login
+router.get('/rgu', loginController.rooseveltGeneralUser);
+
 module.exports = router;
