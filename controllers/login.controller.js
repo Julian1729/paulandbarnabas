@@ -33,8 +33,8 @@ exports.rooseveltGeneralUser = async (req, res) => {
     let session = new Session(req);
     await session.create(user);
 
-    let dashboardUrl = PBURLConstructor.getRoute('dashboard').url();
+    // let dashboardUrl = PBURLConstructor.getRoute('dashboard').url();
 
-    return res.redirect(dashboardUrl);
+    return res.redirect('/dashboard');
 
 };
