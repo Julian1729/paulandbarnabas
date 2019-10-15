@@ -128,6 +128,9 @@ exports.blockOverview = (req, res) => {
     return obj;
   });
 
+  // sort units by number
+  formattedUnits = _.sortBy(formattedUnits, ['number']);
+
   let renderVars = {
     localize: {
       endpoints: {

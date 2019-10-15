@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const appRoot = require('app-root-path');
 
 const {PBURLConstructor} = require(`${appRoot}/utils`);
@@ -28,12 +29,18 @@ exports.createTerritory = async (req, res) => {
 
   });
 
+  // sort streets by name
+  streets = _.sortBy(streets, 'name');
+
   // pass in all available fragment stats
   let fragments = [];
   for (let fragment of territoryDoc.fragments) {
     let stats = await territoryServices.fragmentStats(territoryDoc, fragment.number);
     fragments.push(stats);
   }
+
+  // sort fragments by number
+  fragments = _.sortBy(fragments, 'number');
 
   let renderVars = {
     localize: {
@@ -59,6 +66,8 @@ exports.createFragment = async (req, res) => {
 
   // pass in list of users
   let users = await congregationServices.getUsers(req.session.congregation, 'first_name last_name _id');
+  // sort users by name
+  users = _.sortBy(users, ['first_name', 'last_name']);
 
   let streets = territoryDoc.streets.map(street => {
 
@@ -72,6 +81,9 @@ exports.createFragment = async (req, res) => {
     return obj;
 
   });
+
+  // organize streets by name
+  streets = _.sortBy(streets, 'name');
 
   let renderVars = {
     localize: {

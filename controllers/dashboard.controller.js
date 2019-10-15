@@ -39,6 +39,8 @@ exports.land = async (req, res) => {
 
   });
 
+  renderVars.fragments = _.sortBy(renderVars.fragments, ['number']);
+
   renderVars.dashboard_stats.fragment_count = userFragments.length;
   renderVars.dashboard_stats.unit_count = _.sum(fragmentStats.map(f => f.unit_count));
 
