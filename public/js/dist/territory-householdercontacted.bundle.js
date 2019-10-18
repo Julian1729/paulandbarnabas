@@ -34860,6 +34860,10 @@ HouseholderEvents.on('add', () => {
     contentType: "application/json"
   })
   .done(res => {
+    gtag('event', 'householder-add', {
+      event_label: 'unit',
+      event_category: 'territory-record'
+    });
     //re enable save button
     DOM_CACHE.new_householder.save_button.removeAttr('disabled');
     if(res.error.type && !res.data.householder){
@@ -34933,6 +34937,10 @@ VisitEvents.on('add', () => {
     if(!res.data.visit){
       return DOM_CACHE.$errorModal.modal('show');
     }
+    gtag('event', 'visit-add', {
+      event_label: 'unit',
+      event_category: 'territory-record',
+    });
     // on success redirect to unit overview page
     window.location.replace(window.unit_overview_url);
   })

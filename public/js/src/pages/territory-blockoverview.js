@@ -64,7 +64,13 @@ const DOM_CACHE = {
     $.ajax({
       url: markBlockWorkedEndpoint,
       method: 'post',
-      success: reloadPage,
+      success: function(){
+        gtag('event', 'worked', {
+          event_label: 'block',
+          event_category: 'territory-record'
+        });
+        reloadPage();
+      },
       error: error_modals.request_error_modal.show,
     });
   };
@@ -107,6 +113,10 @@ const DOM_CACHE = {
       type: 'POST',
     })
     .done(function(r){
+      gtag('event', 'tag-add', {
+        event_label: 'block',
+        event_category: 'territory-record'
+      });
       $input.val('');
       // FIXME: bad UX, should close modal and add to to list w js
       reloadPage();

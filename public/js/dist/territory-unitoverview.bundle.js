@@ -29088,6 +29088,11 @@ UnitOptionEvents.on('tag:add', function(tag){
   })
   .done(function(r){
     $input.val('');
+    // send label to ga
+    gtag('event', 'tag-add', {
+      event_label: 'unit',
+      event_category: 'territory-record'
+    });
     // FIXME: bad UX, should close modal and add to to list w js
     reloadPage();
   })
@@ -29145,6 +29150,10 @@ UnitOptionEvents.on('note:add', function(){
     contentType: "application/json"
     })
   .done(function(){
+    gtag('event', 'note-add', {
+      event_label: 'unit',
+      event_category: 'territory-record'
+    });
     $noteInput.val('');
     $byInput.val('');
     $idInput.val('');
@@ -29163,7 +29172,13 @@ UnitOptionEvents.on('dnc:mark', function(){
     url: unitOptions.dnc.mark.endpoint,
     type: 'POST',
   })
-  .done(reloadPage)
+  .done(function(){
+    gtag('event', 'donotcall-mark', {
+      event_label: 'unit',
+      event_category: 'territory-record'
+    });
+    reloadPage();
+  })
   .fail(showErrorModal);
 
 });
@@ -29174,7 +29189,13 @@ UnitOptionEvents.on('dnc:unmark', function(){
     url: unitOptions.dnc.unmark.endpoint,
     type: 'POST',
   })
-  .done(reloadPage)
+  .done(function(){
+    gtag('event', 'donotcall-unmark', {
+      event_label: 'unit',
+      event_category: 'territory-record'
+    });
+    reloadPage();
+  })
   .fail(showErrorModal);
 
 });
@@ -29185,7 +29206,13 @@ UnitOptionEvents.on('calledon:mark', function(){
     url: unitOptions.calledon.mark.endpoint,
     type: 'POST',
   })
-  .done(reloadPage)
+  .done(function(){
+    gtag('event', 'calledon-mark', {
+      event_label: 'unit',
+      event_category: 'territory-record'
+    });
+    reloadPage();
+  })
   .fail(showErrorModal);
 
 });
@@ -29196,13 +29223,24 @@ UnitOptionEvents.on('calledon:unmark', function(){
     url: unitOptions.calledon.unmark.endpoint,
     type: 'POST',
   })
-  .done(reloadPage)
+  .done(function(){
+    gtag('event', 'calledon-unmark', {
+      event_label: 'unit',
+      event_category: 'territory-record'
+    });
+    reloadPage();
+  })
   .fail(showErrorModal);
 
 });
 
 // set note input to predefined text and open modal
 UnitOptionEvents.on('quicknote', function(type){
+
+  gtag('event', 'quicknote', {
+    event_label: 'unit',
+    event_category: 'engagement'
+  });
 
   let $noteInput = $('#add-note-input');
 
