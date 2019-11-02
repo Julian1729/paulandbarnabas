@@ -27,7 +27,7 @@
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "mongodb": "^3.3.2",
-    "mongoose": "^5.6.11",
+    "mongoose": "^5.7.5",
     "mongoose-unique-validator": "^2.0.3",
     "morgan": "^1.9.1",
     "mustache": "^3.0.3",
